@@ -1,0 +1,19 @@
+# OS  
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Environment variables
+.env
+
+# Git worktrees
+.worktrees/
+
+# 原始对话导出（包含未脱敏信息，禁止直接提交）
+chat-logs/
+# 但不忽略 .gitkeep 文件（取反规则）
+!chat-logs/.gitkeep
+chat-logs/**/.git
