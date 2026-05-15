@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anki划词助手 - v0.1</title>
+<style>
+  /* ===== Fluent 2 Light Theme Tokens ===== */
+  :root {
+    /* Backgrounds */
+    --bg-app: #f5f5f5;
+    --bg-card: #ffffff;
+    --bg-card-hover: #ebebeb;
+    --bg-card-pressed: #e0e0e0;
+    --bg-card-selected: #e8e8e8;
+    --bg-input: #ffffff;
+    --bg-surface-overlay: rgba(0,0,0,0.4);
+    --bg-subtle: transparent;
+    --bg-subtle-hover: #e8e8e8;
+    --bg-subtle-pressed: #dedede;
+    --bg-subtle-selected: #e8e8e8;
+    --bg-brand: #0078d4;
+    --bg-brand-hover: #106ebe;
+    --bg-brand-pressed: #004578;
+
+    /* Foregrounds */
+    --fg-1: #1a1a1a;
+    --fg-2: #424242;
+    --fg-3: #616161;
+    --fg-4: #808080;
+    --fg-disabled: #b0b0b0;
+    --fg-brand: #0078d4;
+    --fg-on-brand: #ffffff;
+    --fg-link: #0078d4;
+    --fg-link-hover: #005a9e;
+
+    /* Strokes */
+    --stroke-1: #d1d1d1;
+    --stroke-2: #e0e0e0;
+    --stroke-3: #e8e8e8;
+    --stroke-focus: #000000;
+    --stroke-brand: #0078d4;
+    --stroke-on-brand: #ffffff;
+    --stroke-subtle: #f0f0f0;
+
+    /* Status */
+    --status-success-bg: #dff6dd;
+    --status-success-fg: #0e700e;
+    --status-success-border: #9fd89f;
+    --status-warning-bg: #fff4ce;
+    --status-warning-fg: #8a6d00;
+    --status-warning-border: #f0c643;
+    --status-danger-bg: #fde7e9;
+    --status-danger-fg: #c42b1c;
+    --status-danger-border: #f1a6a8;
+    --status-brand-bg: #e8f2fc;
+    --status-brand-fg: #0078d4;
+
+    /* Typography */
+    --font-base: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+    --font-mono: Consolas, 'Courier New', Courier, monospace;
+    --font-size-100: 10px;
+    --font-size-200: 12px;
+    --font-size-300: 14px;
+    --font-size-400: 16px;
+    --font-size-500: 20px;
+    --font-size-600: 24px;
+    --font-size-700: 28px;
+    --line-height-100: 14px;
+    --line-height-200: 16px;
+    --line-height-300: 20px;
+    --line-height-400: 22px;
+    --line-height-500: 28px;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+
+    /* Spacing */
+    --space-xxs: 2px;
+    --space-xs: 4px;
+    --space-s-nudge: 6px;
+    --space-s: 8px;
+    --space-m-nudge: 10px;
+    --space-m: 12px;
+    --space-l: 16px;
+    --space-xl: 20px;
+    --space-xxl: 24px;
+
+    /* Border Radius */
+    --radius-none: 0;
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-lg: 6px;
+    --radius-xl: 8px;
+    --radius-circular: 10000px;
+
+    /* Shadows */
+    --shadow-2: 0 0 2px rgba(0,0,0,0.24), 0 4px 8px rgba(0,0,0,0.28);
+    --shadow-4: 0 0 2px rgba(0,0,0,0.24), 0 8px 16px rgba(0,0,0,0.28);
+    --shadow-8: 0 0 2px rgba(0,0,0,0.24), 0 16px 32px rgba(0,0,0,0.28);
+
+    /* Stroke widths */
+    --stroke-width-thin: 1px;
+    --stroke-width-thick: 2px;
+
+    /* Dynamic color vars (light defaults) */
+    --scrollbar-thumb: rgba(0,0,0,0.15);
+    --scrollbar-thumb-hover: rgba(0,0,0,0.25);
+    --word-selected-hover: #cce4f9;
+    --empty-entry-hover: rgba(0,0,0,0.03);
+    --pos-tag-bg: rgba(0,0,0,0.05);
+  }
+
+  /* ===== Fluent 2 Dark Theme Tokens ===== */
+  [data-theme="dark"] {
+    --bg-app: #202020;
+    --bg-card: #292929;
+    --bg-card-hover: #3d3d3d;
+    --bg-card-pressed: #1f1f1f;
+    --bg-card-selected: #333333;
+    --bg-input: #1f1f1f;
+    --bg-surface-overlay: rgba(0,0,0,0.5);
+    --bg-subtle-hover: #383838;
+    --bg-subtle-pressed: #2e2e2e;
+    --bg-subtle-selected: #333333;
+    --bg-brand: #0078d4;
+    --bg-brand-hover: #106ebe;
+    --bg-brand-pressed: #004578;
+
+    --fg-1: #ffffff;
+    --fg-2: #d6d6d6;
+    --fg-3: #adadad;
+    --fg-4: #999999;
+    --fg-disabled: #5c5c5c;
+    --fg-brand: #479ef5;
+    --fg-on-brand: #ffffff;
+    --fg-link: #479ef5;
+    --fg-link-hover: #62abf5;
+
+    --stroke-1: #666666;
+    --stroke-2: #525252;
+    --stroke-3: #3d3d3d;
+    --stroke-focus: #ffffff;
+    --stroke-brand: #479ef5;
+    --stroke-on-brand: #292929;
+    --stroke-subtle: #0a0a0a;
+
+    --status-success-bg: #043b04;
+    --status-success-fg: #54b054;
+    --status-success-border: #359b35;
+    --status-warning-bg: #433500;
+    --status-warning-fg: #f2c661;
+    --status-warning-border: #d0b232;
+    --status-danger-bg: #5c0204;
+    --status-danger-fg: #dc626d;
+    --status-danger-border: #d33f4c;
+    --status-brand-bg: #002848;
+    --status-brand-fg: #62abf5;
+
+    --scrollbar-thumb: rgba(255,255,255,0.15);
+    --scrollbar-thumb-hover: rgba(255,255,255,0.25);
+    --word-selected-hover: #003560;
+    --empty-entry-hover: rgba(255,255,255,0.03);
+    --pos-tag-bg: rgba(255,255,255,0.06);
+  }
+
+  /* ===== Reset ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-base);
+    font-size: var(--font-size-300);
+    line-height: var(--line-height-300);
+    color: var(--fg-1);
+    background: var(--bg-app);
+    -webkit-font-smoothing: antialiased;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ===== Scrollbar (Fluent style) ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+
+  /* ===== Title Bar ===== */
+  .title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 var(--space-l);
+    background: var(--bg-card);
+    border-bottom: var(--stroke-width-thin) solid var(--stroke-3);
+    flex-shrink: 0;
+    -webkit-app-region: drag;
+  }
+  .title-bar__left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+  }
+  .title-bar__icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .title-bar__icon svg { width: 18px; height: 18px; }
+  .title-bar__title {
+    font-size: var(--font-size-300);
+    font-weight: var(--font-weight-semibold);
+    color: var(--fg-1);
+    letter-spacing: -0.01em;
+  }
+  .title-bar__version {
+    font-size: var(--font-size-200);
+    color: var(--fg-4);
+    font-weight: var(--font-weight-regular);
+    margin-left: var(--space-xxs);
+  }
+  .title-bar__actions {
+    display: flex;
+    gap: var(--space-xs);
+    -webkit-app-region: no-drag;
+  }
+
+  /* ===== Fluent Buttons ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s-nudge);
+    height: 32px;
+    padding: 0 var(--space-m);
+    border: var(--stroke-width-thin) solid transparent;
+    border-radius: var(--radius-md);
+    font-family: var(--font-base);
+    font-size: var(--font-size-300);
+    font-weight: var(--font-weight-regular);
+    cursor: pointer;
+    transition: background 0.08s, border-color 0.08s, color 0.08s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn--subtle {
+    background: transparent;
+    color: var(--fg-2);
+    border-color: transparent;
+  }
+  .btn--subtle:hover { background: var(--bg-subtle-hover); color: var(--fg-1); }
+  .btn--subtle:active { background: var(--bg-subtle-pressed); }
+
+  .btn--outline {
+    background: transparent;
+    color: var(--fg-2);
+    border-color: var(--stroke-1);
+  }
+  .btn--outline:hover {
+    background: var(--bg-subtle-hover);
+    border-color: var(--stroke-1);
+    color: var(--fg-1);
+  }
+  .btn--outline:active { background: var(--bg-subtle-pressed); }
+
+  .btn--primary {
+    background: var(--bg-brand);
+    color: var(--fg-on-brand);
+    border-color: var(--bg-brand);
+  }
+  .btn--primary:hover { background: var(--bg-brand-hover); border-color: var(--bg-brand-hover); }
+  .btn--primary:active { background: var(--bg-brand-pressed); border-color: var(--bg-brand-pressed); }
+
+  .btn--sm {
+    height: 28px;
+    padding: 0 var(--space-s);
+    font-size: var(--font-size-200);
+  }
+
+  .btn--icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: var(--radius-md);
+  }
+  .btn--icon svg { width: 16px; height: 16px; }
+
+  /* ===== Main Content ===== */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: var(--space-l);
+    gap: var(--space-l);
+  }
+
+  /* ===== Clipboard Section ===== */
+  .clipboard-section {
+    background: var(--bg-card);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-xl);
+    padding: var(--space-l);
+    flex-shrink: 0;
+  }
+  .clipboard-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-m);
+  }
+  .clipboard-section__label {
+    font-size: var(--font-size-200);
+    font-weight: var(--font-weight-medium);
+    color: var(--fg-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .clipboard-section__row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+  .clipboard-section__original {
+    font-size: var(--font-size-400);
+    color: var(--fg-1);
+    line-height: var(--line-height-400);
+    padding: var(--space-m-nudge) var(--space-m);
+    background: var(--bg-input);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-md);
+    font-family: var(--font-base);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  .clipboard-section__translation {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+  }
+  .clipboard-section__translation-text {
+    flex: 1;
+    font-size: var(--font-size-300);
+    color: var(--fg-2);
+    padding: var(--space-s-nudge) var(--space-m);
+    background: var(--bg-input);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-md);
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+  .clipboard-section__translation-label {
+    font-size: var(--font-size-200);
+    color: var(--fg-4);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+  }
+
+  /* ===== Word Blocks Section ===== */
+  .words-section {
+    flex-shrink: 0;
+  }
+  .words-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-m);
+  }
+  .words-section__label {
+    font-size: var(--font-size-200);
+    font-weight: var(--font-weight-medium);
+    color: var(--fg-3);
+  }
+  .words-section__hint {
+    font-size: var(--font-size-200);
+    color: var(--fg-4);
+  }
+  .words-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s-nudge);
+    margin-bottom: var(--space-m);
+  }
+  .word-token {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 var(--space-m);
+    background: var(--bg-card);
+    border: var(--stroke-width-thin) solid var(--stroke-2);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-300);
+    font-weight: var(--font-weight-regular);
+    color: var(--fg-2);
+    cursor: pointer;
+    transition: all 0.08s;
+    user-select: none;
+  }
+  .word-token:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--stroke-1);
+    color: var(--fg-1);
+  }
+  .word-token--selected {
+    background: var(--status-brand-bg);
+    border-color: var(--stroke-brand);
+    color: var(--fg-brand);
+    font-weight: var(--font-weight-medium);
+  }
+  .word-token--selected:hover {
+    background: var(--word-selected-hover);
+    border-color: var(--fg-brand);
+    color: var(--fg-1);
+  }
+  .word-token__punct {
+    color: var(--fg-4);
+  }
+
+  /* Selected phrase display */
+  .selected-phrase {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    padding: var(--space-s-nudge) var(--space-m);
+    background: var(--bg-input);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-m);
+  }
+  .selected-phrase__label {
+    font-size: var(--font-size-200);
+    color: var(--fg-4);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+  }
+  .selected-phrase__text {
+    font-size: var(--font-size-300);
+    color: var(--fg-brand);
+    font-weight: var(--font-weight-medium);
+  }
+  .selected-phrase__empty {
+    font-size: var(--font-size-300);
+    color: var(--fg-4);
+    font-style: italic;
+  }
+
+  /* ===== Divider ===== */
+  .divider {
+    height: var(--stroke-width-thin);
+    background: var(--stroke-3);
+    margin: var(--space-xs) 0;
+    flex-shrink: 0;
+  }
+
+  /* ===== Result List Section ===== */
+  .results-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .results-section__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-m);
+    flex-shrink: 0;
+  }
+  .results-section__title {
+    font-size: var(--font-size-200);
+    font-weight: var(--font-weight-medium);
+    color: var(--fg-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .results-section__dict {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-size-200);
+    color: var(--fg-3);
+    background: var(--bg-card);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-circular);
+    padding: var(--space-xxs) var(--space-s);
+    height: 24px;
+  }
+  .results-section__dict-icon { font-size: 14px; }
+  .results-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  /* ===== Result Entry ===== */
+  .result-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-m);
+    padding: var(--space-m) var(--space-l);
+    background: var(--bg-card);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-lg);
+    cursor: default;
+    transition: background 0.08s, border-color 0.08s;
+  }
+  .result-entry:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--stroke-2);
+  }
+  .result-entry--empty {
+    border-style: dashed;
+    border-color: var(--stroke-2);
+    background: transparent;
+  }
+  .result-entry--empty:hover {
+    background: var(--empty-entry-hover);
+  }
+  .result-entry__index {
+    font-size: var(--font-size-200);
+    font-weight: var(--font-weight-semibold);
+    color: var(--fg-4);
+    min-width: 20px;
+    text-align: right;
+    padding-top: 2px;
+    font-family: var(--font-mono);
+    flex-shrink: 0;
+  }
+  .result-entry__body {
+    flex: 1;
+    min-width: 0;
+  }
+  .result-entry__word {
+    font-size: var(--font-size-400);
+    font-weight: var(--font-weight-semibold);
+    color: var(--fg-1);
+    margin-bottom: var(--space-xxs);
+  }
+  .result-entry__phonetic {
+    font-size: var(--font-size-200);
+    color: var(--fg-3);
+    font-family: var(--font-mono);
+    margin-bottom: var(--space-xxs);
+  }
+  .result-entry__pos {
+    font-size: var(--font-size-200);
+    color: var(--fg-4);
+    background: var(--pos-tag-bg);
+    padding: 1px var(--space-s-nudge);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    margin-right: var(--space-s);
+    font-weight: var(--font-weight-medium);
+  }
+  .result-entry__meaning {
+    font-size: var(--font-size-300);
+    color: var(--fg-2);
+    line-height: var(--line-height-300);
+  }
+  .result-entry__empty-label {
+    font-size: var(--font-size-300);
+    color: var(--fg-4);
+    font-style: italic;
+  }
+  .result-entry__actions {
+    display: flex;
+    gap: var(--space-xs);
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* ===== Hint text ===== */
+  .hint {
+    font-size: var(--font-size-200);
+    color: var(--fg-4);
+    text-align: center;
+    padding: var(--space-xs) 0;
+    flex-shrink: 0;
+  }
+
+  /* ===== Status Bar ===== */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-l);
+    height: 32px;
+    padding: 0 var(--space-l);
+    background: var(--bg-card);
+    border-top: var(--stroke-width-thin) solid var(--stroke-3);
+    flex-shrink: 0;
+    font-size: var(--font-size-200);
+  }
+  .status-bar__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    color: var(--fg-3);
+  }
+  .status-bar__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-bar__dot--success { background: var(--status-success-fg); }
+  .status-bar__dot--warning { background: var(--status-warning-fg); }
+  .status-bar__dot--danger { background: var(--status-danger-fg); }
+  .status-bar__separator {
+    width: 1px;
+    height: 16px;
+    background: var(--stroke-3);
+  }
+
+  /* ===== Preview Modal ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-surface-overlay);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+  .modal-overlay--visible { display: flex; }
+  .modal {
+    background: var(--bg-card);
+    border: var(--stroke-width-thin) solid var(--stroke-2);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-8);
+    width: 480px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-l) var(--space-xl);
+    border-bottom: var(--stroke-width-thin) solid var(--stroke-3);
+  }
+  .modal__title {
+    font-size: var(--font-size-500);
+    font-weight: var(--font-weight-semibold);
+    color: var(--fg-1);
+    letter-spacing: -0.01em;
+  }
+  .modal__body {
+    padding: var(--space-xl);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-l);
+  }
+  .modal__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .modal__field-label {
+    font-size: var(--font-size-200);
+    font-weight: var(--font-weight-medium);
+    color: var(--fg-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .modal__field-value {
+    font-size: var(--font-size-400);
+    color: var(--fg-1);
+    line-height: var(--line-height-400);
+    padding: var(--space-m-nudge) var(--space-m);
+    background: var(--bg-input);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-md);
+    min-height: 40px;
+  }
+  .modal__field-value--mono {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-300);
+    color: var(--fg-2);
+  }
+  .modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-s);
+    padding: var(--space-l) var(--space-xl);
+    border-top: var(--stroke-width-thin) solid var(--stroke-3);
+  }
+
+  /* ===== Toast ===== */
+  .toast-container {
+    position: fixed;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    align-items: center;
+  }
+  .toast {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-s);
+    padding: var(--space-s) var(--space-l);
+    background: var(--bg-card);
+    border: var(--stroke-width-thin) solid var(--stroke-2);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-4);
+    font-size: var(--font-size-300);
+    color: var(--fg-1);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+  .toast--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .toast__icon { font-size: 16px; }
+
+  /* ===== Animate ===== */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeIn 0.2s ease-out; }
+</style>
+</head>
+<body>
+
+<!-- ===== Title Bar ===== -->
+<div class="title-bar">
+  <div class="title-bar__left">
+    <div class="title-bar__icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+        <line x1="8" y1="21" x2="16" y2="21"/>
+        <line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+    </div>
+    <span class="title-bar__title">Anki划词助手</span>
+    <span class="title-bar__version">v0.1</span>
+  </div>
+  <div class="title-bar__actions">
+    <button class="btn btn--subtle btn--sm" id="btn-theme" title="切换主题">
+      <svg id="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button class="btn btn--subtle btn--sm" id="btn-settings" title="设置">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      设置
+    </button>
+    <button class="btn btn--subtle btn--sm" id="btn-about" title="关于">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      关于
+    </button>
+    <button class="btn btn--subtle btn--sm" id="btn-manual" title="手动输入">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      手动输入
+    </button>
+  </div>
+</div>
+
+<!-- ===== Main Content ===== -->
+<div class="main">
+
+  <!-- Clipboard Section -->
+  <div class="clipboard-section animate-in">
+    <div class="clipboard-section__header">
+      <span class="clipboard-section__label">剪贴板原文</span>
+    </div>
+    <div class="clipboard-section__row">
+      <div class="clipboard-section__original">
+        "This is an example sentence that you copied."
+      </div>
+      <div class="clipboard-section__translation">
+        <span class="clipboard-section__translation-label">原文翻译</span>
+        <div class="clipboard-section__translation-text">这是一条你复制的例句。</div>
+        <button class="btn btn--subtle btn--sm" id="btn-refresh-translation" title="刷新翻译">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          刷新翻译
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Word Blocks Section -->
+  <div class="words-section animate-in">
+    <div class="words-section__header">
+      <span class="words-section__label">单词块（单击选中 / Shift+单击多选）</span>
+      <span class="words-section__hint">单击选中 · Shift+单击多选</span>
+    </div>
+    <div class="words-grid" id="words-grid">
+      <div class="word-token" data-index="0">This</div>
+      <div class="word-token" data-index="1">is</div>
+      <div class="word-token" data-index="2">an</div>
+      <div class="word-token" data-index="3">example</div>
+      <div class="word-token" data-index="4">sentence</div>
+      <div class="word-token" data-index="5">that</div>
+      <div class="word-token" data-index="6">you</div>
+      <div class="word-token" data-index="7">copied</div>
+      <div class="word-token word-token__punct" data-index="8">.</div>
+    </div>
+    <div class="selected-phrase" id="selected-phrase">
+      <span class="selected-phrase__label">当前选中词组：</span>
+      <span class="selected-phrase__text" id="selected-phrase-text">example sentence</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Results Section -->
+  <div class="results-section">
+    <div class="results-section__header">
+      <span class="results-section__title">结果列表</span>
+      <div class="results-section__dict">
+        <span class="results-section__dict-icon">📖</span>
+        牛津高阶 (本地)
+      </div>
+    </div>
+    <div class="results-list" id="results-list">
+      <!-- Empty entry -->
+      <div class="result-entry" data-entry="empty">
+        <div class="result-entry__index">▶</div>
+        <div class="result-entry__body">
+          <div class="result-entry__word">example</div>
+          <div class="result-entry__phonetic"></div>
+          <div>
+            <span class="result-entry__pos"></span>
+            <span class="result-entry__meaning"></span>
+          </div>
+          <div class="result-entry__empty-label">[空条目] 手动编辑卡片</div>
+        </div>
+        <div class="result-entry__actions">
+          <button class="btn btn--outline btn--sm btn-add-card" data-entry="empty">添加卡片</button>
+          <button class="btn btn--subtle btn--sm btn-preview" data-entry="empty">预览编辑</button>
+        </div>
+      </div>
+      <!-- Entry 1 -->
+      <div class="result-entry" data-entry="1">
+        <div class="result-entry__index">1.</div>
+        <div class="result-entry__body">
+          <div class="result-entry__word">example</div>
+          <div class="result-entry__phonetic">/ɪɡˈzæmp(ə)l/</div>
+          <div>
+            <span class="result-entry__pos">n.</span>
+            <span class="result-entry__meaning">例子；实例</span>
+          </div>
+        </div>
+        <div class="result-entry__actions">
+          <button class="btn btn--outline btn--sm btn-add-card" data-entry="1">添加</button>
+          <button class="btn btn--subtle btn--sm btn-preview" data-entry="1">预览</button>
+        </div>
+      </div>
+      <!-- Entry 2 -->
+      <div class="result-entry" data-entry="2">
+        <div class="result-entry__index">2.</div>
+        <div class="result-entry__body">
+          <div class="result-entry__word">sentence</div>
+          <div class="result-entry__phonetic">/ˈsentəns/</div>
+          <div>
+            <span class="result-entry__pos">n.</span>
+            <span class="result-entry__meaning">句子；判决</span>
+          </div>
+        </div>
+        <div class="result-entry__actions">
+          <button class="btn btn--outline btn--sm btn-add-card" data-entry="2">添加</button>
+          <button class="btn btn--subtle btn--sm btn-preview" data-entry="2">预览</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint">提示：双击条目可快速添加 （若无查询结果，仅显示空条目）</div>
+  </div>
+
+</div>
+
+<!-- ===== Status Bar ===== -->
+<div class="status-bar">
+  <div class="status-bar__item">
+    <span class="status-bar__dot status-bar__dot--success"></span>
+    就绪
+  </div>
+  <div class="status-bar__separator"></div>
+  <div class="status-bar__item">
+    <span class="status-bar__dot status-bar__dot--success"></span>
+    AnkiConnect: 已连接
+  </div>
+  <div class="status-bar__separator"></div>
+  <div class="status-bar__item">
+    <span class="status-bar__dot status-bar__dot--success"></span>
+    词典查询: 完成 (2条释义)
+  </div>
+</div>
+
+<!-- ===== Preview Modal ===== -->
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">卡片预览</span>
+      <button class="btn btn--icon btn--subtle" id="modal-close" title="关闭">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__body" id="modal-body">
+      <!-- Populated by JS -->
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--outline" id="modal-cancel">取消</button>
+      <button class="btn btn--primary" id="modal-confirm">添加到 Anki</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast Container ===== -->
+<div class="toast-container" id="toast-container">
+  <div class="toast" id="toast">
+    <span class="toast__icon">✅</span>
+    <span class="toast__text" id="toast-text">卡片已添加</span>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== Word Selection Logic =====
+  const wordsGrid = document.getElementById('words-grid');
+  const tokens = wordsGrid.querySelectorAll('.word-token');
+  const selectedPhraseText = document.getElementById('selected-phrase-text');
+  let selectedIndices = new Set();
+  let lastClickedIndex = null;
+
+  function updateSelection() {
+    tokens.forEach((token, i) => {
+      token.classList.toggle('word-token--selected', selectedIndices.has(i));
+    });
+    const selectedWords = [];
+    const sorted = [...selectedIndices].sort((a, b) => a - b);
+    sorted.forEach(i => {
+      const text = tokens[i].textContent.trim();
+      if (text !== '.') selectedWords.push(text);
+    });
+    selectedPhraseText.textContent = selectedWords.length > 0
+      ? selectedWords.join(' ')
+      : '—';
+    selectedPhraseText.className = selectedWords.length > 0
+      ? 'selected-phrase__text'
+      : 'selected-phrase__empty';
+  }
+
+  wordsGrid.addEventListener('click', (e) => {
+    const token = e.target.closest('.word-token');
+    if (!token) return;
+    const index = parseInt(token.dataset.index, 10);
+
+    if (e.shiftKey && lastClickedIndex !== null) {
+      const start = Math.min(lastClickedIndex, index);
+      const end = Math.max(lastClickedIndex, index);
+      for (let i = start; i <= end; i++) {
+        selectedIndices.add(i);
+      }
+    } else if (e.metaKey || e.ctrlKey) {
+      if (selectedIndices.has(index)) {
+        selectedIndices.delete(index);
+      } else {
+        selectedIndices.add(index);
+      }
+    } else {
+      if (selectedIndices.has(index) && selectedIndices.size === 1) {
+        selectedIndices.clear();
+      } else {
+        selectedIndices.clear();
+        selectedIndices.add(index);
+      }
+    }
+    lastClickedIndex = index;
+    updateSelection();
+  });
+
+  // Initialize with "example sentence" selected (indices 3, 4)
+  selectedIndices.add(3);
+  selectedIndices.add(4);
+  lastClickedIndex = 4;
+  updateSelection();
+
+  // ===== Add Card =====
+  const btnAddCards = document.querySelectorAll('.btn-add-card');
+  function showToast(text) {
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toast-text');
+    toastText.textContent = text;
+    toast.classList.add('toast--visible');
+    setTimeout(() => toast.classList.remove('toast--visible'), 2000);
+  }
+
+  btnAddCards.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const entry = btn.dataset.entry;
+      if (entry === 'empty') {
+        showToast('空条目 — 请先编辑内容');
+      } else {
+        const card = document.querySelector(`.result-entry[data-entry="${entry}"]`);
+        const word = card.querySelector('.result-entry__word').textContent;
+        showToast(`已添加「${word}」到 Anki`);
+      }
+    });
+  });
+
+  // ===== Double-click quick add =====
+  const resultsList = document.getElementById('results-list');
+  resultsList.addEventListener('dblclick', (e) => {
+    const entry = e.target.closest('.result-entry');
+    if (!entry) return;
+    const entryId = entry.dataset.entry;
+    const addBtn = entry.querySelector('.btn-add-card');
+    if (addBtn) addBtn.click();
+  });
+
+  // ===== Preview Modal =====
+  const previewModal = document.getElementById('preview-modal');
+  const modalBody = document.getElementById('modal-body');
+  const modalClose = document.getElementById('modal-close');
+  const modalCancel = document.getElementById('modal-cancel');
+  const modalConfirm = document.getElementById('modal-confirm');
+  const btnPreviews = document.querySelectorAll('.btn-preview');
+
+  const cardData = {
+    empty: { front: '[空]', back: '[请编辑]', phonetic: '', example: '' },
+    1: { front: 'example', back: '例子；实例', phonetic: '/ɪɡˈzæmp(ə)l/', example: 'This is an example sentence.' },
+    2: { front: 'sentence', back: '句子；判决', phonetic: '/ˈsentəns/', example: 'This is an example sentence that you copied.' }
+  };
+
+  function openPreview(entryId) {
+    const data = cardData[entryId] || cardData.empty;
+    modalBody.innerHTML = `
+      <div class="modal__field">
+        <span class="modal__field-label">正面 (单词)</span>
+        <div class="modal__field-value">${data.front}</div>
+      </div>
+      <div class="modal__field">
+        <span class="modal__field-label">音标</span>
+        <div class="modal__field-value modal__field-value--mono">${data.phonetic || '—'}</div>
+      </div>
+      <div class="modal__field">
+        <span class="modal__field-label">背面 (释义)</span>
+        <div class="modal__field-value">${data.back}</div>
+      </div>
+      <div class="modal__field">
+        <span class="modal__field-label">例句</span>
+        <div class="modal__field-value">${data.example || '—'}</div>
+      </div>
+    `;
+    previewModal.classList.add('modal-overlay--visible');
+  }
+
+  function closePreview() {
+    previewModal.classList.remove('modal-overlay--visible');
+  }
+
+  btnPreviews.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openPreview(btn.dataset.entry);
+    });
+  });
+
+  modalClose.addEventListener('click', closePreview);
+  modalCancel.addEventListener('click', closePreview);
+  modalConfirm.addEventListener('click', () => {
+    showToast('卡片已添加到 Anki');
+    closePreview();
+  });
+  previewModal.addEventListener('click', (e) => {
+    if (e.target === previewModal) closePreview();
+  });
+
+  // ===== Keyboard: Escape closes modal =====
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePreview();
+  });
+
+  // ===== Settings / About / Manual buttons =====
+  document.getElementById('btn-settings').addEventListener('click', () => showToast('设置面板 (演示)'));
+  document.getElementById('btn-about').addEventListener('click', () => showToast('关于 Anki划词助手 v0.1'));
+  document.getElementById('btn-manual').addEventListener('click', () => showToast('手动输入模式 (演示)'));
+  document.getElementById('btn-refresh-translation').addEventListener('click', () => showToast('翻译已刷新'));
+
+  // ===== Theme Toggle =====
+  const btnTheme = document.getElementById('btn-theme');
+  const iconSun = document.getElementById('icon-sun');
+  const iconMoon = document.getElementById('icon-moon');
+  const root = document.documentElement;
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      root.setAttribute('data-theme', 'dark');
+      iconSun.style.display = 'none';
+      iconMoon.style.display = '';
+    } else {
+      root.removeAttribute('data-theme');
+      iconSun.style.display = '';
+      iconMoon.style.display = 'none';
+    }
+  }
+
+  const savedTheme = localStorage.getItem('anki-theme') || 'light';
+  applyTheme(savedTheme);
+
+  // Use mousedown at document level (capture phase) to bypass Open Design preview overlay
+  document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#btn-theme')) {
+      e.preventDefault();
+      e.stopPropagation();
+      const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem('anki-theme', next);
+    }
+  }, true);
+
+})();
+</script>
+
+</body>
+</html>
