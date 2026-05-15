@@ -40,7 +40,7 @@ lib/
 
 ## Tasks
 
-### Task 1: 初始化 Flutter Desktop 项目
+### Task 1: 初始化 Flutter Desktop 项目 ✅
 
 **前置条件:**
 - 通过 `brew install --cask flutter` 安装 Flutter SDK
@@ -59,19 +59,12 @@ lib/
    flutter create . --project-name ankihelper
    ```
 
-3. **添加依赖** – 编辑 `pubspec.yaml`，加入 `flutter_riverpod`
+3. **添加依赖** – 运行 `flutter pub add flutter_riverpod` 自动安装最新稳定版
 
-4. **创建自定义目录结构**:
-   ```
-   lib/theme/
-   lib/widgets/
-   lib/models/
-   lib/providers/
-   ```
-
-5. **修改文件:**
+4. **修改文件:**
    - `lib/main.dart` — 应用入口，`ProviderScope` 包裹
    - `lib/app.dart` — `MainScreen` 骨架（`Column` 布局，各组件用 `TODO` 占位）
+   - 目录结构（`lib/theme/` 等）在各 Task 实现时按需创建
 
 **验证:**
 ```bash
