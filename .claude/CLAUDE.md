@@ -9,3 +9,39 @@
     - **提交格式**：`<type>(<scope>): <subject>`
         - 类型：feat/fix/docs/style/refactor/perf/test/chore
         - 示例：`feat(search): 添加多模态搜索功能`
+
+# CLAUDE.md - AI 编码行为约束
+
+## 核心流程
+
+本项目编码实现严格遵循 `docs/WORKFLOW.md` 中定义的流程。你只负责 **步骤3：编码实现**。
+
+## 强制性规则
+
+1. **禁止使用 `brainstorming` 技能**  
+   除非用户明确要求，否则不得调用 brainstorming、不得全项目扫描、不得生成 `specs/` 目录。
+
+2. **仅处理 `docs/TODO.md` 中未完成的任务**  
+   开始任何实现前，先确认对应条目未被勾选。
+
+3. **必须使用 `writing-plans` + `executing-plan`**（按 Task 粒度执行）  
+   - **步骤 A**：用 `writing-plans` 生成计划（存于 `docs/superpowers/plans/`）  
+     计划文件结构：  
+     - 以 `### Task N: 任务名称` 为最小工作单元  
+     - 每个 Task 内可包含子步骤（`- [ ]`），但完成标志是 **Task 标题后添加 ✅**（例如 `### Task 1: 初始化 ✅`）  
+     - 未完成的 Task 标题后无 ✅，且内部子步骤应为 `- [ ]` 或混合状态  
+   - **步骤 B**：用 `executing-plan` 执行  
+     - **一个会话至少完整完成一个 Task**（即从 `- [ ]` 做到 `✅` 并更新内部子步骤）  
+     - 如果无法一次性完成某个 Task（例如会话中断），**下次必须继续该 Task**，直到它被标记 ✅，再进入下一个 Task  
+     - 完成一个 Task 后，同步更新 `docs/TODO.md` 和 `docs/PRD.md` 中的对应进度  
+
+4. **支持断点续传**  
+   如果会话中断，用户说“继续执行计划”时，读取最近的计划文件，找到**第一个未标记 ✅ 的 Task**，从中断点继续完成该 Task。
+
+5. **完成后同步进度**  
+   所有 Task 都标记 ✅ 后，更新 `docs/TODO.md` 和 `docs/PRD.md` 中对应的任务状态。
+
+## 例外情况
+
+- 用户明确说“使用 brainstorming”或“讨论设计”时，才可临时启用 brainstorming。
+- 用户要求扫描项目时，需明确指定扫描范围（如 `src/` 下的某个子目录），不得全根扫描。
