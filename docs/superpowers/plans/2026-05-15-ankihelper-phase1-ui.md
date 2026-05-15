@@ -74,24 +74,24 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 2: 实现 Fluent 2 主题系统
+### Task 2: 实现 Fluent 2 主题系统 ✅
 
 **创建文件:**
 - `lib/theme/fluent_tokens.dart` — FluentTokens 类，包含亮色/暗色共 42 个色值变量（bg/fg/stroke/status 四类）、字体字号字重、间距、圆角、阴影常量
-- `lib/theme/theme_provider.dart` — ThemeState + ThemeNotifier (StateNotifier)，提供 `themeProvider` 和 `fluentTokensProvider`
+- `lib/theme/theme_provider.dart` — ThemeState + ThemeNotifier (Notifier)，提供 `themeProvider` 和 `fluentTokensProvider`
 
-**验证:** `flutter analyze` 无报错
+**验证:** `flutter analyze` 无报错 ✅
 
 ---
 
-### Task 3: 实现 Fluent 按钮合集
+### Task 3: 实现 Fluent 按钮合集 ✅
 
 **创建文件:**
 - `lib/widgets/fluent_buttons.dart` — 四种样式按钮：`SubtleButton`（透明背景+hover灰）、`OutlineButton`（边框）、`PrimaryButton`（品牌色填充）、`IconSubtleButton`（图标按钮）
 
 ---
 
-### Task 4: 实现标题栏
+### Task 4: 实现标题栏 ✅
 
 **创建文件:**
 - `lib/widgets/title_bar.dart` — 左侧：应用图标+标题"Anki划词助手"+版本号"v0.1"；右侧：主题切换/设置/关于/手动输入按钮
@@ -101,7 +101,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 5: 实现剪贴板区域
+### Task 5: 实现剪贴板区域 ✅
 
 **创建文件:**
 - `lib/widgets/clipboard_section.dart` — 区域标题"剪贴板原文"、原文展示框、翻译展示框、刷新翻译按钮
@@ -111,7 +111,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 6: 实现单词块数据模型与选中状态管理
+### Task 6: 实现单词块数据模型与选中状态管理 ✅
 
 **创建文件:**
 - `lib/models/word_token_model.dart` — WordTokenModel（text/index/type）+ tokenize() 分词函数
@@ -119,7 +119,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 7: 实现单词块组件与单词块区域
+### Task 7: 实现单词块组件与单词块区域 ✅
 
 **创建文件:**
 - `lib/widgets/word_token.dart` — 单个单词块（圆角边框+hover高亮+选中态品牌色，标点符号灰色）
@@ -130,7 +130,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 8: 实现卡片条目模型与结果列表
+### Task 8: 实现卡片条目模型与结果列表 ✅
 
 **创建文件:**
 - `lib/models/card_entry_model.dart` — CardEntryModel（id/word/phonetic/pos/meaning/example）
@@ -143,14 +143,14 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 9: 实现预览弹窗
+### Task 9: 实现预览弹窗 ✅
 
 **创建文件:**
 - `lib/widgets/preview_modal.dart` — PreviewCardData 数据类；弹窗包含遮罩层、标题"卡片预览"+关闭按钮、四字段展示（正面/音标/背面/例句）、底部取消+添加到 Anki 按钮。支持点击遮罩层关闭
 
 ---
 
-### Task 10: 实现状态栏
+### Task 10: 实现状态栏 ✅
 
 **创建文件:**
 - `lib/widgets/status_bar.dart` — StatusItem 数据类；三组状态指示（就绪/AnkiConnect/词典查询），每组含圆点指示器（绿/黄/红）+ 标签文字，分隔线隔开
@@ -160,7 +160,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 11: 实现 Toast 通知系统
+### Task 11: 实现 Toast 通知系统 ✅
 
 **创建文件:**
 - `lib/providers/toast_provider.dart` — ToastState（message/isVisible）+ ToastNotifier
@@ -171,7 +171,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 12: 实现设置/关于/手动输入弹窗
+### Task 12: 实现设置/关于/手动输入弹窗 ✅
 
 **创建文件:**
 - `lib/widgets/about_dialog.dart` — 简易 Dialog，展示应用名称+版本+描述
@@ -183,20 +183,35 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 13: 组装主界面 + 整体验证
+### Task 13: 组装主界面 + 整体验证 ✅
 
 **修改文件:**
 - `lib/app.dart` — 最终完整布局：TitleBar → SingleChildScrollView(ClipboardSection + WordBlocksSection + Divider + ResultsList) → StatusBar，ToastOverlay 包裹
 
-**验证:** `flutter pub get && flutter analyze` 无报错；运行 `flutter run -d macos` 确认应用启动显示完整 UI
+**验证:** `flutter pub get && flutter analyze` 无报错 ✅
 
 ---
 
-## 执行选项
+### Task 14: UI 样式验证与修复 🔄
 
-**计划完整，已保存。** 两个执行选项：
+**目标:** 运行应用，对照设计原型逐项校验 UI 样式，修复发现的样式偏差。
 
-1. **Subagent-Driven（推荐）** — 每个 Task 派发一个子 agent，任务间进行 review
-2. **Inline Execution** — 在当前会话中逐 Task 执行，批量执行 + 检查点
+**步骤:**
 
-**请选择执行方式。**
+1. **启动应用:** `flutter run -d macos`
+2. **对照设计原型逐项检查**（通过 OpenDesign MCP 查看 `anki-word-helper.html`）:
+   - [ ] **主题系统:** 亮色/暗色切换是否正常，背景色是否正确
+   - [ ] **标题栏:** 图标、标题、版本号位置；按钮组间距；主题切换图标是否正确切换
+   - [ ] **剪贴板区域:** 卡片圆角、内边距、原文/翻译展示框样式
+   - [ ] **单词块区域:** Wrap 网格间距、单词块圆角边框/hover 色/选中品牌色、标点灰色
+   - [ ] **选中词组展示:** 标签+词组文字颜色、底框样式
+   - [ ] **分隔线:** 颜色、边距
+   - [ ] **结果列表:** 标题+词典标签、空条目虚线边框、条目 hover 高亮、操作按钮组
+   - [ ] **预览弹窗:** 遮罩层、弹窗圆角阴影、字段标签/值样式、底部按钮
+   - [ ] **状态栏:** 圆点颜色、分隔线、文字间距
+   - [ ] **Toast 通知:** 入场动画、位置、自动消失
+   - [ ] **设置/关于/手动输入弹窗:** 布局正确性
+
+3. **记录所有样式偏差**，逐项修复对应 Widget 文件
+
+**验证:** 所有 UI 元素样式与设计原型一致，无视觉偏差后标记完成。
