@@ -16,6 +16,12 @@
 
 本项目编码实现严格遵循 `docs/WORKFLOW.md` 中定义的流程。你只负责 **步骤3：编码实现**。
 
+## AI 协作规范
+- **superpowers 插件已安装**，AI 应使用 `Skill` 工具调用相关技能
+- **不使用 worktree**，直接在项目主目录建分支开发
+  - 从目标分支建 feature 分支 → 实现 → `git merge --ff-only` 合回目标分支 → 删除 feature 分支
+  - 原因：避免 worktree 重复安装依赖和编译
+
 ## 强制性规则
 
 1. **禁止使用 `brainstorming` 技能**  
@@ -40,6 +46,7 @@
 
 5. **完成后同步进度**  
    所有 Task 都标记 ✅ 后，更新 `docs/TODO.md` 和 `docs/PRD.md` 中对应的任务状态。
+
 
 ## 例外情况
 
