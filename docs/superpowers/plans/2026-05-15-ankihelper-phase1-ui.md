@@ -42,17 +42,42 @@ lib/
 
 ### Task 1: 初始化 Flutter Desktop 项目
 
-**创建文件:**
-- `pubspec.yaml`（flutter_riverpod 依赖）
-- `lib/main.dart` — 应用入口，ProviderScope 包裹
-- `lib/app.dart` — MainScreen 骨架（Column 布局，各组件用 TODO 占位）
-- `analysis_options.yaml` — lint 规则
+**前置条件:**
+- 通过 `brew install --cask flutter` 安装 Flutter SDK
+- 运行 `flutter doctor` 确认环境正常，按提示安装 Xcode 及命令行工具
+- 启用 macOS Desktop 支持: `flutter config --enable-macos-desktop`
 
-**创建目录:** `lib/theme/`, `lib/widgets/`, `lib/models/`, `lib/providers/`, `test/`
+**步骤:**
 
-**前置:** 通过 `brew install --cask flutter` 安装 Flutter SDK，启用 macOS Desktop 支持
+1. **创建 Git feature 分支**:
+   ```bash
+   git checkout -b feature/phase1-ui
+   ```
 
-**验证:** `flutter pub get && flutter analyze` 无报错
+2. **创建项目骨架**（在 `ankihelper-pc` 根目录直接初始化）:
+   ```bash
+   flutter create . --project-name ankihelper
+   ```
+
+3. **添加依赖** – 编辑 `pubspec.yaml`，加入 `flutter_riverpod`
+
+4. **创建自定义目录结构**:
+   ```
+   lib/theme/
+   lib/widgets/
+   lib/models/
+   lib/providers/
+   ```
+
+5. **修改文件:**
+   - `lib/main.dart` — 应用入口，`ProviderScope` 包裹
+   - `lib/app.dart` — `MainScreen` 骨架（`Column` 布局，各组件用 `TODO` 占位）
+
+**验证:**
+```bash
+flutter pub get && flutter analyze
+```
+无报错，并且 `flutter run -d macos` 能正常启动空白窗口。
 
 ---
 
