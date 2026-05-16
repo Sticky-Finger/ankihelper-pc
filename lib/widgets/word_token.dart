@@ -47,33 +47,35 @@ class _WordTokenWidgetState extends ConsumerState<WordTokenWidget> {
       borderColor = _hovered ? tokens.stroke1 : tokens.stroke2;
     }
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 80),
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: FluentTokens.spaceM),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(FluentTokens.radiusMd),
-            border: Border.all(
-              color: borderColor,
-              width: FluentTokens.strokeWidthThin,
+    return IntrinsicWidth(
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: FluentTokens.spaceM),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(FluentTokens.radiusMd),
+              border: Border.all(
+                color: borderColor,
+                width: FluentTokens.strokeWidthThin,
+              ),
             ),
-          ),
-          child: Center(
-            child: Text(
-              widget.token.text,
-              style: TextStyle(
-                fontFamily: FluentTokens.fontFamilyBase,
-                fontSize: FluentTokens.fontSize300,
-                fontWeight: widget.isSelected
-                    ? FluentTokens.fontWeightMedium
-                    : FluentTokens.fontWeightRegular,
-                color: fgColor,
+            child: Center(
+              child: Text(
+                widget.token.text,
+                style: TextStyle(
+                  fontFamily: FluentTokens.fontFamilyBase,
+                  fontSize: FluentTokens.fontSize300,
+                  fontWeight: widget.isSelected
+                      ? FluentTokens.fontWeightMedium
+                      : FluentTokens.fontWeightRegular,
+                  color: fgColor,
+                ),
               ),
             ),
           ),
