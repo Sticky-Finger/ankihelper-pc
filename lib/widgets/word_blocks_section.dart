@@ -41,23 +41,12 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
 
   void _onTokenTap(int index) {
     final isShift = HardwareKeyboard.instance.isShiftPressed;
-    final isMeta = HardwareKeyboard.instance.isMetaPressed ||
-        HardwareKeyboard.instance.isControlPressed;
 
     final notifier = ref.read(wordSelectionProvider.notifier);
     if (isShift) {
       notifier.selectRange(index);
-    } else if (isMeta) {
-      notifier.toggleIndex(index);
     } else {
-      // 若已选中且只有这一个，则取消选中
-      final current = ref.read(wordSelectionProvider);
-      if (current.selectedIndices.contains(index) &&
-          current.selectedIndices.length == 1) {
-        notifier.clearSelection();
-      } else {
-        notifier.selectIndex(index);
-      }
+      notifier.toggleIndex(index);
     }
   }
 
@@ -79,7 +68,7 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '单词块（单击选中 / Shift+单击多选）',
+                '单词块（单击切换选中 / Shift+单击多选）',
                 style: TextStyle(
                   fontFamily: FluentTokens.fontFamilyBase,
                   fontSize: FluentTokens.fontSize200,
@@ -88,7 +77,7 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
                 ),
               ),
               Text(
-                '单击选中 · Shift+单击多选',
+                '单击切换 · Shift+单击多选',
                 style: TextStyle(
                   fontFamily: FluentTokens.fontFamilyBase,
                   fontSize: FluentTokens.fontSize200,
