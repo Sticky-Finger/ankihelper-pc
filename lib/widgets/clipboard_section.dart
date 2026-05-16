@@ -119,6 +119,7 @@ class ClipboardSection extends ConsumerWidget {
               // 刷新翻译按钮
               FluentButton.subtle(
                 label: '刷新翻译',
+                icon: const Icon(Icons.refresh),
                 isSmall: true,
                 onPressed: onRefreshTranslation,
               ),

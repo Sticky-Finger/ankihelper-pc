@@ -13,6 +13,7 @@ enum FluentButtonStyle { subtle, outline, primary }
 /// 基础 Fluent 按钮 — 通过 [style] 区分三种文字样式
 class FluentButton extends ConsumerStatefulWidget {
   final String label;
+  final Widget? icon;
   final VoidCallback? onPressed;
   final double? width;
   final bool isSmall;
@@ -21,6 +22,7 @@ class FluentButton extends ConsumerStatefulWidget {
   const FluentButton({
     super.key,
     required this.label,
+    this.icon,
     this.onPressed,
     this.width,
     this.isSmall = false,
@@ -30,6 +32,7 @@ class FluentButton extends ConsumerStatefulWidget {
   const FluentButton.subtle({
     super.key,
     required this.label,
+    this.icon,
     this.onPressed,
     this.width,
     this.isSmall = false,
@@ -38,6 +41,7 @@ class FluentButton extends ConsumerStatefulWidget {
   const FluentButton.outline({
     super.key,
     required this.label,
+    this.icon,
     this.onPressed,
     this.width,
     this.isSmall = false,
@@ -46,6 +50,7 @@ class FluentButton extends ConsumerStatefulWidget {
   const FluentButton.primary({
     super.key,
     required this.label,
+    this.icon,
     this.onPressed,
     this.width,
     this.isSmall = false,
@@ -131,17 +136,42 @@ class _FluentButtonState extends ConsumerState<FluentButton> {
             ),
           ),
           child: Center(
-            child: Text(
-              widget.label,
-              style: TextStyle(
-                fontFamily: FluentTokens.fontFamilyBase,
-                fontSize: widget.isSmall
-                    ? FluentTokens.fontSize200
-                    : FluentTokens.fontSize300,
-                fontWeight: FluentTokens.fontWeightRegular,
-                color: fgColor,
-              ),
-            ),
+            child: widget.icon != null
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconTheme(
+                        data: IconThemeData(
+                          size: widget.isSmall ? 14.0 : 16.0,
+                          color: fgColor,
+                        ),
+                        child: widget.icon!,
+                      ),
+                      const SizedBox(width: FluentTokens.spaceSNudge),
+                      Text(
+                        widget.label,
+                        style: TextStyle(
+                          fontFamily: FluentTokens.fontFamilyBase,
+                          fontSize: widget.isSmall
+                              ? FluentTokens.fontSize200
+                              : FluentTokens.fontSize300,
+                          fontWeight: FluentTokens.fontWeightRegular,
+                          color: fgColor,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    widget.label,
+                    style: TextStyle(
+                      fontFamily: FluentTokens.fontFamilyBase,
+                      fontSize: widget.isSmall
+                          ? FluentTokens.fontSize200
+                          : FluentTokens.fontSize300,
+                      fontWeight: FluentTokens.fontWeightRegular,
+                      color: fgColor,
+                    ),
+                  ),
           ),
         ),
       ),
