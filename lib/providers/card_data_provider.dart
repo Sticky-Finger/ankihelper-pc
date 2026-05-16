@@ -12,7 +12,18 @@ class CardDataState {
 /// 卡片数据 Notifier
 class CardDataNotifier extends Notifier<CardDataState> {
   @override
-  CardDataState build() => const CardDataState();
+  CardDataState build() => CardDataState(
+        entries: [
+          CardEntryModel(
+            id: '1',
+            word: 'example',
+            phonetic: '/ɪɡˈzæmp(ə)l/',
+            pos: 'n.',
+            meaning: '例子；实例',
+            example: 'This is an example sentence.',
+          ),
+        ],
+      );
 
   void setEntries(List<CardEntryModel> entries) {
     state = CardDataState(entries: entries);

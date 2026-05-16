@@ -57,11 +57,14 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
             ),
             borderRadius: BorderRadius.circular(FluentTokens.radiusLg),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: IntrinsicHeight(
+            child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ====== 序号 ======
-              SizedBox(
+              Align(
+                alignment: Alignment.topLeft,
+                child: SizedBox(
                 width: 20,
                 child: Text(
                   widget.isPlaceholder ? '▶' : '${widget.displayIndex}.',
@@ -76,10 +79,13 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
                   ),
                 ),
               ),
+              ),
               const SizedBox(width: FluentTokens.spaceM),
               // ====== 内容体 ======
               Expanded(
-                child: Column(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 单词
@@ -167,10 +173,13 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
                       ),
                   ],
                 ),
+                ),
               ),
-              // ====== 操作按钮组 ======
+              // ====== 操作按钮组（水平排列） ======
               const SizedBox(width: FluentTokens.spaceM),
-              Column(
+              Align(
+                alignment: Alignment.center,
+                child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   FluentButton.outline(
@@ -178,7 +187,7 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
                     isSmall: true,
                     onPressed: widget.onAdd,
                   ),
-                  const SizedBox(height: FluentTokens.spaceXs),
+                  const SizedBox(width: FluentTokens.spaceXs),
                   FluentButton.subtle(
                     label: widget.isPlaceholder ? '预览编辑' : '预览',
                     isSmall: true,
@@ -186,7 +195,9 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
                   ),
                 ],
               ),
+              ),
             ],
+          ),
           ),
         ),
       ),
