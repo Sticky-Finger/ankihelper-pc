@@ -1,0 +1,107 @@
+name: 构建发布
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS arm64 — Apple Silicon (macos-latest 默认是 arm64  runner)
+          - os: macos-latest
+            artifact-name: ankihelper-macos-arm64
+            zip-path: build/macos/Build/Products/Release
+            zip-contents: ankihelper.app
+          # macOS x64 — Intel (macos-13 是最后的 Intel runner)
+          - os: macos-13
+            artifact-name: ankihelper-macos-x64
+            zip-path: build/macos/Build/Products/Release
+            zip-contents: ankihelper.app
+          - os: windows-latest
+            artifact-name: ankihelper-windows-x64
+            zip-path: build/windows/runner/Release
+            zip-contents: '*'
+          - os: ubuntu-22.04
+            artifact-name: ankihelper-linux-x64
+            zip-path: build/linux/x64/release/bundle
+            zip-contents: '*'
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装系统依赖 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            liblzma-dev \
+            libstdc++-12-dev
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 验证 Flutter 环境
+        run: flutter doctor
+
+      - name: 缓存 Pub 依赖
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: 安装项目依赖
+        run: flutter pub get
+
+      - name: 代码静态分析
+        run: flutter analyze
+
+      - name: 运行测试
+        run: flutter test
+
+      - name: 构建应用 (macOS)
+        if: runner.os == 'macOS'
+        run: flutter build macos --release
+
+      - name: 构建应用 (Windows)
+        if: runner.os == 'Windows'
+        run: flutter build windows --release
+
+      - name: 构建应用 (Linux)
+        if: runner.os == 'Linux'
+        run: flutter build linux --release
+
+      - name: 打包构建产物
+        shell: bash
+        run: |
+          cd ${{ matrix.zip-path }}
+          zip -r ${{ runner.temp }}/${{ matrix.artifact-name }}.zip \
+            ${{ matrix.zip-contents }}
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ runner.temp }}/${{ matrix.artifact-name }}.zip
+          if-no-files-found: error
