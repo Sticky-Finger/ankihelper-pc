@@ -5,6 +5,7 @@ import '../models/card_entry_model.dart';
 import '../providers/card_data_provider.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
+import 'preview_modal.dart';
 import 'result_entry.dart';
 
 /// 结果列表容器 — 标题 + 词典标签 + 条目列表 + 底部提示
@@ -70,7 +71,7 @@ class ResultsList extends ConsumerWidget {
         const SizedBox(height: FluentTokens.spaceM),
         // ====== 条目列表 ======
         // 空条目（占位）+ 数据条目
-        ..._buildEntries(tokens, data.entries),
+        ..._buildEntries(context, tokens, data.entries),
         const SizedBox(height: FluentTokens.spaceXs),
         // ====== 底部提示 ======
         Center(
@@ -87,7 +88,8 @@ class ResultsList extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildEntries(FluentTokens tokens, List<CardEntryModel> entries) {
+  List<Widget> _buildEntries(
+      BuildContext context, FluentTokens tokens, List<CardEntryModel> entries) {
     final widgets = <Widget>[];
 
     // 首条固定为空条目（占位符）
@@ -101,6 +103,10 @@ class ResultsList extends ConsumerWidget {
           ),
           displayIndex: 0,
           isPlaceholder: true,
+          onPreview: () => showPreviewModal(context, data: PreviewCardData(
+            front: entries.isNotEmpty ? entries.first.word : '',
+            back: '',
+          )),
         ),
       ),
     );
@@ -113,6 +119,12 @@ class ResultsList extends ConsumerWidget {
           child: ResultEntry(
             entry: entries[i],
             displayIndex: i + 1,
+            onPreview: () => showPreviewModal(context, data: PreviewCardData(
+              front: entries[i].word,
+              phonetic: entries[i].phonetic,
+              back: entries[i].meaning,
+              example: entries[i].example,
+            )),
           ),
         ),
       );
