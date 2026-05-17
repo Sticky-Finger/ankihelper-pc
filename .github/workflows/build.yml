@@ -30,7 +30,7 @@ jobs:
           - os: windows-latest
             flutter-arch: x64
             artifact-name: ankihelper-windows-x64
-            zip-path: build/windows/runner/Release
+            zip-path: build/windows/x64/runner/Release
             zip-contents: '*'
           - os: ubuntu-22.04
             flutter-arch: x64
