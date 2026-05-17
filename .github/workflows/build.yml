@@ -15,21 +15,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS arm64 — Apple Silicon (macos-latest 默认是 arm64  runner)
+          # macOS arm64 — 原生构建
           - os: macos-latest
+            flutter-arch: arm64
             artifact-name: ankihelper-macos-arm64
             zip-path: build/macos/Build/Products/Release
             zip-contents: ankihelper.app
-          # macOS x64 — Intel (macos-13 是最后的 Intel runner)
-          - os: macos-13
+          # macOS x86_64 — arm64 runner + Rosetta 2 交叉编译
+          - os: macos-latest
+            flutter-arch: x64
             artifact-name: ankihelper-macos-x64
             zip-path: build/macos/Build/Products/Release
             zip-contents: ankihelper.app
           - os: windows-latest
+            flutter-arch: x64
             artifact-name: ankihelper-windows-x64
             zip-path: build/windows/runner/Release
             zip-contents: '*'
           - os: ubuntu-22.04
+            flutter-arch: x64
             artifact-name: ankihelper-linux-x64
             zip-path: build/linux/x64/release/bundle
             zip-contents: '*'
@@ -54,10 +58,16 @@ jobs:
             liblzma-dev \
             libstdc++-12-dev
 
+      - name: 安装 Rosetta (x86_64 构建所需)
+        if: matrix.flutter-arch == 'x64' && runner.os == 'macOS'
+        run: |
+          sudo softwareupdate --install-rosetta --agree-to-license
+
       - name: 安装 Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          architecture: ${{ matrix.flutter-arch }}
           cache: true
 
       - name: 验证 Flutter 环境
@@ -67,9 +77,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.pub-cache
-          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          key: pub-${{ runner.os }}-${{ matrix.flutter-arch }}-${{ hashFiles('pubspec.lock') }}
           restore-keys: |
-            pub-${{ runner.os }}-
+            pub-${{ runner.os }}-${{ matrix.flutter-arch }}-
 
       - name: 安装项目依赖
         run: flutter pub get
@@ -80,9 +90,13 @@ jobs:
       - name: 运行测试
         run: flutter test
 
-      - name: 构建应用 (macOS)
-        if: runner.os == 'macOS'
+      - name: 构建应用 (macOS arm64)
+        if: matrix.flutter-arch == 'arm64' && runner.os == 'macOS'
         run: flutter build macos --release
+
+      - name: 构建应用 (macOS x86_64 — Rosetta)
+        if: matrix.flutter-arch == 'x64' && runner.os == 'macOS'
+        run: arch -x86_64 flutter build macos --release
 
       - name: 构建应用 (Windows)
         if: runner.os == 'Windows'
