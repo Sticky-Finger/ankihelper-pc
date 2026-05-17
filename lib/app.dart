@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'providers/toast_provider.dart';
 import 'theme/fluent_tokens.dart';
 import 'theme/theme_provider.dart';
 import 'widgets/clipboard_section.dart';
@@ -31,19 +32,19 @@ class AnkiHelperApp extends ConsumerWidget {
       themeMode: tokens.isDark ? ThemeMode.dark : ThemeMode.light,
       home: Scaffold(
         backgroundColor: tokens.bgApp,
-        body: ToastOverlay(child: MainScreen(tokens: tokens)),
+        body: ToastOverlay(child: MainScreen()),
       ),
     );
   }
 }
 
-class MainScreen extends StatelessWidget {
-  final FluentTokens tokens;
-
-  const MainScreen({super.key, required this.tokens});
+class MainScreen extends ConsumerWidget {
+  const MainScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = ref.watch(fluentTokensProvider);
+
     return Container(
       color: tokens.bgApp,
       width: double.infinity,
@@ -57,7 +58,10 @@ class MainScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipboardSection(),
+                  ClipboardSection(
+                    onRefreshTranslation: () =>
+                        ref.read(toastProvider.notifier).show('翻译已刷新'),
+                  ),
                   const SizedBox(height: FluentTokens.spaceL),
                   WordBlocksSection(),
                   const SizedBox(height: FluentTokens.spaceXs),
