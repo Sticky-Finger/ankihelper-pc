@@ -71,7 +71,7 @@ flutter analyze
 
 ---
 
-### Task 3: 实现 AnkiConnect Provider
+### Task 3: 实现 AnkiConnect Provider ✅
 
 **创建文件:**
 - `lib/providers/anki_connect_provider.dart`
