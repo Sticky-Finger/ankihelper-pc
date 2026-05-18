@@ -26,7 +26,7 @@ lib/
 
 ## Tasks
 
-### Task 1: 引入 `http` 依赖
+### Task 1: 引入 `http` 依赖 ✅
 
 **步骤:**
 
@@ -51,7 +51,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 2: 实现 AnkiConnect 服务类
+### Task 2: 实现 AnkiConnect 服务类 ✅
 
 **创建文件:**
 - `lib/services/anki_connect_service.dart`
