@@ -90,7 +90,7 @@ flutter analyze
 
 ---
 
-### Task 4: 连接状态栏到真实数据
+### Task 4: 连接状态栏到真实数据 ✅
 
 **修改文件:**
 - `lib/widgets/status_bar.dart` — `StatusBar` 的 `ankiStatus` 参数改为由外部传入（不再硬编码），构造函数签名保持不变（已有 `ankiStatus` 参数）

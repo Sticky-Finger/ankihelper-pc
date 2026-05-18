@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 /// AnkiConnect 调用异常
@@ -29,6 +30,12 @@ class AnkiConnectService {
       'params': params ?? {},
     };
 
+    // 仅在调试模式下记录日志
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 发送请求: $action');
+      debugPrint('[AnkiConnect] 请求体: ${jsonEncode(request)}');
+    }
+
     try {
       final response = await _client
           .post(
@@ -38,6 +45,11 @@ class AnkiConnectService {
           )
           .timeout(const Duration(seconds: 5));
 
+      if (kDebugMode) {
+        debugPrint('[AnkiConnect] 响应状态: ${response.statusCode}');
+        debugPrint('[AnkiConnect] 响应体: ${response.body}');
+      }
+
       final responseBody = jsonDecode(utf8.decode(response.bodyBytes));
 
       if (responseBody['error'] != null) {
@@ -46,15 +58,27 @@ class AnkiConnectService {
 
       return responseBody['result'];
     } on TimeoutException {
+      if (kDebugMode) {
+        debugPrint('[AnkiConnect] 请求超时: $action');
+      }
       throw AnkiConnectException('连接超时，请确保 Anki 正在运行且 AnkiConnect 已安装');
     } on http.ClientException catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AnkiConnect] 网络错误: ${e.message}');
+      }
       throw AnkiConnectException('网络错误: ${e.message}');
     }
   }
 
   /// 获取 AnkiConnect 版本号
   Future<int> getVersion() async {
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 获取版本号...');
+    }
     final result = await invoke('version');
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 版本号: $result');
+    }
     return result as int;
   }
 
@@ -65,6 +89,12 @@ class AnkiConnectService {
     required Map<String, String> fields,
     List<String> tags = const ['ankihelper'],
   }) async {
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 添加笔记到牌组: $deckName');
+      debugPrint('[AnkiConnect] 模型: $modelName');
+      debugPrint('[AnkiConnect] 字段: $fields');
+    }
+
     final note = {
       'deckName': deckName,
       'modelName': modelName,
@@ -76,6 +106,11 @@ class AnkiConnectService {
     };
 
     final result = await invoke('addNote', {'note': note});
+
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 笔记已添加，ID: $result');
+    }
+
     return result as int;
   }
 

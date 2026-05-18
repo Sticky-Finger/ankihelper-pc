@@ -20,12 +20,14 @@ class StatusBar extends ConsumerWidget {
   final StatusItem appStatus;
   final StatusItem ankiStatus;
   final StatusItem dictStatus;
+  final VoidCallback? onAnkiStatusTap;
 
   const StatusBar({
     super.key,
     this.appStatus = const StatusItem(label: '就绪'),
     this.ankiStatus = const StatusItem(label: 'AnkiConnect: 已连接'),
     this.dictStatus = const StatusItem(label: '词典查询: 完成 (0条释义)'),
+    this.onAnkiStatusTap,
   });
 
   @override
@@ -48,7 +50,11 @@ class StatusBar extends ConsumerWidget {
         children: [
           _StatusItemWidget(item: appStatus, tokens: tokens),
           _Separator(tokens: tokens),
-          _StatusItemWidget(item: ankiStatus, tokens: tokens),
+          _StatusItemWidget(
+            item: ankiStatus,
+            tokens: tokens,
+            onTap: onAnkiStatusTap,
+          ),
           _Separator(tokens: tokens),
           _StatusItemWidget(item: dictStatus, tokens: tokens),
         ],
@@ -60,8 +66,13 @@ class StatusBar extends ConsumerWidget {
 class _StatusItemWidget extends StatelessWidget {
   final StatusItem item;
   final FluentTokens tokens;
+  final VoidCallback? onTap;
 
-  const _StatusItemWidget({required this.item, required this.tokens});
+  const _StatusItemWidget({
+    required this.item,
+    required this.tokens,
+    this.onTap,
+  });
 
   Color _dotColor() {
     switch (item.level) {
@@ -76,7 +87,7 @@ class _StatusItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final widget = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
@@ -98,6 +109,18 @@ class _StatusItemWidget extends StatelessWidget {
         ),
       ],
     );
+
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: widget,
+        ),
+      );
+    }
+
+    return widget;
   }
 }
 
