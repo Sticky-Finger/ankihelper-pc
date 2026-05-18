@@ -1,0 +1,475 @@
+▗ ▗   ▖ ▖  Claude Code v2.1.142
+           mimo-v2.5-pro · API Usage Billing
+  ▘▘ ▝▝    ~/Codes/ankihelper-pc
+
+❯ /model mimo-v2.5-pro                                                          
+  ⎿  Set model to mimo-v2.5-pro
+
+❯ @docs/PRD.md @docs/TODO.md read these docs, then let us disscuss what to do   
+  first. I would like implementing connecting to anki and adding a sample card  
+  ⎿  Read docs/PRD.md (228 lines)
+  ⎿  Read docs/TODO.md (169 lines)
+
+⏺ I've read both docs. Phase 1 UI is complete, and Phase 2 backend hasn't
+  started yet. You want to focus on AnkiConnect integration first — connecting
+  to Anki and adding a sample card.
+
+  Let me explore the codebase to understand the current structure before we
+  discuss the approach.
+
+⏺ Explore(Explore AnkiConnect integration)
+  ⎿  Done (43 tool uses · 49.9k tokens · 55s)
+  (ctrl+o to expand)
+
+⏺ Good, now I have a clear picture. Here's where things stand:
+
+  Current state: Flutter/Dart desktop app. Phase 1 UI is done. No HTTP client,
+  no backend services, no AnkiConnect code. The "添加" buttons are stubs that
+  just show toasts.
+
+  To implement "connect to Anki + add a sample card", we need:
+
+  1. Add an HTTP client dependency (http or dio package to pubspec.yaml)
+  2. Create an AnkiConnect service — a class that talks to http://localhost:8765
+   (AnkiConnect's default endpoint)
+  3. Wire up the "添加" buttons to actually call AnkiConnect's addNote action
+  4. Update the status bar to show real connection status instead of the
+  hardcoded "已连接"
+
+  A few questions before we plan this out:
+
+⏺ User answered Claude's questions:
+  ⎿  · Which HTTP client package do you prefer for Dart/Flutter? → http 
+     (Recommended)
+     · For the initial implementation scope, what do you want to include? → 
+     Minimal: connect + add card
+
+⏺ Good choices. Let me read the key files I'll need to modify, then write the
+  plan.
+
+  Read 7 files (ctrl+o to expand)
+
+⏺ Now I have everything I need. Let me write the plan.
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ Plan is ready. The approach is: add http package, create an AnkiConnectService
+   class that talks to localhost:8765, wire up a Riverpod provider for
+  connection status, then connect the existing "添加" buttons and status bar to
+  real data.
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Plan: AnkiConnect 连接 + 添加样例卡片                                   │
+     │                                                                         │
+     │ Context                                                                 │
+     │                                                                         │
+     │ Phase 1 UI 已完成，所有"添加"按钮目前只是显示 Toast                     │
+     │ 占位。需要实现第一个后端功能：通过 AnkiConnect HTTP 接口连接本地 Anki   │
+     │ 并添加一张真实卡片。                                                    │
+     │                                                                         │
+     │ 实现步骤                                                                │
+     │                                                                         │
+     │ 1. 添加 http 依赖                                                       │
+     │                                                                         │
+     │ - 文件: pubspec.yaml                                                    │
+     │ - 添加 http: ^1.2.0 到 dependencies                                     │
+     │ - 运行 flutter pub get                                                  │
+     │                                                                         │
+     │ 2. 创建 AnkiConnect 服务                                                │
+     │                                                                         │
+     │ - 新建文件: lib/services/anki_connect_service.dart                      │
+     │ - 核心类 AnkiConnectService，默认连接 http://localhost:8765             │
+     │ - 方法:                                                                 │
+     │   - Future<bool> checkConnection() — 调用 version action 检测连接       │
+     │   - Future<int> addNote({...}) — 调用 addNote action 添加卡片，返回     │
+     │ note ID                                                                 │
+     │   - 内部方法 Future<dynamic> _invoke(String action, [Map? params]) —    │
+     │ 统一 JSON-RPC 调用                                                      │
+     │ - AnkiConnect 请求格式: {"action": "xxx", "version": 6, "params":       │
+     │ {...}}                                                                  │
+     │ - addNote 参数: {"note": {"deckName": "Default", "modelName": "Basic",  │
+     │ "fields": {"Front": "...", "Back": "..."}, "tags": ["ankihelper"]}}     │
+     │ - 超时设置 5 秒                                                         │
+     │                                                                         │
+     │ 3. 创建 Riverpod Provider                                               │
+     │                                                                         │
+     │ - 新建文件: lib/providers/anki_connect_provider.dart                    │
+     │ - ankiConnectServiceProvider — 提供 AnkiConnectService 实例             │
+     │ - ankiConnectionStatusProvider —                                        │
+     │ AsyncValue<bool>，启动时自动检测连接状态                                │
+     │ - 提供 refreshConnection() 方法供手动重试                               │
+     │                                                                         │
+     │ 4. 连接状态栏到真实数据                                                 │
+     │                                                                         │
+     │ - 修改文件: lib/widgets/status_bar.dart                                 │
+     │ - StatusBar 改为接收动态的 ankiStatus 参数（不再硬编码）                │
+     │ - 修改文件: lib/app.dart                                                │
+     │ - MainScreen 中 StatusBar 从 ankiConnectionStatusProvider               │
+     │ 读取状态，显示"已连接"/"未连接"/"检测中..."                             │
+     │                                                                         │
+     │ 5. 连接"添加"按钮到 AnkiConnect                                         │
+     │                                                                         │
+     │ - 修改文件: lib/widgets/results_list.dart                               │
+     │ - 导入 anki_connect_provider                                            │
+     │ - "添加"按钮的 onAdd 回调:                                              │
+     │   - 调用 ankiConnectServiceProvider.addNote(...) 添加卡片               │
+     │   - 成功 → Toast "卡片已添加到 Anki"                                    │
+     │   - 失败 → Toast 显示错误信息                                           │
+     │ - 预览弹窗的返回值也处理: await showPreviewModal(...) 返回 true         │
+     │ 时触发添加                                                              │
+     │                                                                         │
+     │ 涉及文件                                                                │
+     │                                                                         │
+     │ ┌──────┬──────────────────────────────────────────┐                     │
+     │ │ 操作 │                 文件路径                 │                     │
+     │ ├──────┼──────────────────────────────────────────┤                     │
+     │ │ 修改 │ pubspec.yaml                             │                     │
+     │ ├──────┼──────────────────────────────────────────┤                     │
+     │ │ 新建 │ lib/services/anki_connect_service.dart   │                     │
+     │ ├──────┼──────────────────────────────────────────┤                     │
+     │ │ 新建 │ lib/providers/anki_connect_provider.dart │                     │
+     │ ├──────┼──────────────────────────────────────────┤                     │
+     │ │ 修改 │ lib/widgets/status_bar.dart              │                     │
+     │ ├──────┼──────────────────────────────────────────┤                     │
+     │ │ 修改 │ lib/widgets/results_list.dart            │                     │
+     │ ├──────┼──────────────────────────────────────────┤                     │
+     │ │ 修改 │ lib/app.dart                             │                     │
+     │ └──────┴──────────────────────────────────────────┘                     │
+     │                                                                         │
+     │ 验证方式                                                                │
+     │                                                                         │
+     │ 1. 启动 Anki Desktop，确保 AnkiConnect 插件已安装                       │
+     │ 2. flutter run -d macos 启动应用                                        │
+     │ 3. 状态栏应显示 "AnkiConnect: 已连接"（绿点）                           │
+     │ 4. 点击结果列表中 "example" 条目的"添加"按钮                            │
+     │ 5. Toast 应显示"卡片已添加到 Anki"                                      │
+     │ 6. 在 Anki 中确认 "Default" 牌组下新增了一张 "example" 卡片             │
+     │ 7. 若 Anki 未运行，状态栏应显示红点 + "AnkiConnect: 未连接"，添加操作应 │
+     │  Toast 报错                                                             │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+❯ this project's prd docs and todo docs must adhere to the existing style and   
+  format. What I need you do now are adjust the order the items in the          
+  unfinished feature list and do some proper ajustments to the content.         
+
+⏺ Let me re-read both docs carefully to understand the exact formatting before
+  making changes.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Understood — you want to reorder the Phase 2 items to reflect the actual
+  implementation priority, with AnkiConnect first since that's what we're
+  tackling. Let me adjust both files.
+
+  The key changes:
+  - Move AnkiConnect 卡片添加 to the top of Phase 2 (foundation for the app's
+  purpose)
+  - Move 剪贴板监听 second (input source)
+  - Move 单词块交互逻辑 after 分词引擎 (depends on it)
+  - Keep the rest in logical dependency order
+
+⏺ Update(docs/TODO.md)
+  ⎿  User rejected update to docs/TODO.md
+
+❯ the content changes you provided above is not enough. I think we should       
+  seperate the previous 'AnkiConnect 卡片添加' into 2 parts: the first part     
+  which should be placed to the first place are things like connecting to anki  
+  and add a sample card to it, the second part is implmenting the rest funtions 
+   and should be placed to the original position.                               
+
+⏺ Got it. Split "AnkiConnect 卡片添加" into:
+
+  1. Part 1 (top of Phase 2): Basic connection + add a sample card (minimal
+  scope)
+  2. Part 2 (original position): Full AnkiConnect features (preview flow,
+  例句高亮 etc.)
+
+  Let me do both files.
+
+⏺ Update(docs/TODO.md)
+  ⎿  Added 11 lines, removed 4 lines
+       99  
+      100  ### P0 Phase 2 — 后端服务层（串联 UI 与数据）
+      101  
+      102 +#### AnkiConnect 基础连接                                     
+      103 +                                                              
+      104 +- [ ] **AnkiConnect 基础连接**                                
+      105 +    - [ ] 引入 `http` 网络请求依赖                            
+      106 +    - [ ] 创建 AnkiConnect 服务类，封装 JSON-RPC 调用（默认连 
+          +接 `localhost:8765`）                                         
+      107 +    - [ ] 实现连接检测（`version` action），状态栏显示真实连接
+          +状态                                                          
+      108 +    - [ ] 通过 AnkiConnect HTTP 接口发送 `addNote` 请求添加样 
+          +例卡片                                                        
+      109 +    - [ ] 添加成功/失败后 Toast 反馈                          
+      110 +                                                              
+      111  #### 剪贴板监听
+      112  
+      113  - [ ] **剪贴板监听**
+     ...
+      140      - [ ] 查询失败或超时时结果列表仅保留空条目，显示相应提示
+      141      - [ ] 手动重试刷新按钮功能
+      142  
+      134 -#### AnkiConnect 卡片添加                                     
+      143 +#### AnkiConnect 完整功能                                     
+      144  
+      136 -- [ ] **AnkiConnect 卡片添加**                                
+      137 -    - [ ] 通过 AnkiConnect HTTP 接口发送 addNote 请求         
+      138 -    - [ ] 添加成功/失败后 Toast 反馈                          
+      145 +- [ ] **AnkiConnect 完整功能**                                
+      146      - [ ] 预览弹窗确认后触发添加
+      147      - [ ] 例句字段中选中词汇用 `<b>` 标签高亮
+      148  
+⏺ Now the PRD.md — same split for Phase 2.
+
+⏺ Update(docs/PRD.md)
+  ⎿  Added 8 lines, removed 3 lines
+       99  
+      100  #### Phase 2 — 后端服务层（串联 UI 与数据）
+      101  
+      102 +- **AnkiConnect 基础连接**                                    
+      103 +    - [ ] 引入 `http` 网络请求依赖                            
+      104 +    - [ ] 创建 AnkiConnect 服务类，封装 JSON-RPC 调用（默认连 
+          +接 `localhost:8765`）                                         
+      105 +    - [ ] 实现连接检测（`version` action），状态栏显示真实连接
+          +状态                                                          
+      106 +    - [ ] 通过 AnkiConnect HTTP 接口发送 `addNote` 请求添加样 
+          +例卡片                                                        
+      107 +    - [ ] 添加成功/失败后 Toast 反馈                          
+      108 +                                                              
+      109  - **剪贴板监听与原文展示**
+      110      - [ ] 启动后自动监听系统剪贴板变化（clipboard_watcher）
+      111      - [ ] 捕获到新的英文文本后自动更新 UI 原文展示区域
+     ...
+      130      - [ ] 查询失败或超时时结果列表仅保留空条目，显示相应提示
+      131      - [ ] 手动重试刷新按钮功能
+      132  
+      126 -- **AnkiConnect 卡片添加**                                    
+      127 -    - [ ] 通过 AnkiConnect HTTP 接口发送 addNote 请求         
+      128 -    - [ ] 添加成功/失败后 Toast 反馈                          
+      133 +- **AnkiConnect 完整功能**                                    
+      134      - [ ] 预览弹窗确认后触发添加
+      135      - [ ] 例句字段中选中词汇用 `<b>` 标签高亮
+      136  
+
+⏺ Done. Both docs/TODO.md and docs/PRD.md updated. The changes:
+
+  - "AnkiConnect 基础连接" — moved to the top of Phase 2, includes: http
+  依赖、服务类封装、连接检测、发送 addNote 样例卡片、Toast 反馈
+  - "AnkiConnect 完整功能" — stays in its original position (after
+  词典查询引擎), contains: 预览弹窗触发添加、例句 <b> 高亮
+
+  The remaining sections (剪贴板监听 → 分词引擎 → 单词块交互 → 词典查询 → 翻译 →
+   发音) stay in place.
+
+✻ Worked for 2m 29s
+
+❯ I want to manally git commmit, give me a proper commit message.               
+
+⏺ Based on the project's commit style:
+
+  docs: 拆分 AnkiConnect 为独立的 Phase 2 首项，建立分阶段实现路径
+
+  Or if you want a slightly different angle:
+
+  refactor(docs): 重构 Phase 2 任务列表，AnkiConnect 基础连接提前为首个待实现项
+
+✻ Brewed for 9s
+
+❯ ok. let us use superpowers:writing-plan to carry out features of              
+  '**AnkiConnect 基础连接**'  in TODO.md                                        
+
+⏺ I'm currently in plan mode, which restricts writes to only the plan file. The
+  writing-plans skill needs to create a plan at docs/superpowers/plans/ per the
+  project workflow. Let me exit plan mode first so I can invoke the skill
+  properly.
+
+⏺ User approved Claude's plan
+  ⎿  Plan saved to: 
+     ~/.claude/plans/docs-prd-md-docs-todo-md-read-these-rustling-manatee.md · 
+     /plan to edit
+     Plan: AnkiConnect 连接 + 添加样例卡片
+
+     Context
+
+     Phase 1 UI 已完成，所有"添加"按钮目前只是显示 Toast
+     占位。需要实现第一个后端功能：通过 AnkiConnect HTTP 接口连接本地 Anki
+     并添加一张真实卡片。
+
+     实现步骤
+
+     1. 添加 http 依赖
+
+     - 文件: pubspec.yaml
+     - 添加 http: ^1.2.0 到 dependencies
+     - 运行 flutter pub get
+
+     2. 创建 AnkiConnect 服务
+
+     - 新建文件: lib/services/anki_connect_service.dart
+     - 核心类 AnkiConnectService，默认连接 http://localhost:8765
+     - 方法:
+       - Future<bool> checkConnection() — 调用 version action 检测连接
+       - Future<int> addNote({...}) — 调用 addNote action 添加卡片，返回 note ID
+       - 内部方法 Future<dynamic> _invoke(String action, [Map? params]) — 统一
+     JSON-RPC 调用
+     - AnkiConnect 请求格式: {"action": "xxx", "version": 6, "params": {...}}
+     - addNote 参数: {"note": {"deckName": "Default", "modelName": "Basic", 
+     "fields": {"Front": "...", "Back": "..."}, "tags": ["ankihelper"]}}
+     - 超时设置 5 秒
+
+     3. 创建 Riverpod Provider
+
+     - 新建文件: lib/providers/anki_connect_provider.dart
+     - ankiConnectServiceProvider — 提供 AnkiConnectService 实例
+     - ankiConnectionStatusProvider — AsyncValue<bool>，启动时自动检测连接状态
+     - 提供 refreshConnection() 方法供手动重试
+
+     4. 连接状态栏到真实数据
+
+     - 修改文件: lib/widgets/status_bar.dart
+     - StatusBar 改为接收动态的 ankiStatus 参数（不再硬编码）
+     - 修改文件: lib/app.dart
+     - MainScreen 中 StatusBar 从 ankiConnectionStatusProvider
+     读取状态，显示"已连接"/"未连接"/"检测中..."
+
+     5. 连接"添加"按钮到 AnkiConnect
+
+     - 修改文件: lib/widgets/results_list.dart
+     - 导入 anki_connect_provider
+     - "添加"按钮的 onAdd 回调:
+       - 调用 ankiConnectServiceProvider.addNote(...) 添加卡片
+       - 成功 → Toast "卡片已添加到 Anki"
+       - 失败 → Toast 显示错误信息
+     - 预览弹窗的返回值也处理: await showPreviewModal(...) 返回 true 时触发添加
+
+     涉及文件
+
+     ┌──────┬──────────────────────────────────────────┐
+     │ 操作 │                 文件路径                 │
+     ├──────┼──────────────────────────────────────────┤
+     │ 修改 │ pubspec.yaml                             │
+     ├──────┼──────────────────────────────────────────┤
+     │ 新建 │ lib/services/anki_connect_service.dart   │
+     ├──────┼──────────────────────────────────────────┤
+     │ 新建 │ lib/providers/anki_connect_provider.dart │
+     ├──────┼──────────────────────────────────────────┤
+     │ 修改 │ lib/widgets/status_bar.dart              │
+     ├──────┼──────────────────────────────────────────┤
+     │ 修改 │ lib/widgets/results_list.dart            │
+     ├──────┼──────────────────────────────────────────┤
+     │ 修改 │ lib/app.dart                             │
+     └──────┴──────────────────────────────────────────┘
+
+     验证方式
+
+     1. 启动 Anki Desktop，确保 AnkiConnect 插件已安装
+     2. flutter run -d macos 启动应用
+     3. 状态栏应显示 "AnkiConnect: 已连接"（绿点）
+     4. 点击结果列表中 "example" 条目的"添加"按钮
+     5. Toast 应显示"卡片已添加到 Anki"
+     6. 在 Anki 中确认 "Default" 牌组下新增了一张 "example" 卡片
+     7. 若 Anki 未运行，状态栏应显示红点 + "AnkiConnect: 未连接"，添加操作应
+     Toast 报错
+
+⏺ Good, plan approved. Now let me invoke writing-plans as per the project
+  workflow.
+
+⏺ Skill(superpowers:writing-plans)
+  ⎿  Initializing…
+  ⎿  Error: Unknown skill: superpowers:writing-plans
+
+⏺ The writing-plans skill isn't available — it's referenced in CLAUDE.md but not
+   installed in the current environment. The available skills are:
+  update-config, keybindings-help, simplify, fewer-permission-prompts, loop,
+  claude-api, init, review, security-review.
+
+  I already have a detailed plan approved at docs/superpowers/plans/ style. Want
+   me to:
+
+  1. Write the plan manually to docs/superpowers/plans/ in the format CLAUDE.md
+  specifies, then start executing
+  2. Skip the plan file and go straight to implementation using the
+  already-approved plan
+
+  Which do you prefer?
+
+✻ Crunched for 1m 29s
+
+❯ refer to the existing plan                                                    
+  @docs/superpowers/plans/2026-05-15-ankihelper-phase1-ui.md , use this style   
+  and format to rewrite current plan                                            
+  ⎿  Read docs/superpowers/plans/2026-05-15-ankihelper-phase1-ui.md (218 lines)
+
+⏺ Write(docs/superpowers/plans/2026-05-18-ankiconnect-basic.md)
+  ⎿  Wrote 130 lines to
+     docs/superpowers/plans/2026-05-18-ankiconnect-basic.md
+      2 # Anki划词助手 Phase 2 — AnkiConnect 基础连接 实现计划
+        bagent-driven-development (recommended) or superpowers:executing-
+      4 plans to implement this plan task-by-task.
+      5 **目标:** 实现 AnkiConnect 基础连接功能，包括引入 HTTP 客户端、封
+        样例卡片到 Anki，以及将状态栏和添加按钮连接到真实数据。nnect 添加
+      7 **架构:** 新增 `services/` 目录存放外部服务封装。`AnkiConnectServ
+        ice` 负责与本地 AnkiConnect 插件通信（JSON-RPC over HTTP）。通过 
+        真实数据。rovider 管理连接状态，状态栏和结果列表从 Provider 读取
+      9 **技术栈:** Flutter Desktop (macOS), Dart, Riverpod, `http` packa
+        ge
+     … +148 lines (ctrl+o to expand)
+
+⏺ Plan written to docs/superpowers/plans/2026-05-18-ankiconnect-basic.md,
+  following the same format as the Phase 1 plan. 5 tasks:
+
+  1. 引入 http 依赖
+  2. 实现 AnkiConnect 服务类
+  3. 实现 AnkiConnect Provider
+  4. 连接状态栏到真实数据
+  5. 连接"添加"按钮到 AnkiConnect
+
+  Want me to start executing from Task 1?
+
+✻ Worked for 2m 16s
+
+❯ I want to manally git commmit, give me a proper commit message.               
+
+⏺ docs(plans): 添加 AnkiConnect 基础连接实现计划
+
+✻ Churned for 7s
+
+❯ /context 
+  ⎿  Context Usage
+     ⛁ ⛀ ⛀ ⛁ ⛁   mimo-v2.5-pro
+     ⛁ ⛁ ⛁ ⛁ ⛁   63.9k/200k tokens (32%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ 
+     ⛶ ⛶ ⛶ ⛶ ⛶   Estimated usage by category
+     ⛶ ⛝ ⛝ ⛝ ⛝   ⛁ System prompt: 5.8k tokens (2.9%)
+                 ⛁ Memory files: 1k tokens (0.5%)
+                 ⛁ Skills: 824 tokens (0.4%)
+                 ⛁ Messages: 56.3k tokens (28.1%)
+                 ⛶ Free space: 103.1k (51.5%)
+                 ⛝ Autocompact buffer: 33k tokens (16.5%)
+
+     MCP tools · /mcp
+     ├ mcp__open-design__get_active_context: 0 tokens
+     ├ mcp__open-design__get_artifact: 0 tokens
+     ├ mcp__open-design__get_file: 0 tokens
+     ├ mcp__open-design__get_project: 0 tokens
+     ├ mcp__open-design__list_files: 0 tokens
+     ├ mcp__open-design__list_projects: 0 tokens
+     └ mcp__open-design__search_files: 0 tokens
+
+     Memory files · /memory
+     └ .claude/CLAUDE.md: 1k tokens
+
+     Skills · /skills
+
+     Built-in
+     ├ claude-api: ~250 tokens
+     ├ update-config: ~240 tokens
+     ├ loop: ~100 tokens
+     ├ keybindings-help: ~80 tokens
+     ├ fewer-permission-prompts: ~60 tokens
+     ├ simplify: ~30 tokens
+     ├ security-review: ~30 tokens
+     ├ init: ~20 tokens
+     └ review: < 20 tokens
