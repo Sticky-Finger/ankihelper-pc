@@ -99,6 +99,15 @@
 
 ### P0 Phase 2 — 后端服务层（串联 UI 与数据）
 
+#### AnkiConnect 基础连接
+
+- [ ] **AnkiConnect 基础连接**
+    - [ ] 引入 `http` 网络请求依赖
+    - [ ] 创建 AnkiConnect 服务类，封装 JSON-RPC 调用（默认连接 `localhost:8765`）
+    - [ ] 实现连接检测（`version` action），状态栏显示真实连接状态
+    - [ ] 通过 AnkiConnect HTTP 接口发送 `addNote` 请求添加样例卡片
+    - [ ] 添加成功/失败后 Toast 反馈
+
 #### 剪贴板监听
 
 - [ ] **剪贴板监听**
@@ -131,11 +140,9 @@
     - [ ] 查询失败或超时时结果列表仅保留空条目，显示相应提示
     - [ ] 手动重试刷新按钮功能
 
-#### AnkiConnect 卡片添加
+#### AnkiConnect 完整功能
 
-- [ ] **AnkiConnect 卡片添加**
-    - [ ] 通过 AnkiConnect HTTP 接口发送 addNote 请求
-    - [ ] 添加成功/失败后 Toast 反馈
+- [ ] **AnkiConnect 完整功能**
     - [ ] 预览弹窗确认后触发添加
     - [ ] 例句字段中选中词汇用 `<b>` 标签高亮
 
