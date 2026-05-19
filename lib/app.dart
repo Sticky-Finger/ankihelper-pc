@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'providers/anki_connect_provider.dart';
 import 'providers/toast_provider.dart';
 import 'theme/fluent_tokens.dart';
 import 'theme/theme_provider.dart';
@@ -44,6 +45,28 @@ class MainScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = ref.watch(fluentTokensProvider);
+    final ankiStatus = ref.watch(ankiConnectionStatusProvider);
+
+    // 根据连接状态构建 StatusItem
+    final ankiStatusItem = ankiStatus.when(
+      loading: () => const StatusItem(
+        label: 'AnkiConnect: 检测中…',
+        level: StatusLevel.warning,
+      ),
+      data: (status) => status.connected
+          ? const StatusItem(
+              label: 'AnkiConnect: 已连接',
+              level: StatusLevel.success,
+            )
+          : StatusItem(
+              label: 'AnkiConnect: ${status.errorMessage ?? '未连接'}',
+              level: StatusLevel.danger,
+            ),
+      error: (error, _) => StatusItem(
+        label: 'AnkiConnect: 错误',
+        level: StatusLevel.danger,
+      ),
+    );
 
     return Container(
       color: tokens.bgApp,
@@ -79,7 +102,12 @@ class MainScreen extends ConsumerWidget {
               ),
             ),
           ),
-          StatusBar(),
+          StatusBar(
+            ankiStatus: ankiStatusItem,
+            onAnkiStatusTap: () {
+              ref.read(ankiConnectionStatusProvider.notifier).refresh();
+            },
+          ),
         ],
       ),
     );

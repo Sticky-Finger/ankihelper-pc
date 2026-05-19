@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/card_entry_model.dart';
+import '../providers/anki_connect_provider.dart';
 import '../providers/card_data_provider.dart';
 import '../providers/toast_provider.dart';
 import '../theme/fluent_tokens.dart';
@@ -121,18 +123,56 @@ class ResultsList extends ConsumerWidget {
           child: ResultEntry(
             entry: entries[i],
             displayIndex: i + 1,
-            onAdd: () => ref.read(toastProvider.notifier).show('卡片已添加到 Anki'),
-            onPreview: () => showPreviewModal(context, data: PreviewCardData(
-              front: entries[i].word,
-              phonetic: entries[i].phonetic,
-              back: entries[i].meaning,
-              example: entries[i].example,
-            )),
+            onAdd: () {
+              _addNoteToAnki(ref, entries[i]);
+            },
+            onPreview: () async {
+              final confirmed = await showPreviewModal(context, data: PreviewCardData(
+                front: entries[i].word,
+                phonetic: entries[i].phonetic,
+                back: entries[i].meaning,
+                example: entries[i].example,
+              ));
+              if (confirmed == true) {
+                await _addNoteToAnki(ref, entries[i]);
+              }
+            },
           ),
         ),
       );
     }
 
     return widgets;
+  }
+
+  static const _testDeckName = 'ankihelper-pc-test';
+
+  /// 添加笔记到 Anki
+  Future<void> _addNoteToAnki(WidgetRef ref, CardEntryModel entry) async {
+    if (kDebugMode) {
+      debugPrint('[AddNote] 开始添加卡片: ${entry.word} -> ${entry.meaning}');
+    }
+    try {
+      final service = ref.read(ankiConnectServiceProvider);
+
+      // 确保测试牌组存在
+      await service.createDeck(_testDeckName);
+
+      final noteId = await service.addNote(
+        deckName: _testDeckName,
+        modelName: 'Basic',
+        fields: {'Front': entry.word, 'Back': entry.meaning},
+        allowDuplicate: true,
+      );
+      if (kDebugMode) {
+        debugPrint('[AddNote] 添加成功，noteId: $noteId');
+      }
+      ref.read(toastProvider.notifier).show('卡片已添加到 $_testDeckName');
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AddNote] 添加失败: $e');
+      }
+      ref.read(toastProvider.notifier).show('添加失败: $e');
+    }
   }
 }
