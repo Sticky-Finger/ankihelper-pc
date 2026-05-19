@@ -1,6 +1,64 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
+<head><script data-od-sandbox-shim>(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+  document.addEventListener('click', (e) => {
+    if (!e.target || !(e.target instanceof Element)) return;
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    if (href === null) return;
+    var isAnchor = href.startsWith('#') || href === '';
+    if (isAnchor) {
+      e.preventDefault();
+      if (href === '' || href === '#') {
+        window.scrollTo({ top: 0 });
+        history.replaceState(null, '', ' ');
+      } else {
+        var targetId = href.slice(1);
+        var target = targetId ? document.getElementById(targetId) : null;
+        if (target) {
+          target.scrollIntoView();
+          location.hash === href && history.replaceState(null, '', ' ');
+          location.hash = href;
+        }
+      }
+    } else if (link.getAttribute('target') === '_blank') {
+      e.preventDefault();
+      let safe = false;
+      try {
+        var url = new URL(href, location.href);
+        safe =
+          url.protocol === 'http:' ||
+          url.protocol === 'https:' ||
+          url.protocol === 'mailto:';
+      } catch (_) {}
+      safe && window.open(href, '_blank', 'noopener,noreferrer');
+    }
+  });
+})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anki划词助手 - v0.1</title>
@@ -487,9 +545,70 @@
   .results-section__dict {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-xs);
+    gap: var(--space-s);
     font-size: var(--font-size-200);
     color: var(--fg-3);
+  }
+  .results-section__deck-group {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
+    background: var(--bg-card);
+    border: var(--stroke-width-thin) solid var(--stroke-3);
+    border-radius: var(--radius-circular);
+    padding: var(--space-xxs) var(--space-s);
+    height: 24px;
+  }
+  .results-section__deck-label {
+    font-size: var(--font-size-200);
+    color: var(--fg-4);
+    white-space: nowrap;
+    user-select: none;
+  }
+  .results-section__deck-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--fg-2);
+    font-family: var(--font-base);
+    font-size: var(--font-size-200);
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    max-width: 140px;
+    text-overflow: ellipsis;
+  }
+  .results-section__deck-select option {
+    background: var(--bg-card);
+    color: var(--fg-1);
+  }
+
+  /* ===== Deck Input (datalist) ===== */
+  .results-section__deck-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--fg-2);
+    font-family: var(--font-base);
+    font-size: var(--font-size-200);
+    outline: none;
+    padding: 0;
+    width: 130px;
+    cursor: pointer;
+  }
+  .results-section__deck-input:focus {
+    color: var(--fg-1);
+    cursor: text;
+  }
+  .results-section__deck-input::placeholder {
+    color: var(--fg-4);
+  }
+  .results-section__dict-group {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xxs);
     background: var(--bg-card);
     border: var(--stroke-width-thin) solid var(--stroke-3);
     border-radius: var(--radius-circular);
@@ -832,8 +951,26 @@
     <div class="results-section__header">
       <span class="results-section__title">结果列表</span>
       <div class="results-section__dict">
-        <span class="results-section__dict-icon">📖</span>
-        牛津高阶 (本地)
+        <div class="results-section__deck-group">
+          <span class="results-section__deck-label">选择Anki牌组</span>
+          <input class="results-section__deck-input" id="deck-input" list="deck-datalist" placeholder="搜索或选择牌组…" autocomplete="off" title="默认牌组">
+          <datalist id="deck-datalist">
+            <option value="默认牌组">
+            <option value="英语词汇::四级词汇">
+            <option value="英语词汇::六级词汇">
+            <option value="英语词汇::托福词汇::听力高频">
+            <option value="英语词汇::托福词汇::阅读核心">
+            <option value="日本語::N2词汇">
+            <option value="日本語::N1词汇">
+            <option value="医学术语::解剖学">
+            <option value="医学术语::生理学">
+            <option value="医学术语::药理学">
+          </datalist>
+        </div>
+        <div class="results-section__dict-group">
+          <span class="results-section__dict-icon">📖</span>
+          牛津高阶 (本地)
+        </div>
       </div>
     </div>
     <div class="results-list" id="results-list">
@@ -1136,6 +1273,16 @@
       localStorage.setItem('anki-theme', next);
     }
   }, true);
+
+  // ===== Deck Input (datalist) =====
+  const deckInput = document.getElementById('deck-input');
+  deckInput.value = '默认牌组';
+  deckInput.addEventListener('input', () => {
+    if (deckInput.value) {
+      deckInput.title = deckInput.value;
+      showToast('已切换到牌组：' + deckInput.value);
+    }
+  });
 
 })();
 </script>
