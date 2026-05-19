@@ -101,12 +101,12 @@
 
 #### AnkiConnect 基础连接
 
-- [ ] **AnkiConnect 基础连接**
-    - [ ] 引入 `http` 网络请求依赖
-    - [ ] 创建 AnkiConnect 服务类，封装 JSON-RPC 调用（默认连接 `localhost:8765`）
-    - [ ] 实现连接检测（`version` action），状态栏显示真实连接状态
-    - [ ] 通过 AnkiConnect HTTP 接口发送 `addNote` 请求添加样例卡片
-    - [ ] 添加成功/失败后 Toast 反馈
+- [x] **AnkiConnect 基础连接**
+    - [x] 引入 `http` 网络请求依赖
+    - [x] 创建 AnkiConnect 服务类，封装 JSON-RPC 调用（默认连接 `localhost:8765`）
+    - [x] 实现连接检测（`version` action），状态栏显示真实连接状态
+    - [x] 通过 AnkiConnect HTTP 接口发送 `addNote` 请求添加样例卡片到测试牌组 `ankihelper-pc-test`
+    - [x] 添加成功/失败后 Toast 反馈
 
 #### 剪贴板监听
 

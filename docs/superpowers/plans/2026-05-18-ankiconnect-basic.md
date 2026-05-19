@@ -108,12 +108,12 @@ flutter run -d macos
 
 ---
 
-### Task 5: 连接"添加"按钮到 AnkiConnect
+### Task 5: 连接"添加"按钮到 AnkiConnect ✅
 
 **修改文件:**
 - `lib/widgets/results_list.dart`
   - 导入 `anki_connect_provider` 和 `anki_connect_service.dart`
-  - 数据条目的 `onAdd` 回调改为：调用 `ankiConnectServiceProvider` 的 `addNote(...)`，传入 `deckName: 'Default'`、`modelName: 'Basic'`、`fields: {'Front': entry.word, 'Back': entry.meaning}`
+  - 数据条目的 `onAdd` 回调改为：调用 `ankiConnectServiceProvider` 的 `addNote(...)`，传入 `deckName: 'ankihelper-pc-test'`、`modelName: 'Basic'`、`fields: {'Front': entry.word, 'Back': entry.meaning}`、`allowDuplicate: true`
   - 成功 → `toastProvider.show('卡片已添加到 Anki')`
   - 捕获 `AnkiConnectException` → `toastProvider.show('添加失败: ${e.message}')`
   - 预览弹窗的返回值：`final confirmed = await showPreviewModal(...)`，返回 `true` 时同样触发 `addNote`
@@ -128,3 +128,22 @@ flutter run -d macos
 4. 在 Anki 的 Default 牌组中确认新增了一张正面为 "example"、背面为 "例子；实例" 的卡片
 5. 预览弹窗点击"添加到 Anki"同样能添加卡片
 6. 若 Anki 未运行，点击添加后 Toast 显示错误提示
+
+---
+
+## 实现偏差记录
+
+实现过程中与原计划的差异：
+
+| 项目 | 原计划 | 实际实现 | 原因 |
+|------|--------|----------|------|
+| http 版本 | `^12.0.0` | `^1.6.0` | ^12.0.0 不存在于 pub.dev |
+| Riverpod 方案 | `@riverpod` 注解 + code gen | 传统 `AsyncNotifier` + `Provider` | riverpod_annotation 4.x 与 flutter_riverpod 3.x 版本冲突 |
+| 连接状态类型 | `AsyncNotifier<bool>` | `AsyncNotifier<ConnectionStatus>` | 需要携带错误信息显示到 UI |
+| macOS 权限 | 未涉及 | 添加 `com.apple.security.network.client` | macOS 沙盒默认禁止网络客户端连接 |
+| StatusBar | 无交互 | 点击重试 + 显示具体错误信息 | 便于调试连接问题 |
+| HTTP 连接方式 | 共享 `http.Client` | 每次请求独立 `http.post` + `Connection: close` | 共享 Client 在 macOS 桌面端出现 "Write failed" 错误 |
+| 添加目标牌组 | `Default` | `ankihelper-pc-test`（自动创建） | 避免污染用户正式牌组 |
+| 重复卡片 | `allowDuplicate: false` | `allowDuplicate: true` | 测试阶段需要反复添加同一卡片 |
+| 新增方法 | — | `createDeck()`、`getDeckNames()` | 支持自动创建测试牌组 |
+| 调试日志 | — | `kDebugMode` 守卫的 `debugPrint` | 仅 `flutter run` 时生效，`flutter build` 自动排除 |

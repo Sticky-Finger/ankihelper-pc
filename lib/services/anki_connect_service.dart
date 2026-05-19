@@ -15,14 +15,10 @@ class AnkiConnectException implements Exception {
 /// AnkiConnect JSON-RPC 服务封装
 class AnkiConnectService {
   final String baseUrl;
-  final http.Client _client;
 
-  AnkiConnectService({
-    this.baseUrl = 'http://localhost:8765',
-    http.Client? client,
-  }) : _client = client ?? http.Client();
+  AnkiConnectService({this.baseUrl = 'http://localhost:8765'});
 
-  /// 统一 JSON-RPC 调用方法
+  /// 统一 JSON-RPC 调用方法（每次请求使用独立连接，避免连接复用导致 Write failed）
   Future<dynamic> invoke(String action, [Map<String, dynamic>? params]) async {
     final request = {
       'action': action,
@@ -30,17 +26,19 @@ class AnkiConnectService {
       'params': params ?? {},
     };
 
-    // 仅在调试模式下记录日志
     if (kDebugMode) {
       debugPrint('[AnkiConnect] 发送请求: $action');
       debugPrint('[AnkiConnect] 请求体: ${jsonEncode(request)}');
     }
 
     try {
-      final response = await _client
+      final response = await http
           .post(
             Uri.parse(baseUrl),
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+              'Content-Type': 'application/json',
+              'Connection': 'close',
+            },
             body: jsonEncode(request),
           )
           .timeout(const Duration(seconds: 5));
@@ -88,6 +86,7 @@ class AnkiConnectService {
     required String modelName,
     required Map<String, String> fields,
     List<String> tags = const ['ankihelper'],
+    bool allowDuplicate = false,
   }) async {
     if (kDebugMode) {
       debugPrint('[AnkiConnect] 添加笔记到牌组: $deckName');
@@ -101,7 +100,7 @@ class AnkiConnectService {
       'fields': fields,
       'tags': tags,
       'options': {
-        'allowDuplicate': false,
+        'allowDuplicate': allowDuplicate,
       },
     };
 
@@ -114,8 +113,18 @@ class AnkiConnectService {
     return result as int;
   }
 
-  /// 释放资源
-  void dispose() {
-    _client.close();
+  /// 获取所有牌组名称
+  Future<List<String>> getDeckNames() async {
+    final result = await invoke('deckNames');
+    return (result as List).cast<String>();
   }
+
+  /// 创建牌组（若已存在则忽略）
+  Future<void> createDeck(String deckName) async {
+    await invoke('createDeck', {'deck': deckName});
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 牌组已创建/确认: $deckName');
+    }
+  }
+
 }

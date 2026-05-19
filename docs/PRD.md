@@ -100,11 +100,11 @@ Anki划词助手是一款将剪贴板中的英文句子智能切分为单词块�
 #### Phase 2 — 后端服务层（串联 UI 与数据）
 
 - **AnkiConnect 基础连接**
-    - [ ] 引入 `http` 网络请求依赖
-    - [ ] 创建 AnkiConnect 服务类，封装 JSON-RPC 调用（默认连接 `localhost:8765`）
-    - [ ] 实现连接检测（`version` action），状态栏显示真实连接状态
-    - [ ] 通过 AnkiConnect HTTP 接口发送 `addNote` 请求添加样例卡片
-    - [ ] 添加成功/失败后 Toast 反馈
+    - [x] 引入 `http` 网络请求依赖
+    - [x] 创建 AnkiConnect 服务类，封装 JSON-RPC 调用（默认连接 `localhost:8765`）
+    - [x] 实现连接检测（`version` action），状态栏显示真实连接状态
+    - [x] 通过 AnkiConnect HTTP 接口发送 `addNote` 请求添加样例卡片到测试牌组 `ankihelper-pc-test`
+    - [x] 添加成功/失败后 Toast 反馈
 
 - **剪贴板监听与原文展示**
     - [ ] 启动后自动监听系统剪贴板变化（clipboard_watcher）
