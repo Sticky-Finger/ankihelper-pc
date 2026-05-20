@@ -39,8 +39,44 @@ class ResultsList extends ConsumerWidget {
                 letterSpacing: 0.04,
               ),
             ),
-            // 牌组选择器
-            const DeckSelector(),
+            // 牌组选择器 + 词典标签
+            Row(
+              children: [
+                const DeckSelector(),
+                const SizedBox(width: FluentTokens.spaceS),
+                Container(
+                  height: 24,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: FluentTokens.spaceS,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tokens.bgCard,
+                    border: Border.all(
+                      color: tokens.stroke3,
+                      width: FluentTokens.strokeWidthThin,
+                    ),
+                    borderRadius: BorderRadius.circular(FluentTokens.radiusCircular),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '📖',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      const SizedBox(width: FluentTokens.spaceXs),
+                      Text(
+                        '牛津高阶 (本地)',
+                        style: TextStyle(
+                          fontFamily: FluentTokens.fontFamilyBase,
+                          fontSize: FluentTokens.fontSize200,
+                          color: tokens.fg3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: FluentTokens.spaceM),

@@ -34,17 +34,15 @@ class _DeckSelectorState extends ConsumerState<DeckSelector> {
     if (_isOpen) {
       _removeOverlay();
     } else {
+      // 打开下拉时刷新牌组列表
+      ref.read(deckListProvider.notifier).refresh();
       _showOverlay();
     }
   }
 
   void _showOverlay() {
-    final tokens = ref.read(fluentTokensProvider);
-    final deckListAsync = ref.read(deckListProvider);
-    final selectedDeck = ref.read(selectedDeckProvider);
-
     _overlayEntry = OverlayEntry(
-      builder: (context) => GestureDetector(
+      builder: (overlayContext) => GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _removeOverlay,
         child: Stack(
@@ -57,103 +55,120 @@ class _DeckSelectorState extends ConsumerState<DeckSelector> {
                 offset: const Offset(0, 28),
                 child: GestureDetector(
                   onTap: () {},
-                  child: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(FluentTokens.radiusMd),
-                    color: tokens.bgCard,
-                    child: Container(
-                      constraints: const BoxConstraints(maxHeight: 240),
-                      decoration: BoxDecoration(
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final tokens = ref.watch(fluentTokensProvider);
+                      final deckListAsync = ref.watch(deckListProvider);
+                      final selectedDeck = ref.watch(selectedDeckProvider);
+
+                      return Material(
+                        elevation: 4,
                         borderRadius:
                             BorderRadius.circular(FluentTokens.radiusMd),
-                        border: Border.all(color: tokens.stroke1),
-                      ),
-                      child: deckListAsync.when(
-                        loading: () => const Padding(
-                          padding: EdgeInsets.all(FluentTokens.spaceM),
-                          child: Center(
-                            child: SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
+                        color: tokens.bgCard,
+                        child: Container(
+                          constraints: const BoxConstraints(maxHeight: 240),
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.circular(FluentTokens.radiusMd),
+                            border: Border.all(color: tokens.stroke1),
                           ),
-                        ),
-                        error: (e, _) => Padding(
-                          padding: const EdgeInsets.all(FluentTokens.spaceM),
-                          child: Text(
-                            '加载失败: $e',
-                            style: TextStyle(
-                              fontSize: FluentTokens.fontSize200,
-                              color: tokens.statusDangerFg,
+                          child: deckListAsync.when(
+                            loading: () => const Padding(
+                              padding: EdgeInsets.all(FluentTokens.spaceM),
+                              child: Center(
+                                child: SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        data: (decks) {
-                          final query = _controller.text.toLowerCase();
-                          final filtered = query.isEmpty
-                              ? decks
-                              : decks
-                                  .where((d) => d.toLowerCase().contains(query))
-                                  .toList();
-                          if (filtered.isEmpty) {
-                            return Padding(
+                            error: (e, _) => Padding(
                               padding:
                                   const EdgeInsets.all(FluentTokens.spaceM),
                               child: Text(
-                                '无匹配牌组',
+                                '加载失败: $e',
                                 style: TextStyle(
                                   fontSize: FluentTokens.fontSize200,
-                                  color: tokens.fg4,
+                                  color: tokens.statusDangerFg,
                                 ),
                               ),
-                            );
-                          }
-                          return ListView.builder(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: FluentTokens.spaceXs,
                             ),
-                            shrinkWrap: true,
-                            itemCount: filtered.length,
-                            itemBuilder: (context, index) {
-                              final deck = filtered[index];
-                              final isSelected = deck == selectedDeck;
-                              return InkWell(
-                                onTap: () {
-                                  ref
-                                      .read(selectedDeckProvider.notifier)
-                                      .select(deck);
-                                  _controller.clear();
-                                  _removeOverlay();
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: FluentTokens.spaceM,
-                                    vertical: FluentTokens.spaceSNudge,
-                                  ),
-                                  color: isSelected
-                                      ? tokens.bgSubtleSelected
-                                      : Colors.transparent,
+                            data: (decks) {
+                              final query = _controller.text.toLowerCase();
+                              final filtered = query.isEmpty
+                                  ? decks
+                                  : decks
+                                      .where((d) =>
+                                          d.toLowerCase().contains(query))
+                                      .toList();
+                              if (filtered.isEmpty) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(
+                                      FluentTokens.spaceM),
                                   child: Text(
-                                    deck,
+                                    '无匹配牌组',
                                     style: TextStyle(
-                                      fontFamily: FluentTokens.fontFamilyBase,
                                       fontSize: FluentTokens.fontSize200,
-                                      color:
-                                          isSelected ? tokens.fgBrand : tokens.fg2,
-                                      fontWeight: isSelected
-                                          ? FluentTokens.fontWeightMedium
-                                          : FluentTokens.fontWeightRegular,
+                                      color: tokens.fg4,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
+                                );
+                              }
+                              return ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: FluentTokens.spaceXs,
                                 ),
+                                shrinkWrap: true,
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) {
+                                  final deck = filtered[index];
+                                  final isSelected = deck == selectedDeck;
+                                  return InkWell(
+                                    onTap: () {
+                                      ref
+                                          .read(
+                                              selectedDeckProvider.notifier)
+                                          .select(deck);
+                                      _controller.clear();
+                                      _removeOverlay();
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: FluentTokens.spaceM,
+                                        vertical: FluentTokens.spaceSNudge,
+                                      ),
+                                      color: isSelected
+                                          ? tokens.bgSubtleSelected
+                                          : Colors.transparent,
+                                      child: Text(
+                                        deck,
+                                        style: TextStyle(
+                                          fontFamily:
+                                              FluentTokens.fontFamilyBase,
+                                          fontSize:
+                                              FluentTokens.fontSize200,
+                                          color: isSelected
+                                              ? tokens.fgBrand
+                                              : tokens.fg2,
+                                          fontWeight: isSelected
+                                              ? FluentTokens.fontWeightMedium
+                                              : FluentTokens
+                                                  .fontWeightRegular,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                      ),
-                    ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -239,6 +254,9 @@ class _DeckSelectorState extends ConsumerState<DeckSelector> {
                   onTap: () {
                     if (!_isOpen) {
                       _showOverlay();
+                    } else {
+                      // 输入框获焦时刷新牌组列表
+                      ref.read(deckListProvider.notifier).refresh();
                     }
                   },
                 ),
