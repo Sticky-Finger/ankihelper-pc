@@ -22,7 +22,7 @@ lib/
 
 ## Tasks
 
-### Task 1: 创建牌组 Provider
+### Task 1: 创建牌组 Provider ✅
 
 **创建文件:**
 - `lib/providers/deck_provider.dart`
@@ -41,7 +41,7 @@ flutter analyze
 
 ---
 
-### Task 2: 创建牌组选择器组件
+### Task 2: 创建牌组选择器组件 ✅
 
 **创建文件:**
 - `lib/widgets/deck_selector.dart`
