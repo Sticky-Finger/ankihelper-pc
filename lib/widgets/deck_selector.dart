@@ -197,7 +197,9 @@ class _DeckSelectorState extends ConsumerState<DeckSelector> {
 
     return CompositedTransformTarget(
       link: _layerLink,
-      child: GestureDetector(
+      child: Tooltip(
+        message: selectedDeck,
+        child: GestureDetector(
         onTap: _toggleDropdown,
         child: Container(
           height: 24,
@@ -268,6 +270,7 @@ class _DeckSelectorState extends ConsumerState<DeckSelector> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );
