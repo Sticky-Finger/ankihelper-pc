@@ -66,3 +66,13 @@
 
 对话过程记录：[2026-05-19-150429-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-19-150429-local-command-caveatcaveat-the-messages-below.txt)
 
+## 5 添加‘牌组选择器’需求
+### 5.1 ‘牌组选择器’需求更新进PRD和TODO文档
+> 次任务全程使用了模型：mimo-v2.5-pro
+
+对话过程记录：[2026-05-19-172606-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-19-172606-local-command-caveatcaveat-the-messages-below.txt)
+
+### 5.2 实现2026-05-20-deck-selector.md
+> 次任务全程使用了模型：mimo-v2.5-pro
+
+对话过程记录：[2026-05-20-194322-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-20-194322-local-command-caveatcaveat-the-messages-below.txt)
