@@ -64,7 +64,7 @@ flutter analyze
 
 ---
 
-### Task 3: 集成牌组选择器到结果列表
+### Task 3: 集成牌组选择器到结果列表 ✅
 
 **修改文件:**
 - `lib/widgets/results_list.dart`
@@ -96,4 +96,4 @@ flutter run -d macos
 
 | 项目 | 原计划 | 实际实现 | 原因 |
 |------|--------|----------|------|
-| | | | |
+| selectedDeckProvider | `StateProvider<String>` | `NotifierProvider<SelectedDeckNotifier, String>` | Riverpod 3.x 中 `StateProvider` 不可用 |

@@ -6,8 +6,10 @@ import '../models/card_entry_model.dart';
 import '../providers/anki_connect_provider.dart';
 import '../providers/card_data_provider.dart';
 import '../providers/toast_provider.dart';
+import '../providers/deck_provider.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
+import 'deck_selector.dart';
 import 'preview_modal.dart';
 import 'result_entry.dart';
 
@@ -37,38 +39,8 @@ class ResultsList extends ConsumerWidget {
                 letterSpacing: 0.04,
               ),
             ),
-            // 词典标签
-            Container(
-              height: 24,
-              padding: const EdgeInsets.symmetric(
-                horizontal: FluentTokens.spaceS,
-              ),
-              decoration: BoxDecoration(
-                color: tokens.bgCard,
-                border: Border.all(
-                  color: tokens.stroke3,
-                  width: FluentTokens.strokeWidthThin,
-                ),
-                borderRadius: BorderRadius.circular(FluentTokens.radiusCircular),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    '📖',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(width: FluentTokens.spaceXs),
-                  Text(
-                    '牛津高阶 (本地)',
-                    style: TextStyle(
-                      fontFamily: FluentTokens.fontFamilyBase,
-                      fontSize: FluentTokens.fontSize200,
-                      color: tokens.fg3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // 牌组选择器
+            const DeckSelector(),
           ],
         ),
         const SizedBox(height: FluentTokens.spaceM),
@@ -145,21 +117,18 @@ class ResultsList extends ConsumerWidget {
     return widgets;
   }
 
-  static const _testDeckName = 'ankihelper-pc-test';
-
   /// 添加笔记到 Anki
   Future<void> _addNoteToAnki(WidgetRef ref, CardEntryModel entry) async {
+    final deckName = ref.read(selectedDeckProvider);
     if (kDebugMode) {
       debugPrint('[AddNote] 开始添加卡片: ${entry.word} -> ${entry.meaning}');
+      debugPrint('[AddNote] 目标牌组: $deckName');
     }
     try {
       final service = ref.read(ankiConnectServiceProvider);
 
-      // 确保测试牌组存在
-      await service.createDeck(_testDeckName);
-
       final noteId = await service.addNote(
-        deckName: _testDeckName,
+        deckName: deckName,
         modelName: 'Basic',
         fields: {'Front': entry.word, 'Back': entry.meaning},
         allowDuplicate: true,
@@ -167,7 +136,7 @@ class ResultsList extends ConsumerWidget {
       if (kDebugMode) {
         debugPrint('[AddNote] 添加成功，noteId: $noteId');
       }
-      ref.read(toastProvider.notifier).show('卡片已添加到 $_testDeckName');
+      ref.read(toastProvider.notifier).show('卡片已添加到 $deckName');
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[AddNote] 添加失败: $e');
