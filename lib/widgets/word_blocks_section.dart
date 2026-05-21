@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/word_token_model.dart';
+import '../providers/clipboard_provider.dart';
 import '../providers/word_selection_provider.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
@@ -22,14 +23,19 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
   @override
   void initState() {
     super.initState();
-    // 派发默认示例数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final notifier = ref.read(wordSelectionProvider.notifier);
-      final tokens = tokenize('This is an example sentence that you copied.');
-      notifier.setTokens(tokens);
-      // 默认选中 "example sentence" (indices 3, 4)
-      notifier.selectIndex(3);
-      notifier.selectRange(4);
+      ref.listenManual(clipboardProvider, (prev, next) {
+        if (next.originalText.isNotEmpty &&
+            next.originalText != prev?.originalText) {
+          final tokens = tokenize(next.originalText);
+          ref.read(wordSelectionProvider.notifier).setTokens(tokens);
+        }
+      });
+      final current = ref.read(clipboardProvider);
+      if (current.originalText.isNotEmpty) {
+        final tokens = tokenize(current.originalText);
+        ref.read(wordSelectionProvider.notifier).setTokens(tokens);
+      }
     });
   }
 
