@@ -22,6 +22,9 @@ class ClipboardState {
         originalText: originalText ?? this.originalText,
         isEditing: isEditing ?? this.isEditing,
       );
+
+  /// 原文是否为空
+  bool get isEmpty => originalText.isEmpty;
 }
 
 /// 剪贴板状态管理
@@ -31,6 +34,7 @@ class ClipboardState {
 class ClipboardNotifier extends Notifier<ClipboardState>
     with ClipboardListener {
   Timer? _debounceTimer;
+  String? _lastText;
 
   @override
   ClipboardState build() {
@@ -46,6 +50,7 @@ class ClipboardNotifier extends Notifier<ClipboardState>
 
   /// 手动设置原文（由编辑完成时调用）
   void setText(String text) {
+    _lastText = state.originalText;
     state = state.copyWith(originalText: text);
   }
 
@@ -70,6 +75,7 @@ class ClipboardNotifier extends Notifier<ClipboardState>
       if (data != null && data.text != null && data.text!.isNotEmpty) {
         final text = data.text!.trim();
         if (text != state.originalText) {
+          _lastText = state.originalText;
           state = state.copyWith(originalText: text);
         }
       }
@@ -77,6 +83,10 @@ class ClipboardNotifier extends Notifier<ClipboardState>
       // 读取剪贴板失败时静默忽略
     }
   }
+
+  /// 原文是否发生变化（用于判断是否需要清空翻译）
+  bool get hasOriginalTextChanged =>
+      _lastText != null && _lastText != state.originalText;
 }
 
 final clipboardProvider =
