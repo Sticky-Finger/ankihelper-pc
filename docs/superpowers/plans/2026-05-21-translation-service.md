@@ -28,7 +28,7 @@ pubspec.yaml                              # [修改] 添加 crypto 和 shared_pr
 
 ## Tasks
 
-### Task 1: 添加依赖
+### Task 1: 添加依赖 ✅
 
 **修改文件:**
 - `pubspec.yaml`
