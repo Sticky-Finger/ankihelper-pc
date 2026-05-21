@@ -107,4 +107,5 @@ flutter run -d macos
 
 | 项目 | 原计划 | 实际实现 | 原因 |
 |------|--------|----------|------|
-| （待填写） | | | |
+| clipboard_watcher 版本 | `^3.0.0` | `^0.3.0` | pub.dev 最新版本为 0.3.0 |
+| ref.listen | `ref.listen` | `ref.listenManual` | Riverpod 3.x 中 initState 不能用 ref.listen |
