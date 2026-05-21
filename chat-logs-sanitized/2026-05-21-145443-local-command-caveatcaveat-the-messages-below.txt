@@ -1,0 +1,1891 @@
+▗ ▗   ▖ ▖  Claude Code v2.1.142
+           mimo-v2.5-pro · API Usage Billing
+  ▘▘ ▝▝    ~/Codes/ankihelper-pc
+
+❯ /model mimo-v2.5-pro                                                          
+  ⎿  Set model to mimo-v2.5-pro
+
+❯ I want to revise the feature of “剪贴板监听与原文展示” in @docs/PRD.md , And  
+  add the function to manually edit the content in the input box                
+  ⎿  Read docs/PRD.md (239 lines)
+
+⏺ Let me check the current TODO and any existing plans first.
+
+  Read 1 file, listed 1 directory (ctrl+o to expand)
+
+⏺ I'll update the PRD to revise the "剪贴板监听与原文展示" feature, adding
+  manual editing capability to the clipboard input box.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Now I'll update the PRD. I need to revise:
+  1. The feature description for "剪贴板监听与原文展示"
+  2. The UI layout to show the input box is editable
+  3. Add a user story for manual editing
+
+⏺ Update(docs/PRD.md)
+  ⎿  User rejected update to docs/PRD.md
+
+❯ "手动编辑后点击"确认"按钮或按 Enter 键触发分词与查询流程"This point should be 
+   modified as that the edits shall be confirmed automatically when the cursor  
+  leaves the input box                                                          
+
+⏺ Update(docs/PRD.md)
+  ⎿  Added 4 lines, removed 1 line
+      112      - [x] 集成到结果列表标题行，替换静态词典标签区域
+      113      - [x] 添加卡片时使用用户选中的牌组（替换硬编码的 `ankihelp
+           er-pc-test`）
+      114  
+      115 -- **剪贴板监听与原文展示**                                    
+      115 +- **剪贴板监听与原文编辑**                                    
+      116      - [ ] 启动后自动监听系统剪贴板变化（clipboard_watcher）
+      117      - [ ] 捕获到新的英文文本后自动更新 UI 原文展示区域
+      118      - [ ] 防抖处理（延迟 200-300ms 避免频繁触发）
+      119 +    - [ ] 原文展示区域支持手动编辑：用户可直接点击输入框修改、
+          +粘贴或输入英文文本                                            
+      120 +    - [ ] 手动编辑后当光标离开输入框（on blur）自动触发分词与 
+          +查询流程                                                      
+      121 +    - [ ] 手动编辑期间暂停剪贴板监听，编辑完成后恢复          
+      122  
+      123  - **分词引擎**
+      124      - [ ] 对捕获的英文句子进行智能分词，拆分为独立单词/标点块
+
+⏺ Now update the TODO.md to match.
+
+⏺ Update(docs/TODO.md)
+  ⎿  Added 5 lines, removed 2 lines
+      112  
+      113  ## 待规划 📋
+      114  
+      115 -#### 剪贴板监听                                               
+      115 +#### 剪贴板监听与原文编辑                                     
+      116  
+      117 -- [ ] **剪贴板监听**                                          
+      117 +- [ ] **剪贴板监听与原文编辑**                                
+      118      - [ ] 启动后自动监听系统剪贴板变化（clipboard_watcher）
+      119      - [ ] 捕获到新的英文文本后自动更新 UI 原文展示区域
+      120      - [ ] 防抖处理（延迟 200-300ms 避免频繁触发）
+      121 +    - [ ] 原文展示区域支持手动编辑：用户可直接点击输入框修改、
+          +粘贴或输入英文文本                                            
+      122 +    - [ ] 手动编辑后当光标离开输入框（on blur）自动触发分词与 
+          +查询流程                                                      
+      123 +    - [ ] 手动编辑期间暂停剪贴板监听，编辑完成后恢复          
+      124  
+      125  #### 分词引擎
+      126  
+
+⏺ Both PRD.md and TODO.md have been updated. The "剪贴板监听与原文展示" feature
+  is now renamed to "剪贴板监听与原文编辑" with three new sub-items:
+
+  - 原文展示区域支持手动编辑（点击输入框直接修改/粘贴/输入）
+  - 光标离开输入框（on blur）自动触发分词与查询
+  - 手动编辑期间暂停剪贴板监听，完成后恢复
+
+✻ Churned for 35s
+
+❯  please give me a proper message, I will manually git commit.                 
+
+⏺ docs(PRD): 更新剪贴板功能需求，支持原文手动编辑
+
+✻ Sautéed for 2s
+
+❯ ok. Now use superpowers:writing-plan to make a plan for                       
+  '剪贴板监听与原文编辑' in the @docs/TODO.md                                   
+  ⎿  Read docs/TODO.md (183 lines)
+
+⏺ Skill(superpowers:writing-plans)
+  ⎿  Successfully loaded skill
+
+⏺ I'm using the writing-plans skill to create the implementation plan.
+
+  Let me first explore the codebase to understand the existing architecture.
+
+⏺ Explore(Explore clipboard architecture)
+  ⎿  Done (39 tool uses · 65.7k tokens · 1m 26s)
+  (ctrl+o to expand)
+⏺ Now let me read the key files I'll reference in the plan.
+
+  Read 7 files (ctrl+o to expand)
+
+⏺ Now I have full context. Let me write the plan.
+
+⏺ Bash(mkdir -p /Users/a1/Codes/ankihelper-pc/docs/superpowers/plans)
+  ⎿  Done
+
+  Listed 1 directory (ctrl+o to expand)
+
+⏺ Write(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Wrote 500 lines to
+     docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md
+      2 # 剪贴板监听与原文编辑 Implementation Plan
+        bagent-driven-development (recommended) or superpowers:executing-
+         [ ]`) syntax for tracking.n task-by-task. Steps use checkbox (`-
+      5 **Goal:** 实现剪贴板自动监听、原文可编辑、编辑后自动触发分词的完
+      6 整流程。
+        理剪贴板原文状态，集成 `clipboard_watcher` 包监听系统剪贴板变化（
+        `，on blur 时触发文本更新。`WordBlocksSection` 监听剪贴板 Provide
+        环触发。词，替换现有硬编码示例数据。编辑期间暂停剪贴板监听避免循
+      9 **Tech Stack:** Flutter, Riverpod 3.x, clipboard_watcher, dart:as
+        ync (debounce)
+     … +520 lines (ctrl+o to expand)
+
+⏺ Plan complete and saved to
+  docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md. Two execution
+  options:
+
+  1. Subagent-Driven (recommended) - I dispatch a fresh subagent per task,
+  review between tasks, fast iteration
+
+  2. Inline Execution - Execute tasks in this session using executing-plans,
+  batch execution with checkpoints
+
+  Which approach?
+
+✻ Sautéed for 3m 23s
+
+❯ no. this plan is not ok, please refering to the existing plan like            
+  @xdocs/superpowers/plans/2026-05-20-deck-selector.md to modify it as brief as 
+   possible, especially not write any code in the plan                          
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Now I see the format. Let me rewrite the plan to match — brief, no code, just
+  what to build and how to verify.
+
+⏺ Write(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Added 65 lines, removed 455 lines
+        1 -# 剪贴板监听与原文编辑 Implementation Plan                    
+        1 +# 剪贴板监听与原文编辑 实现计划                               
+        2  
+        3 -> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers
+          -:subagent-driven-development (recommended) or superpowers:exec
+          -uting-plans to implement this plan task-by-task. Steps use che
+          -ckbox (`- [ ]`) syntax for tracking.                          
+        3 +> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers
+          +:subagent-driven-development (recommended) or superpowers:exec
+          +uting-plans to implement this plan task-by-task.              
+        4  
+        5 -**Goal:** 实现剪贴板自动监听、原文可编辑、编辑后自动触发分词的
+          -完整流程。                                                    
+        5 +**目标:** 实现剪贴板自动监听（clipboard_watcher + 300ms 防抖）
+          +、原文区域可编辑（TextField + on blur 确认）、编辑期间暂停剪贴
+          +板监听、文本变化后自动触发分词。                              
+        6  
+        7 -**Architecture:** 新建 `ClipboardNotifier`（Riverpod Notifier 
+          -）管理剪贴板原文状态，集成 `clipboard_watcher` 包监听系统剪贴 
+          -板变化（带 300ms 防抖）。`ClipboardSection` 从纯展示改为可编辑
+          - `TextField`，on blur 时触发文本更新。`WordBlocksSection` 监听
+          -剪贴板 Provider 自动分词，替换现有硬编码示例数据。编辑期间暂停
+          -剪贴板监听避免循环触发。                                      
+        7 +**架构:** 新建 `ClipboardNotifier`（Riverpod Notifier）管理剪 
+          +贴板原文和编辑状态，集成 `clipboard_watcher` 包监听系统剪贴板 
+          +。`ClipboardSection` 从纯展示改为可编辑 `TextField`。`WordBloc
+          +ksSection` 监听剪贴板 Provider 自动分词，替换硬编码示例数据。 
+        8  
+        9 -**Tech Stack:** Flutter, Riverpod 3.x, clipboard_watcher, dart
+          -:async (debounce)                                             
+        9 +**技术栈:** Flutter, Riverpod 3.x, clipboard_watcher, dart:asy
+          +nc                                                            
+       10  
+       11 ----                                                           
+       11 +**核心文件结构:**                                             
+       12 +```                                                           
+       13 +lib/                                                          
+       14 +├── providers/                                                
+       15 +│   └── clipboard_provider.dart        # [新建] 剪贴板状态 + c
+          +lipboard_watcher 监听 + 防抖                                  
+       16 +├── widgets/                                                  
+       17 +│   ├── clipboard_section.dart         # [修改] 原文改为可编辑
+          + TextField，on blur 触发更新                                  
+       18 +│   └── word_blocks_section.dart       # [修改] 监听剪贴板 Pro
+          +vider 自动分词，移除硬编码                                    
+       19 +└── app.dart                           # [修改] ClipboardSecti
+          +on 改为无参调用                                               
+       20 +```                                                           
+       21  
+       13 -## 文件结构                                                   
+       14 -                                                              
+       15 -| 操作 | 文件路径 | 职责 |                                    
+       16 -|------|----------|------|                                    
+       17 -| Modify | `pubspec.yaml` | 添加 clipboard_watcher 依赖 |     
+       18 -| Create | `lib/providers/clipboard_provider.dart` | 剪贴板状 
+          -态管理 + clipboard_watcher 监听 + 防抖 |                      
+       19 -| Modify | `lib/widgets/clipboard_section.dart` | 原文区域改为
+          -可编辑 TextField，on blur 触发更新 |                          
+       20 -| Modify | `lib/app.dart` | 连接 ClipboardSection 到 Provider 
+          -|                                                             
+       21 -| Modify | `lib/widgets/word_blocks_section.dart` | 监听剪贴板
+          - Provider 自动分词，移除硬编码数据 |                          
+       22 -                                                              
+       22  ---
+       23  
+       24 +## Tasks                                                      
+       25 +                                                              
+       26  ### Task 1: 添加 clipboard_watcher 依赖
+       27  
+       27 -**Files:**                                                    
+       28 -- Modify: `pubspec.yaml:30-38`                                
+       28 +**修改文件:**                                                 
+       29 +- `pubspec.yaml`                                              
+       30  
+       30 -- [ ] **Step 1: 添加依赖到 pubspec.yaml**                     
+       31 +**实现内容:**                                                 
+       32 +- 在 `dependencies` 中添加 `clipboard_watcher: ^3.0.0`        
+       33 +- 运行 `flutter pub get`                                      
+       34  
+       32 -在 `dependencies` 段的 `http: ^1.6.0` 下方添加：              
+       33 -                                                              
+       34 -```yaml                                                       
+       35 -  clipboard_watcher: ^3.0.0                                   
+       36 -```                                                           
+       37 -                                                              
+       38 -- [ ] **Step 2: 运行 flutter pub get**                        
+       39 -                                                              
+       40 -Run: `flutter pub get`                                        
+       41 -Expected: 依赖安装成功，无报错                                
+       42 -                                                              
+       43 -- [ ] **Step 3: 提交**                                        
+       44 -                                                              
+       35 +**验证:**                                                     
+       36  ```bash
+       46 -git add pubspec.yaml pubspec.lock                             
+       47 -git commit -m "feat(clipboard): 添加 clipboard_watcher 依赖"  
+       37 +flutter pub get                                               
+       38  ```
+       39 +依赖安装成功。                                                
+       40  
+       41  ---
+       42  
+       43  ### Task 2: 创建剪贴板 Provider
+       44  
+       54 -**Files:**                                                    
+       55 -- Create: `lib/providers/clipboard_provider.dart`             
+       45 +**创建文件:**                                                 
+       46 +- `lib/providers/clipboard_provider.dart`                     
+       47  
+       57 -- [ ] **Step 1: 创建 ClipboardState 和 ClipboardNotifier**    
+       48 +**实现内容:**                                                 
+       49 +- `ClipboardState` — 持有 `originalText`（String）和 `isEditin
+          +g`（bool）                                                    
+       50 +- `ClipboardNotifier` — `Notifier<ClipboardState>`，实现 `Clip
+          +boardListener` 接口                                           
+       51 +  - `build()` 时注册 clipboard_watcher 监听，`ref.onDispose`  
+          +时清理                                                        
+       52 +  - `onClipboardChanged()` — 编辑期间跳过；否则 300ms 防抖后读
+          +取剪贴板文本，仅内容变化时更新 state                          
+       53 +  - `setText(String)` — 手动设置原文（编辑完成时调用）        
+       54 +  - `setEditing(bool)` — 设置编辑状态                         
+       55 +- `clipboardProvider` — 对应的 `NotifierProvider`             
+       56  
+       59 -新建 `lib/providers/clipboard_provider.dart`：                
+       60 -                                                              
+       61 -```dart                                                       
+       62 -import 'dart:async';                                          
+       63 -                                                              
+       64 -import 'package:clipboard_watcher/clipboard_watcher.dart';    
+       65 -import 'package:flutter_riverpod/flutter_riverpod.dart';      
+       66 -                                                              
+       67 -/// 剪贴板状态                                                
+       68 -class ClipboardState {                                        
+       69 -  final String originalText;                                  
+       70 -  final bool isEditing;                                       
+       71 -                                                              
+       72 -  const ClipboardState({                                      
+       73 -    this.originalText = '',                                   
+       74 -    this.isEditing = false,                                   
+       75 -  });                                                         
+       76 -                                                              
+       77 -  ClipboardState copyWith({                                   
+       78 -    String? originalText,                                     
+       79 -    bool? isEditing,                                          
+       80 -  }) =>                                                       
+       81 -      ClipboardState(                                         
+       82 -        originalText: originalText ?? this.originalText,      
+       83 -        isEditing: isEditing ?? this.isEditing,               
+       84 -      );                                                      
+       85 -}                                                             
+       86 -                                                              
+       87 -/// 剪贴板状态管理                                            
+       88 -///                                                           
+       89 -/// 集成 clipboard_watcher 监听系统剪贴板变化，               
+       90 -/// 编辑期间暂停监听避免循环触发。                            
+       91 -class ClipboardNotifier extends Notifier<ClipboardState>      
+       92 -    implements ClipboardListener {                            
+       93 -  Timer? _debounceTimer;                                      
+       94 -                                                              
+       95 -  @override                                                   
+       96 -  ClipboardState build() {                                    
+       97 -    _startListening();                                        
+       98 -    ref.onDispose(() {                                        
+       99 -      _debounceTimer?.cancel();                               
+      100 -      ClipboardWatcher.instance.removeListener(this);         
+      101 -      ClipboardWatcher.instance.stop();                       
+      102 -    });                                                       
+      103 -    return const ClipboardState();                            
+      104 -  }                                                           
+      105 -                                                              
+      106 -  void _startListening() {                                    
+      107 -    ClipboardWatcher.instance.addListener(this);              
+      108 -    ClipboardWatcher.instance.start();                        
+      109 -  }                                                           
+      110 -                                                              
+      111 -  /// 手动设置原文（由编辑完成时调用）                        
+      112 -  void setText(String text) {                                 
+      113 -    state = state.copyWith(originalText: text);               
+      114 -  }                                                           
+      115 -                                                              
+      116 -  /// 设置编辑状态（编辑期间暂停剪贴板监听）                  
+      117 -  void setEditing(bool editing) {                             
+      118 -    state = state.copyWith(isEditing: editing);               
+      119 -  }                                                           
+      120 -                                                              
+      121 -  @override                                                   
+      122 -  void onClipboardChanged() {                                 
+      123 -    // 编辑期间不处理剪贴板变化                               
+      124 -    if (state.isEditing) return;                              
+      125 -                                                              
+      126 -    _debounceTimer?.cancel();                                 
+      127 -    _debounceTimer = Timer(const Duration(milliseconds: 300), 
+          -() {                                                          
+      128 -      _readClipboard();                                       
+      129 -    });                                                       
+      130 -  }                                                           
+      131 -                                                              
+      132 -  Future<void> _readClipboard() async {                       
+      133 -    try {                                                     
+      134 -      final data = await ClipboardWatcher.instance.getClipboar
+          -dData();                                                      
+      135 -      if (data != null && data.text != null && data.text!.isNo
+          -tEmpty) {                                                     
+      136 -        final text = data.text!.trim();                       
+      137 -        // 仅在内容确实变化时更新                             
+      138 -        if (text != state.originalText) {                     
+      139 -          state = state.copyWith(originalText: text);         
+      140 -        }                                                     
+      141 -      }                                                       
+      142 -    } catch (_) {                                             
+      143 -      // 读取剪贴板失败时静默忽略                             
+      144 -    }                                                         
+      145 -  }                                                           
+      146 -}                                                             
+      147 -                                                              
+      148 -final clipboardProvider =                                     
+      149 -    NotifierProvider<ClipboardNotifier, ClipboardState>(      
+      150 -  ClipboardNotifier.new,                                      
+      151 -);                                                            
+      152 -```                                                           
+      153 -                                                              
+      154 -- [ ] **Step 2: 验证编译通过**                                
+      155 -                                                              
+      156 -Run: `flutter analyze lib/providers/clipboard_provider.dart`  
+      157 -Expected: 无错误（可能存在未使用 import 警告，可忽略）        
+      158 -                                                              
+      159 -- [ ] **Step 3: 提交**                                        
+      160 -                                                              
+       57 +**验证:**                                                     
+       58  ```bash
+      162 -git add lib/providers/clipboard_provider.dart                 
+      163 -git commit -m "feat(clipboard): 创建剪贴板 Provider，集成 clip
+          -board_watcher 监听"                                           
+       59 +flutter analyze lib/providers/clipboard_provider.dart         
+       60  ```
+       61 +无报错。                                                      
+       62  
+       63  ---
+       64  
+       65  ### Task 3: 改造 ClipboardSection 为可编辑
+       66  
+      170 -**Files:**                                                    
+      171 -- Modify: `lib/widgets/clipboard_section.dart`                
+       67 +**修改文件:**                                                 
+       68 +- `lib/widgets/clipboard_section.dart`                        
+       69  
+      173 -- [ ] **Step 1: 将原文展示框改为 TextField**                  
+       70 +**实现内容:**                                                 
+       71 +- 从 `ConsumerWidget` 改为 `ConsumerStatefulWidget`，移除构造 
+          +函数参数（`originalText`、`translationText`、`onRefreshTransla
+          +tion`）                                                       
+       72 +- 原文展示框：非编辑状态显示静态 `Text`（占位文案改为"点击输入
+          +或等待剪贴板内容..."），点击进入编辑模式                      
+       73 +- 编辑模式：显示 `TextField`（`maxLines: null`，`autofocus: tr
+          +ue`），边框变为 `strokeFocus` 高亮                            
+       74 +- `FocusNode` 监听 `onFocusChange`：光标离开时结束编辑 → `setE
+          +diting(false)` → `setText(controller.text.trim())`            
+       75 +- 翻译行暂时保留静态展示（翻译服务未实现）                    
+       76  
+      175 -将 `ClipboardSection` 从 `ConsumerWidget` 改为 `ConsumerStatef
+          -ulWidget`，原文区域从静态 `Text` 改为 `TextField`，支持 on blu
+          -r 自动触发。                                                  
+      176 -                                                              
+      177 -完整替换 `lib/widgets/clipboard_section.dart`：               
+      178 -                                                              
+      179 -```dart                                                       
+      180 -import 'package:flutter/material.dart';                       
+      181 -import 'package:flutter_riverpod/flutter_riverpod.dart';      
+      182 -                                                              
+      183 -import '../providers/clipboard_provider.dart';                
+      184 -import '../theme/fluent_tokens.dart';                         
+      185 -import '../theme/theme_provider.dart';                        
+      186 -import 'fluent_buttons.dart';                                 
+      187 -                                                              
+      188 -/// 剪贴板区域 — 可编辑原文 + 翻译展示                        
+      189 -class ClipboardSection extends ConsumerStatefulWidget {       
+      190 -  const ClipboardSection({super.key});                        
+      191 -                                                              
+      192 -  @override                                                   
+      193 -  ConsumerState<ClipboardSection> createState() => _ClipboardS
+          -ectionState();                                                
+      194 -}                                                             
+      195 -                                                              
+      196 -class _ClipboardSectionState extends ConsumerState<ClipboardSe
+          -ction> {                                                      
+      197 -  final _controller = TextEditingController();                
+      198 -  final _focusNode = FocusNode();                             
+      199 -  bool _isEditing = false;                                    
+      200 -                                                              
+      201 -  @override                                                   
+      202 -  void initState() {                                          
+      203 -    super.initState();                                        
+      204 -    _focusNode.addListener(_onFocusChange);                   
+      205 -  }                                                           
+      206 -                                                              
+      207 -  @override                                                   
+      208 -  void dispose() {                                            
+      209 -    _controller.dispose();                                    
+      210 -    _focusNode.removeListener(_onFocusChange);                
+      211 -    _focusNode.dispose();                                     
+      212 -    super.dispose();                                          
+      213 -  }                                                           
+      214 -                                                              
+      215 -  void _onFocusChange() {                                     
+      216 -    if (!_focusNode.hasFocus && _isEditing) {                 
+      217 -      // 光标离开 → 结束编辑，触发文本更新                    
+      218 -      _isEditing = false;                                     
+      219 -      ref.read(clipboardProvider.notifier).setEditing(false); 
+      220 -      final text = _controller.text.trim();                   
+      221 -      ref.read(clipboardProvider.notifier).setText(text);     
+      222 -    }                                                         
+      223 -  }                                                           
+      224 -                                                              
+      225 -  void _onTap() {                                             
+      226 -    if (!_isEditing) {                                        
+      227 -      _isEditing = true;                                      
+      228 -      ref.read(clipboardProvider.notifier).setEditing(true);  
+      229 -      // 将当前文本填入编辑框                                 
+      230 -      final currentText = ref.read(clipboardProvider).original
+          -Text;                                                         
+      231 -      _controller.text = currentText;                         
+      232 -      _controller.selection = TextSelection.fromPosition(     
+      233 -        TextPosition(offset: _controller.text.length),        
+      234 -      );                                                      
+      235 -    }                                                         
+      236 -  }                                                           
+      237 -                                                              
+      238 -  @override                                                   
+      239 -  Widget build(BuildContext context) {                        
+      240 -    final tokens = ref.watch(fluentTokensProvider);           
+      241 -    final clipboardState = ref.watch(clipboardProvider);      
+      242 -    final originalText = clipboardState.originalText;         
+      243 -                                                              
+      244 -    // 非编辑状态下，同步外部文本到显示                       
+      245 -    if (!_isEditing && _controller.text != originalText) {    
+      246 -      _controller.text = originalText;                        
+      247 -    }                                                         
+      248 -                                                              
+      249 -    return Container(                                         
+      250 -      padding: const EdgeInsets.all(FluentTokens.spaceL),     
+      251 -      decoration: BoxDecoration(                              
+      252 -        color: tokens.bgCard,                                 
+      253 -        border: Border.all(                                   
+      254 -          color: tokens.stroke3,                              
+      255 -          width: FluentTokens.strokeWidthThin,                
+      256 -        ),                                                    
+      257 -        borderRadius: BorderRadius.circular(FluentTokens.radiu
+          -sXl),                                                         
+      258 -      ),                                                      
+      259 -      child: Column(                                          
+      260 -        crossAxisAlignment: CrossAxisAlignment.start,         
+      261 -        children: [                                           
+      262 -          // ====== 标题 ======                               
+      263 -          Text(                                               
+      264 -            '剪贴板原文',                                     
+      265 -            style: TextStyle(                                 
+      266 -              fontFamily: FluentTokens.fontFamilyBase,        
+      267 -              fontSize: FluentTokens.fontSize200,             
+      268 -              fontWeight: FluentTokens.fontWeightMedium,      
+      269 -              color: tokens.fg3,                              
+      270 -              letterSpacing: 0.04,                            
+      271 -            ),                                                
+      272 -          ),                                                  
+      273 -          const SizedBox(height: FluentTokens.spaceM),        
+      274 -          // ====== 原文可编辑框 ======                       
+      275 -          GestureDetector(                                    
+      276 -            onTap: _onTap,                                    
+      277 -            child: Container(                                 
+      278 -              width: double.infinity,                         
+      279 -              padding: const EdgeInsets.symmetric(            
+      280 -                horizontal: FluentTokens.spaceM,              
+      281 -                vertical: FluentTokens.spaceMNudge,           
+      282 -              ),                                              
+      283 -              decoration: BoxDecoration(                      
+      284 -                color: tokens.bgInput,                        
+      285 -                border: Border.all(                           
+      286 -                  color: _isEditing ? tokens.strokeFocus : tok
+          -ens.stroke3,                                                  
+      287 -                  width: FluentTokens.strokeWidthThin,        
+      288 -                ),                                            
+      289 -                borderRadius: BorderRadius.circular(FluentToke
+          -ns.radiusMd),                                                 
+      290 -              ),                                              
+      291 -              child: _isEditing                               
+      292 -                  ? TextField(                                
+      293 -                      controller: _controller,                
+      294 -                      focusNode: _focusNode,                  
+      295 -                      autofocus: true,                        
+      296 -                      maxLines: null,                         
+      297 -                      style: TextStyle(                       
+      298 -                        fontFamily: FluentTokens.fontFamilyBas
+          -e,                                                            
+      299 -                        fontSize: FluentTokens.fontSize400,   
+      300 -                        color: tokens.fg1,                    
+      301 -                      ),                                      
+      302 -                      decoration: const InputDecoration(      
+      303 -                        isDense: true,                        
+      304 -                        contentPadding: EdgeInsets.zero,      
+      305 -                        border: InputBorder.none,             
+      306 -                        hintText: '输入或粘贴英文文本...',    
+      307 -                      ),                                      
+      308 -                      onSubmitted: (_) {                      
+      309 -                        _focusNode.unfocus();                 
+      310 -                      },                                      
+      311 -                    )                                         
+      312 -                  : Text(                                     
+      313 -                      originalText.isNotEmpty                 
+      314 -                          ? originalText                      
+      315 -                          : '（点击输入或等待剪贴板内容...）',
+      316 -                      style: TextStyle(                       
+      317 -                        fontFamily: FluentTokens.fontFamilyBas
+          -e,                                                            
+      318 -                        fontSize: FluentTokens.fontSize400,   
+      319 -                        color: originalText.isNotEmpty        
+      320 -                            ? tokens.fg1                      
+      321 -                            : tokens.fg4,                     
+      322 -                      ),                                      
+      323 -                    ),                                        
+      324 -            ),                                                
+      325 -          ),                                                  
+      326 -          const SizedBox(height: FluentTokens.spaceS),        
+      327 -          // ====== 翻译行 ======                             
+      328 -          Row(                                                
+      329 -            children: [                                       
+      330 -              Text(                                           
+      331 -                '原文翻译',                                   
+      332 -                style: TextStyle(                             
+      333 -                  fontFamily: FluentTokens.fontFamilyBase,    
+      334 -                  fontSize: FluentTokens.fontSize200,         
+      335 -                  fontWeight: FluentTokens.fontWeightMedium,  
+      336 -                  color: tokens.fg4,                          
+      337 -                ),                                            
+      338 -              ),                                              
+      339 -              const SizedBox(width: FluentTokens.spaceS),     
+      340 -              Expanded(                                       
+      341 -                child: Container(                             
+      342 -                  padding: const EdgeInsets.symmetric(        
+      343 -                    horizontal: FluentTokens.spaceM,          
+      344 -                    vertical: FluentTokens.spaceSNudge,       
+      345 -                  ),                                          
+      346 -                  decoration: BoxDecoration(                  
+      347 -                    color: tokens.bgInput,                    
+      348 -                    border: Border.all(                       
+      349 -                      color: tokens.stroke3,                  
+      350 -                      width: FluentTokens.strokeWidthThin,    
+      351 -                    ),                                        
+      352 -                    borderRadius: BorderRadius.circular(Fluent
+          -Tokens.radiusMd),                                             
+      353 -                  ),                                          
+      354 -                  child: Text(                                
+      355 -                    '（等待翻译...）',                        
+      356 -                    style: TextStyle(                         
+      357 -                      fontFamily: FluentTokens.fontFamilyBase,
+      358 -                      fontSize: FluentTokens.fontSize300,     
+      359 -                      color: tokens.fg4,                      
+      360 -                    ),                                        
+      361 -                  ),                                          
+      362 -                ),                                            
+      363 -              ),                                              
+      364 -              const SizedBox(width: FluentTokens.spaceS),     
+      365 -              FluentButton.subtle(                            
+      366 -                label: '刷新翻译',                            
+      367 -                icon: const Icon(Icons.refresh),              
+      368 -                isSmall: true,                                
+      369 -                onPressed: () {},                             
+      370 -              ),                                              
+      371 -            ],                                                
+      372 -          ),                                                  
+      373 -        ],                                                    
+      374 -      ),                                                      
+      375 -    );                                                        
+      376 -  }                                                           
+      377 -}                                                             
+      378 -```                                                           
+      379 -                                                              
+      380 -- [ ] **Step 2: 验证编译通过**                                
+      381 -                                                              
+      382 -Run: `flutter analyze lib/widgets/clipboard_section.dart`     
+      383 -Expected: 无错误                                              
+      384 -                                                              
+      385 -- [ ] **Step 3: 提交**                                        
+      386 -                                                              
+       77 +**验证:**                                                     
+       78  ```bash
+      388 -git add lib/widgets/clipboard_section.dart                    
+      389 -git commit -m "feat(clipboard): 改造 ClipboardSection 为可编辑
+          - TextField，支持 on blur 确认"                                
+       79 +flutter analyze lib/widgets/clipboard_section.dart            
+       80  ```
+       81 +无报错。                                                      
+       82  
+       83  ---
+       84  
+       85  ### Task 4: 连接 app.dart 并更新 WordBlocksSection
+       86  
+      396 -**Files:**                                                    
+      397 -- Modify: `lib/app.dart:84-87`                                
+      398 -- Modify: `lib/widgets/word_blocks_section.dart:23-33`        
+       87 +**修改文件:**                                                 
+       88 +- `lib/app.dart`                                              
+       89 +- `lib/widgets/word_blocks_section.dart`                      
+       90  
+      400 -- [ ] **Step 1: 更新 app.dart 中 ClipboardSection 的调用**    
+       91 +**实现内容:**                                                 
+       92 +- `app.dart` 第 84-87 行：`ClipboardSection` 改为无参调用 `con
+          +st ClipboardSection()`                                        
+       93 +- `word_blocks_section.dart` `initState`：移除硬编码示例数据，
+          +改为 `ref.listen(clipboardProvider, ...)` 监听文本变化，文本非
+          +空时调用 `tokenize()` 更新 `wordSelectionProvider`；初始化时若
+          +已有文本则立即分词                                            
+       94  
+      402 -`ClipboardSection` 不再需要外部传参，改为从 Provider 自读数据 
+          -。将 `lib/app.dart` 第 84-87 行：                             
+      403 -                                                              
+      404 -```dart                                                       
+      405 -                  ClipboardSection(                           
+      406 -                    onRefreshTranslation: () =>               
+      407 -                        ref.read(toastProvider.notifier).show(
+          -'翻译已刷新'),                                                
+      408 -                  ),                                          
+      409 -```                                                           
+      410 -                                                              
+      411 -替换为：                                                      
+      412 -                                                              
+      413 -```dart                                                       
+      414 -                  const ClipboardSection(),                   
+      415 -```                                                           
+      416 -                                                              
+      417 -- [ ] **Step 2: 更新 WordBlocksSection 监听剪贴板 Provider**  
+      418 -                                                              
+      419 -将 `lib/widgets/word_blocks_section.dart` 的 `initState` 方法 
+          -（第 23-33 行）：                                             
+      420 -                                                              
+      421 -```dart                                                       
+      422 -  @override                                                   
+      423 -  void initState() {                                          
+      424 -    super.initState();                                        
+      425 -    // 派发默认示例数据                                       
+      426 -    WidgetsBinding.instance.addPostFrameCallback((_) {        
+      427 -      final notifier = ref.read(wordSelectionProvider.notifier
+          -);                                                            
+      428 -      final tokens = tokenize('This is an example sentence tha
+          -t you copied.');                                              
+      429 -      notifier.setTokens(tokens);                             
+      430 -      // 默认选中 "example sentence" (indices 3, 4)           
+      431 -      notifier.selectIndex(3);                                
+      432 -      notifier.selectRange(4);                                
+      433 -    });                                                       
+      434 -  }                                                           
+      435 -```                                                           
+      436 -                                                              
+      437 -替换为：                                                      
+      438 -                                                              
+      439 -```dart                                                       
+      440 -  @override                                                   
+      441 -  void initState() {                                          
+      442 -    super.initState();                                        
+      443 -    // 监听剪贴板文本变化，自动分词                           
+      444 -    WidgetsBinding.instance.addPostFrameCallback((_) {        
+      445 -      ref.listen(clipboardProvider, (prev, next) {            
+      446 -        if (next.originalText.isNotEmpty &&                   
+      447 -            next.originalText != prev?.originalText) {        
+      448 -          final tokens = tokenize(next.originalText);         
+      449 -          ref.read(wordSelectionProvider.notifier).setTokens(t
+          -okens);                                                       
+      450 -        }                                                     
+      451 -      });                                                     
+      452 -      // 初始化：如果已有剪贴板文本则立即分词                 
+      453 -      final current = ref.read(clipboardProvider);            
+      454 -      if (current.originalText.isNotEmpty) {                  
+      455 -        final tokens = tokenize(current.originalText);        
+      456 -        ref.read(wordSelectionProvider.notifier).setTokens(tok
+          -ens);                                                         
+      457 -      }                                                       
+      458 -    });                                                       
+      459 -  }                                                           
+      460 -```                                                           
+      461 -                                                              
+      462 -- [ ] **Step 3: 验证编译通过**                                
+      463 -                                                              
+      464 -Run: `flutter analyze lib/app.dart lib/widgets/word_blocks_sec
+          -tion.dart`                                                    
+      465 -Expected: 无错误                                              
+      466 -                                                              
+      467 -- [ ] **Step 4: 提交**                                        
+      468 -                                                              
+       95 +**验证:**                                                     
+       96  ```bash
+      470 -git add lib/app.dart lib/widgets/word_blocks_section.dart     
+      471 -git commit -m "feat(clipboard): 连接剪贴板 Provider 到 UI，Wor
+          -dBlocksSection 自动分词"                                      
+       97 +flutter run -d macos                                          
+       98  ```
+       99 +1. 启动后剪贴板区域显示占位文案                               
+      100 +2. 复制英文文本 → 原文自动更新，单词块自动分词                
+      101 +3. 点击原文区域 → 进入编辑模式，输入文本 → 点击外部（on blur）
+          +→ 单词块自动更新                                              
+      102 +4. 编辑期间复制新内容不会覆盖编辑中的文本                     
+      103  
+      104  ---
+      105  
+      476 -### Task 5: 端到端验证与清理                                  
+      106 +## 实现偏差记录                                               
+      107  
+      478 -**Files:**                                                    
+      479 -- Verify all modified files                                   
+      480 -                                                              
+      481 -- [ ] **Step 1: 全量编译检查**                                
+      482 -                                                              
+      483 -Run: `flutter analyze`                                        
+      484 -Expected: 无新增错误                                          
+      485 -                                                              
+      486 -- [ ] **Step 2: 运行应用验证功能**                            
+      487 -                                                              
+      488 -Run: `flutter run -d macos`（或对应平台）                     
+      489 -Expected:                                                     
+      490 -- 应用启动后，剪贴板区域显示 "（点击输入或等待剪贴板内容...）"
+      491 -- 复制英文文本后，原文区域自动更新，单词块区域自动分词        
+      492 -- 点击原文区域进入编辑模式，输入文本后点击外部（on blur），单 
+          -词块自动更新                                                  
+      493 -- 编辑期间复制新内容不会覆盖编辑中的文本                      
+      494 -                                                              
+      495 -- [ ] **Step 3: 提交最终状态**                                
+      496 -                                                              
+      497 -```bash                                                       
+      498 -git add -A                                                    
+      499 -git commit -m "feat(clipboard): 剪贴板监听与原文编辑功能完成" 
+      500 -```                                                           
+      108 +| 项目 | 原计划 | 实际实现 | 原因 |                           
+      109 +|------|--------|----------|------|                           
+      110 +| （待填写） | | | |                                          
+
+⏺ Exited plan mode
+
+⏺ Plan approved. Now executing it.
+
+⏺ Skill(superpowers:executing-plans)
+  ⎿  Successfully loaded skill
+
+⏺ I'm using the executing-plans skill to implement this plan.
+
+  Let me load and review the plan first.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Let me verify the strokeFocus token exists in FluentTokens before starting.
+
+  Searched for 2 patterns (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯  please give me a proper message, I will manually git commit.                 
+⏺ docs(plan): 添加剪贴板监听与原文编辑实现计划
+
+✻ Baked for 10s
+
+❯ /context 
+  ⎿  Context Usage
+     ⛁ ⛀ ⛀ ⛁ ⛁   mimo-v2.5-pro
+     ⛁ ⛁ ⛁ ⛁ ⛁   67.9k/200k tokens (34%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ 
+     ⛶ ⛶ ⛶ ⛶ ⛶   Estimated usage by category
+     ⛶ ⛝ ⛝ ⛝ ⛝   ⛁ System prompt: 5.8k tokens (2.9%)
+                 ⛁ Memory files: 1k tokens (0.5%)
+                 ⛁ Skills: 1.6k tokens (0.8%)
+                 ⛁ Messages: 59.4k tokens (29.7%)
+                 ⛶ Free space: 99.1k (49.6%)
+                 ⛝ Autocompact buffer: 33k tokens (16.5%)
+
+     MCP tools · /mcp
+     ├ mcp__open-design__get_active_context: 0 tokens
+     ├ mcp__open-design__get_artifact: 0 tokens
+     ├ mcp__open-design__get_file: 0 tokens
+     ├ mcp__open-design__get_project: 0 tokens
+     ├ mcp__open-design__list_files: 0 tokens
+     ├ mcp__open-design__list_projects: 0 tokens
+     └ mcp__open-design__search_files: 0 tokens
+
+     Memory files · /memory
+     └ .claude/CLAUDE.md: 1k tokens
+
+     Skills · /skills
+
+     Plugin (superpowers)
+     ├ verification-before-completion: ~90 tokens
+     ├ receiving-code-review: ~90 tokens
+     ├ finishing-a-development-branch: ~80 tokens
+     ├ using-git-worktrees: ~80 tokens
+     ├ brainstorming: ~80 tokens
+     ├ using-superpowers: ~60 tokens
+     ├ dispatching-parallel-agents: ~50 tokens
+     ├ requesting-code-review: ~50 tokens
+     ├ executing-plans: ~40 tokens
+     ├ subagent-driven-development: ~40 tokens
+     ├ systematic-debugging: ~40 tokens
+     ├ writing-skills: ~40 tokens
+     ├ test-driven-development: ~40 tokens
+     └ writing-plans: ~40 tokens
+
+     Built-in
+     ├ claude-api: ~250 tokens
+     ├ update-config: ~240 tokens
+     ├ loop: ~100 tokens
+     ├ keybindings-help: ~80 tokens
+     ├ fewer-permission-prompts: ~60 tokens
+     ├ simplify: ~30 tokens
+     ├ security-review: ~30 tokens
+     ├ init: ~20 tokens
+     └ review: < 20 tokens
+
+❯ use superpowers:executing-plan to implement Task1 in the file                 
+  @docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md                    
+  ⎿  Read docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md (unchanged)
+
+⏺ Skill(superpowers:executing-plans)
+  ⎿  Successfully loaded skill
+
+⏺ I'm using the executing-plans skill to implement Task 1.
+
+⏺ Update(pubspec.yaml)
+  ⎿  Added 1 line
+      36    cupertino_icons: ^1.0.8
+      37    flutter_riverpod: ^3.3.1
+      38    http: ^1.6.0
+      39 +  clipboard_watcher: ^3.0.0                                    
+      40  
+      41  dev_dependencies:
+      42    flutter_test:
+
+⏺ Bash(flutter pub get)
+  ⎿  Error: Exit code 1
+     Resolving dependencies...
+     Because ankihelper depends on clipboard_watcher ^3.0.0 which doesn't match 
+     any versions, version solving failed.
+
+
+     You can try the following suggestion to make the pubspec resolve:
+     * Consider downgrading your constraint on clipboard_watcher: flutter pub 
+     add clipboard_watcher:^0.3.0
+     Failed to update packages.
+
+⏺ 版本号不对，让我检查正确版本。
+
+⏺ Bash(flutter pub cache repair 2>/dev/null; dart pub search clipboard_watcher
+      2>/dev/null || echo "Checking pub.dev...")
+  ⎿  Reinstalled 207 packages.
+     Checking pub.dev...
+
+⏺ Fetch(https://pub.dev/packages/clipboard_watcher)
+  ⎿  Error: Unable to verify if domain pub.dev is safe to fetch. This may be due
+      to network restrictions or enterprise security policies blocking 
+     claude.ai.
+
+❯ please Fetch(https://pub.dev/packages/clipboard_watcher) again                
+
+⏺ 🌐 Z.ai Built-in Tool: webReader
+
+  Input:
+  {"url":"https://pub.dev/packages/clipboard_watcher"}
+
+  Executing on server...
+
+⏺ Output:
+  webReader_result_summary: [{"text": {"title": "clipboard_watcher | Flutter
+  package", "description": "This plugin allows Flutter apps to watch clipboard
+  changes.", "url": "https://pub.dev/packages/clipboard_watcher", "content":
+  "This plugin allows Flutter apps to watch clipboard
+  changes.\n\nMore...\n\n![Image 1: pub version](...
+
+⏺ 最新版本是 0.3.0，而不是 3.0.0。让我修正：
+
+⏺ Update(pubspec.yaml)
+  ⎿  Added 1 line, removed 1 line
+      36    cupertino_icons: ^1.0.8
+      37    flutter_riverpod: ^3.3.1
+      38    http: ^1.6.0
+      39 -  clipboard_watcher: ^3.0.0                                    
+      39 +  clipboard_watcher: ^0.3.0                                    
+      40  
+      41  dev_dependencies:
+      42    flutter_test:
+⏺ Bash(flutter pub get)
+  ⎿  Resolving dependencies...
+     Downloading packages...
+       _fe_analyzer_shared 92.0.0 (100.0.0 available)
+     … +12 lines (ctrl+o to expand)
+
+⏺ 依赖安装成功。Task 1 完成。
+
+⏺ Task 1 完成。请手动提交：
+
+  git add pubspec.yaml pubspec.lock
+  git commit -m "feat(clipboard): 添加 clipboard_watcher 依赖"
+
+✻ Cooked for 37s
+
+❯ git status shows:                                                             
+  ```bash                                                                       
+  Flutter/Release.xcconfig                                                      
+          修改：     linux/flutter/generated_plugin_registrant.cc               
+          修改：     linux/flutter/generated_plugins.cmake                      
+          修改：     macos/Flutter/Flutter-Debug.xcconfig                       
+          修改：     macos/Flutter/Flutter-Release.xcconfig                     
+          修改：     macos/Flutter/GeneratedPluginRegistrant.swift              
+          修改：     pubspec.lock                                               
+          修改：     pubspec.yaml                                               
+          修改：     windows/flutter/generated_plugin_registrant.cc             
+          修改：     windows/flutter/generated_plugins.cmake                    
+                                                                                
+  未跟踪的文件:                                                                 
+    （使用 "git add <文件>..." 以包含要提交的内容）                             
+          .flutter-plugins-dependencies                                         
+          ios/Podfile                                                           
+          macos/Podfile                                                         
+  ```                                                                           
+  Can I use the message you provide to commit these all unadded changes?        
+
+⏺ 是的，这些是 clipboard_watcher 插件自动生成的平台配置文件，都应该一起提交。
+
+  git add pubspec.yaml pubspec.lock .flutter-plugins-dependencies linux/ macos/
+  windows/ ios/
+
+  git commit -m "feat(clipboard): 添加 clipboard_watcher 依赖"
+
+✻ Worked for 8s
+
+❯ update the progress in the plan file.and then let us do Task2                 
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Added 1 line, removed 1 line
+      23  
+      24  ## Tasks
+      25  
+      26 -### Task 1: 添加 clipboard_watcher 依赖                        
+      26 +### Task 1: 添加 clipboard_watcher 依赖 ✅                     
+      27  
+      28  **修改文件:**
+      29  - `pubspec.yaml`
+
+⏺ Update(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Added 1 line, removed 1 line
+      29  - `pubspec.yaml`
+      30  
+      31  **实现内容:**
+      32 -- 在 `dependencies` 中添加 `clipboard_watcher: ^3.0.0`         
+      32 +- 在 `dependencies` 中添加 `clipboard_watcher: ^0.3.0`         
+      33  - 运行 `flutter pub get`
+      34  
+      35  **验证:**
+
+⏺ Now let me start Task 2. First, let me check the clipboard_watcher API and
+  existing provider patterns.
+
+  Searched for 1 pattern (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ /model mimo-v2.5-pro                                                          
+  ⎿  Set model to mimo-v2.5-pro
+
+❯ ok, continue                                                                  
+
+⏺ Let me check the clipboard_watcher API and existing provider patterns.
+
+  Read 1 file (ctrl+o to expand)
+⏺ Now I'll create the clipboard provider.
+
+⏺ Write(lib/providers/clipboard_provider.dart)
+  ⎿  Wrote 85 lines to lib/providers/clipboard_provider.dart
+       1 import 'dart:async';
+       2 
+       3 import 'package:clipboard_watcher/clipboard_watcher.dart';
+       4 import 'package:flutter/services.dart';
+       5 import 'package:flutter_riverpod/flutter_riverpod.dart';
+       6 
+       7 /// 剪贴板状态
+       8 class ClipboardState {
+       9   final String originalText;
+      10   final bool isEditing;
+     … +76 lines (ctrl+o to expand)
+
+⏺ Bash(flutter analyze lib/providers/clipboard_provider.dart)
+  ⎿  Analyzing clipboard_provider.dart...
+     No issues found! (ran in 2.6s)
+
+⏺ Task 2 完成。请手动提交：
+
+  git add lib/providers/clipboard_provider.dart
+  git commit -m "feat(clipboard): 创建剪贴板 Provider，集成 clipboard_watcher 
+  监听"
+
+✻ Worked for 1m 29s
+
+❯ I want to manually verify whether Task 2 is OK. How to do it and what should  
+  I check.                                                                      
+
+⏺ Task 2 只创建了 Provider，尚未连接 UI，所以无法通过运行 app
+  验证。你可以做以下检查：
+
+  1. 代码审查
+  - 打开 lib/providers/clipboard_provider.dart
+  - 确认 ClipboardNotifier 使用了 with ClipboardListener mixin
+  - 确认 onClipboardChanged() 中有编辑状态检查和 300ms 防抖
+  - 确认 ref.onDispose 中正确清理了 listener 和 timer
+
+  2. 静态分析
+  flutter analyze lib/providers/clipboard_provider.dart
+  已通过，无报错。
+
+  3. 检查 API 使用是否正确
+  cat
+  ~/.pub-cache/hosted/pub.dev/clipboard_watcher-0.3.0/lib/clipboard_watcher.dart
+  确认 clipboardWatcher 是全局单例，addListener/removeListener/start/stop
+  方法存在。
+
+  Task 2 的完整功能验证需要等 Task 3（UI 改造）和 Task 4（连接
+  app.dart）完成后一起测试。
+
+✻ Brewed for 16s
+
+❯ update the progress in the plan file.and then let us do next Task             
+
+⏺ Update(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Added 1 line, removed 1 line
+      40  
+      41  ---
+      42  
+      43 -### Task 2: 创建剪贴板 Provider                                
+      43 +### Task 2: 创建剪贴板 Provider ✅                             
+      44  
+      45  **创建文件:**
+      46  - `lib/providers/clipboard_provider.dart`
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Write(lib/widgets/clipboard_section.dart)
+  ⎿  Added 105 lines, removed 42 lines
+       1  import 'package:flutter/material.dart';
+       2  import 'package:flutter_riverpod/flutter_riverpod.dart';
+       3  
+       4 +import '../providers/clipboard_provider.dart';                 
+       5  import '../theme/fluent_tokens.dart';
+       6  import '../theme/theme_provider.dart';
+       7  import 'fluent_buttons.dart';
+       8  
+       8 -/// 剪贴板区域 — 展示剪贴板原文与中文翻译                      
+       9 -class ClipboardSection extends ConsumerWidget {                
+      10 -  final String originalText;                                   
+      11 -  final String translationText;                                
+      12 -  final VoidCallback? onRefreshTranslation;                    
+       9 +/// 剪贴板区域 — 可编辑原文 + 翻译展示                         
+      10 +class ClipboardSection extends ConsumerStatefulWidget {        
+      11 +  const ClipboardSection({super.key});                         
+      12  
+      14 -  const ClipboardSection({                                     
+      15 -    super.key,                                                 
+      16 -    this.originalText = '',                                    
+      17 -    this.translationText = '',                                 
+      18 -    this.onRefreshTranslation,                                 
+      19 -  });                                                          
+      13 +  @override                                                    
+      14 +  ConsumerState<ClipboardSection> createState() => _ClipboardSe
+         +ctionState();                                                  
+      15 +}                                                              
+      16  
+      17 +class _ClipboardSectionState extends ConsumerState<ClipboardSec
+         +tion> {                                                        
+      18 +  final _controller = TextEditingController();                 
+      19 +  final _focusNode = FocusNode();                              
+      20 +  bool _isEditing = false;                                     
+      21 +                                                               
+      22    @override
+      22 -  Widget build(BuildContext context, WidgetRef ref) {          
+      23 +  void initState() {                                           
+      24 +    super.initState();                                         
+      25 +    _focusNode.addListener(_onFocusChange);                    
+      26 +  }                                                            
+      27 +                                                               
+      28 +  @override                                                    
+      29 +  void dispose() {                                             
+      30 +    _controller.dispose();                                     
+      31 +    _focusNode.removeListener(_onFocusChange);                 
+      32 +    _focusNode.dispose();                                      
+      33 +    super.dispose();                                           
+      34 +  }                                                            
+      35 +                                                               
+      36 +  void _onFocusChange() {                                      
+      37 +    if (!_focusNode.hasFocus && _isEditing) {                  
+      38 +      _isEditing = false;                                      
+      39 +      ref.read(clipboardProvider.notifier).setEditing(false);  
+      40 +      final text = _controller.text.trim();                    
+      41 +      ref.read(clipboardProvider.notifier).setText(text);      
+      42 +    }                                                          
+      43 +  }                                                            
+      44 +                                                               
+      45 +  void _onTap() {                                              
+      46 +    if (!_isEditing) {                                         
+      47 +      _isEditing = true;                                       
+      48 +      ref.read(clipboardProvider.notifier).setEditing(true);   
+      49 +      final currentText = ref.read(clipboardProvider).originalT
+         +ext;                                                           
+      50 +      _controller.text = currentText;                          
+      51 +      _controller.selection = TextSelection.fromPosition(      
+      52 +        TextPosition(offset: _controller.text.length),         
+      53 +      );                                                       
+      54 +    }                                                          
+      55 +  }                                                            
+      56 +                                                               
+      57 +  @override                                                    
+      58 +  Widget build(BuildContext context) {                         
+      59      final tokens = ref.watch(fluentTokensProvider);
+      60 +    final clipboardState = ref.watch(clipboardProvider);       
+      61 +    final originalText = clipboardState.originalText;          
+      62  
+      63 +    if (!_isEditing && _controller.text != originalText) {     
+      64 +      _controller.text = originalText;                         
+      65 +    }                                                          
+      66 +                                                               
+      67      return Container(
+      68        padding: const EdgeInsets.all(FluentTokens.spaceL),
+      69        decoration: BoxDecoration(
+     ...
+       89              ),
+       90            ),
+       91            const SizedBox(height: FluentTokens.spaceM),
+       50 -          // ====== 原文展示框 ======                         
+       51 -          Container(                                          
+       52 -            width: double.infinity,                           
+       53 -            padding: const EdgeInsets.symmetric(              
+       54 -              horizontal: FluentTokens.spaceM,                
+       55 -              vertical: FluentTokens.spaceMNudge,             
+       56 -            ),                                                
+       57 -            decoration: BoxDecoration(                        
+       58 -              color: tokens.bgInput,                          
+       59 -              border: Border.all(                             
+       60 -                color: tokens.stroke3,                        
+       61 -                width: FluentTokens.strokeWidthThin,          
+       92 +          // ====== 原文可编辑框 ======                       
+       93 +          GestureDetector(                                    
+       94 +            onTap: _onTap,                                    
+       95 +            child: Container(                                 
+       96 +              width: double.infinity,                         
+       97 +              padding: const EdgeInsets.symmetric(            
+       98 +                horizontal: FluentTokens.spaceM,              
+       99 +                vertical: FluentTokens.spaceMNudge,           
+      100                ),
+       63 -              borderRadius: BorderRadius.circular(FluentTokens
+          -.radiusMd),                                                   
+       64 -            ),                                                
+       65 -            child: Text(                                      
+       66 -              originalText.isNotEmpty ? originalText : '（等待
+          -剪贴板内容...）',                                             
+       67 -              style: TextStyle(                               
+       68 -                fontFamily: FluentTokens.fontFamilyBase,      
+       69 -                fontSize: FluentTokens.fontSize400,           
+       70 -                color: originalText.isNotEmpty ? tokens.fg1 : 
+          -tokens.fg4,                                                   
+      101 +              decoration: BoxDecoration(                      
+      102 +                color: tokens.bgInput,                        
+      103 +                border: Border.all(                           
+      104 +                  color: _isEditing ? tokens.strokeFocus : tok
+          +ens.stroke3,                                                  
+      105 +                  width: FluentTokens.strokeWidthThin,        
+      106 +                ),                                            
+      107 +                borderRadius: BorderRadius.circular(FluentToke
+          +ns.radiusMd),                                                 
+      108                ),
+      109 +              child: _isEditing                               
+      110 +                  ? TextField(                                
+      111 +                      controller: _controller,                
+      112 +                      focusNode: _focusNode,                  
+      113 +                      autofocus: true,                        
+      114 +                      maxLines: null,                         
+      115 +                      style: TextStyle(                       
+      116 +                        fontFamily: FluentTokens.fontFamilyBas
+          +e,                                                            
+      117 +                        fontSize: FluentTokens.fontSize400,   
+      118 +                        color: tokens.fg1,                    
+      119 +                      ),                                      
+      120 +                      decoration: const InputDecoration(      
+      121 +                        isDense: true,                        
+      122 +                        contentPadding: EdgeInsets.zero,      
+      123 +                        border: InputBorder.none,             
+      124 +                        hintText: '输入或粘贴英文文本...',    
+      125 +                      ),                                      
+      126 +                      onSubmitted: (_) {                      
+      127 +                        _focusNode.unfocus();                 
+      128 +                      },                                      
+      129 +                    )                                         
+      130 +                  : Text(                                     
+      131 +                      originalText.isNotEmpty                 
+      132 +                          ? originalText                      
+      133 +                          : '（点击输入或等待剪贴板内容...）',
+      134 +                      style: TextStyle(                       
+      135 +                        fontFamily: FluentTokens.fontFamilyBas
+          +e,                                                            
+      136 +                        fontSize: FluentTokens.fontSize400,   
+      137 +                        color: originalText.isNotEmpty        
+      138 +                            ? tokens.fg1                      
+      139 +                            : tokens.fg4,                     
+      140 +                      ),                                      
+      141 +                    ),                                        
+      142              ),
+      143            ),
+      144            const SizedBox(height: FluentTokens.spaceS),
+      145            // ====== 翻译行 ======
+      146            Row(
+      147              children: [
+       78 -              // 翻译标签                                     
+      148                Text(
+      149                  '原文翻译',
+      150                  style: TextStyle(
+     ...
+      155                  ),
+      156                ),
+      157                const SizedBox(width: FluentTokens.spaceS),
+       89 -              // 翻译文本展示框                               
+      158                Expanded(
+      159                  child: Container(
+      160                    padding: const EdgeInsets.symmetric(
+     ...
+      170                      borderRadius: BorderRadius.circular(Fluent
+           Tokens.radiusMd),
+      171                    ),
+      172                    child: Text(
+      105 -                    translationText.isNotEmpty                
+      106 -                        ? translationText                     
+      107 -                        : '（等待翻译...）',                  
+      173 +                    '（等待翻译...）',                        
+      174                      style: TextStyle(
+      175                        fontFamily: FluentTokens.fontFamilyBase,
+      176                        fontSize: FluentTokens.fontSize300,
+      111 -                      color: translationText.isNotEmpty       
+      112 -                          ? tokens.fg2                        
+      113 -                          : tokens.fg4,                       
+      177 +                      color: tokens.fg4,                      
+      178                      ),
+      179                    ),
+      180                  ),
+      181                ),
+      182                const SizedBox(width: FluentTokens.spaceS),
+      119 -              // 刷新翻译按钮                                 
+      183                FluentButton.subtle(
+      184                  label: '刷新翻译',
+      185                  icon: const Icon(Icons.refresh),
+      186                  isSmall: true,
+      124 -                onPressed: onRefreshTranslation,              
+      187 +                onPressed: () {},                             
+      188                ),
+      189              ],
+      190            ),
+
+⏺ Bash(flutter analyze lib/widgets/clipboard_section.dart)
+  ⎿  Analyzing clipboard_section.dart...
+     No issues found! (ran in 3.2s)
+
+⏺ Task 3 完成。请手动提交：
+
+  git add lib/widgets/clipboard_section.dart
+  git commit -m "feat(clipboard): 改造 ClipboardSection 为可编辑 TextField，支持
+   on blur 确认"
+
+✻ Worked for 1m 55s
+
+❯ I want to manually verify whether the current Task  is OK. How to do it and   
+  what should I check.                                                          
+⏺ Task 3 改造了 ClipboardSection，但尚未连接到 app.dart（Task 4
+  才做）。目前可以这样验证：
+
+  1. 代码审查
+  - 打开 lib/widgets/clipboard_section.dart
+  - 确认已从 ConsumerWidget 改为 ConsumerStatefulWidget
+  - 确认构造函数无参数（移除了
+  originalText、translationText、onRefreshTranslation）
+  - 确认使用了 clipboardProvider
+  - 确认有 _onFocusChange 处理 on blur 逻辑
+
+  2. 静态分析
+  flutter analyze lib/widgets/clipboard_section.dart
+  已通过，无报错。
+
+  3. 运行 app（会报错）
+  flutter run -d macos
+  当前会编译失败，因为 app.dart 还在用旧的
+  ClipboardSection(onRefreshTranslation: ...) 调用方式。这是预期的，Task 4
+  会修复。
+
+  建议： 代码审查 + 静态分析通过即可提交，完整功能验证等 Task 4 完成后一起测试。
+
+✻ Cooked for 27s
+
+❯ can not manually run dev, error occurs:                                       
+  ```bash                                                                       
+  ankihelper-pc  feature/clipboard-watch-edit (base) is 📦 v1.0.0+1 flutter    
+  run -d macos                                                                  
+  Launching lib/main.dart on macOS in debug mode...                             
+  Running pod install...                                           1,331ms      
+  lib/app.dart:85:21: Error: No named parameter with the name                   
+  'onRefreshTranslation'.                                                       
+                      onRefreshTranslation: () =>                               
+                      ^^^^^^^^^^^^^^^^^^^^                                      
+  lib/widgets/clipboard_section.dart:11:9: Context: Found this candidate, but   
+  the arguments don't match.                                                    
+    const ClipboardSection({super.key});                                        
+          ^^^^^^^^^^^^^^^^                                                      
+  Target kernel_snapshot_program failed: Exception                              
+  Failed to package /Users/a1/Codes/ankihelper-pc.                              
+  Command PhaseScriptExecution failed with a nonzero exit code                  
+  ** BUILD FAILED **                                                            
+                                                                                
+  Building macOS application...                                                 
+  Error: Build process failed                                                   
+  ```                                                                           
+
+⏺ 这是预期的错误。app.dart 还在用旧的调用方式，Task 4 会修复。
+
+  你可以先提交 Task 3，然后继续 Task 4 一起验证：
+
+  git add lib/widgets/clipboard_section.dart
+  git commit -m "feat(clipboard): 改造 ClipboardSection 为可编辑 TextField，支持
+   on blur 确认"
+
+  Task 4 会修改 app.dart 将 ClipboardSection(onRefreshTranslation: ...) 改为
+  const ClipboardSection()，届时就能正常运行了。
+
+✻ Cooked for 19s
+
+❯ no, you just do Task 4. I will never commit a piece of code that will not run 
+   successfully.                                                                
+
+⏺ 明白，直接做 Task 4。
+
+⏺ Update(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Added 1 line, removed 1 line
+      62  
+      63  ---
+      64  
+      65 -### Task 3: 改造 ClipboardSection 为可编辑                     
+      65 +### Task 3: 改造 ClipboardSection 为可编辑 ✅                  
+      66  
+      67  **修改文件:**
+      68  - `lib/widgets/clipboard_section.dart`
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(lib/app.dart)
+  ⎿  Added 1 line, removed 4 lines
+      81                child: Column(
+      82                  crossAxisAlignment: CrossAxisAlignment.start,
+      83                  children: [
+      84 -                  ClipboardSection(                            
+      85 -                    onRefreshTranslation: () =>                
+      86 -                        ref.read(toastProvider.notifier).show('
+         -翻译已刷新'),                                                  
+      87 -                  ),                                           
+      84 +                  const ClipboardSection(),                    
+      85                    const SizedBox(height: FluentTokens.spaceL),
+      86                    WordBlocksSection(),
+      87                    const SizedBox(height: FluentTokens.spaceXs),
+
+⏺ Update(lib/app.dart)
+  ⎿  Added 1 line, removed 1 line
+      2  import 'package:flutter_riverpod/flutter_riverpod.dart';
+      3  
+      4  import 'providers/anki_connect_provider.dart';
+      5 -import 'providers/toast_provider.dart';                         
+      5 +import 'providers/clipboard_provider.dart';                     
+      6  import 'theme/fluent_tokens.dart';
+      7  import 'theme/theme_provider.dart';
+      8  import 'widgets/clipboard_section.dart';
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(lib/widgets/word_blocks_section.dart)
+  ⎿  Added 1 line
+      3  import 'package:flutter_riverpod/flutter_riverpod.dart';
+      4  
+      5  import '../models/word_token_model.dart';
+      6 +import '../providers/clipboard_provider.dart';                  
+      7  import '../providers/word_selection_provider.dart';
+      8  import '../theme/fluent_tokens.dart';
+      9  import '../theme/theme_provider.dart';
+
+⏺ Update(lib/widgets/word_blocks_section.dart)
+  ⎿  Added 12 lines, removed 7 lines
+      23    @override
+      24    void initState() {
+      25      super.initState();
+      26 -    // 派发默认示例数据                                        
+      26      WidgetsBinding.instance.addPostFrameCallback((_) {
+      28 -      final notifier = ref.read(wordSelectionProvider.notifier)
+         -;                                                              
+      29 -      final tokens = tokenize('This is an example sentence that
+         - you copied.');                                                
+      30 -      notifier.setTokens(tokens);                              
+      31 -      // 默认选中 "example sentence" (indices 3, 4)            
+      32 -      notifier.selectIndex(3);                                 
+      33 -      notifier.selectRange(4);                                 
+      27 +      ref.listen(clipboardProvider, (prev, next) {             
+      28 +        if (next.originalText.isNotEmpty &&                    
+      29 +            next.originalText != prev?.originalText) {         
+      30 +          final tokens = tokenize(next.originalText);          
+      31 +          ref.read(wordSelectionProvider.notifier).setTokens(to
+         +kens);                                                         
+      32 +        }                                                      
+      33 +      });                                                      
+      34 +      final current = ref.read(clipboardProvider);             
+      35 +      if (current.originalText.isNotEmpty) {                   
+      36 +        final tokens = tokenize(current.originalText);         
+      37 +        ref.read(wordSelectionProvider.notifier).setTokens(toke
+         +ns);                                                           
+      38 +      }                                                        
+      39      });
+      40    }
+      41  
+
+⏺ Bash(flutter analyze lib/app.dart lib/widgets/word_blocks_section.dart)
+  ⎿  Error: Exit code 1
+     Analyzing 2 items...                                            
+
+     warning • Unused import: 'providers/clipboard_provider.dart' • 
+     lib/app.dart:5:8 • unused_import
+
+     1 issue found. (ran in 2.7s)
+⏺ Update(lib/app.dart)
+  ⎿  Removed 1 line
+      2  import 'package:flutter_riverpod/flutter_riverpod.dart';
+      3  
+      4  import 'providers/anki_connect_provider.dart';
+      5 -import 'providers/clipboard_provider.dart';                     
+      5  import 'theme/fluent_tokens.dart';
+      6  import 'theme/theme_provider.dart';
+      7  import 'widgets/clipboard_section.dart';
+
+⏺ Bash(flutter analyze lib/app.dart lib/widgets/word_blocks_section.dart)
+  ⎿  Analyzing 2 items...
+     No issues found! (ran in 1.8s)
+
+⏺ Bash(flutter run -d macos)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ I want to manually verify whether the current Task  is OK. just tell moe how  
+  to do it and what should I check.                                             
+
+⏺ 运行时有一个错误需要修复：
+
+  ref.listen can only be used within the build method of a ConsumerWidget
+
+  ref.listen 不能在 initState 中使用。需要改为在 build 中监听，或者用
+  ref.listenManual（Riverpod 3.x 支持）。
+
+  修复方案：将 word_blocks_section.dart 的 initState 改为使用 ref.listenManual：
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listenManual(clipboardProvider, (prev, next) {
+        if (next.originalText.isNotEmpty &&
+            next.originalText != prev?.originalText) {
+          final tokens = tokenize(next.originalText);
+          ref.read(wordSelectionProvider.notifier).setTokens(tokens);
+        }
+      });
+      final current = ref.read(clipboardProvider);
+      if (current.originalText.isNotEmpty) {
+        final tokens = tokenize(current.originalText);
+        ref.read(wordSelectionProvider.notifier).setTokens(tokens);
+      }
+    });
+  }
+
+  要我直接修复吗？
+
+✻ Baked for 7s
+
+❯ ok, you update the code first                                                 
+
+⏺ Update(lib/widgets/word_blocks_section.dart)
+  ⎿  Added 1 line, removed 1 line
+      24    void initState() {
+      25      super.initState();
+      26      WidgetsBinding.instance.addPostFrameCallback((_) {
+      27 -      ref.listen(clipboardProvider, (prev, next) {             
+      27 +      ref.listenManual(clipboardProvider, (prev, next) {       
+      28          if (next.originalText.isNotEmpty &&
+      29              next.originalText != prev?.originalText) {
+      30            final tokens = tokenize(next.originalText);
+
+⏺ Bash(flutter analyze lib/widgets/word_blocks_section.dart)
+  ⎿  Analyzing word_blocks_section.dart...
+     No issues found! (ran in 1.8s)
+
+⏺ 已修复。现在可以手动验证：
+
+  flutter run -d macos
+
+  检查点：
+  1. 启动后剪贴板区域显示"（点击输入或等待剪贴板内容...）"
+  2. 复制一段英文文本 → 原文区域自动更新，单词块自动分词
+  3. 点击原文区域 → 进入编辑模式（边框高亮），输入文本 → 点击外部（on blur）→
+  单词块自动更新
+  4. 编辑期间复制新内容 → 不会覆盖编辑中的文本
+
+✻ Crunched for 17s
+
+❯ there are some errors:                                                        
+  - message in the terminal is:                                                 
+  ```bash                                                                       
+  ankihelper-pc  feature/clipboard-watch-edit (base) is 📦 v1.0.0+1 flutter    
+  run -d macos                                                                  
+  Launching lib/main.dart on macOS in debug mode...                             
+  Building macOS application...                                                 
+  ✓ Built build/macos/Build/Products/Debug/ankihelper.app                       
+  2026-05-21 14:40:22.379 ankihelper[23775:23036084] Running with merged UI and 
+   platform thread. Experimental.                                               
+  Failed to foreground app; open returned 1                                     
+  Syncing files to device macOS...                                    74ms      
+                                                                                
+  Flutter run key commands.                                                     
+  r Hot reload. 🔥🔥🔥                                                          
+  R Hot restart.                                                                
+  h List all available interactive commands.                                    
+  d Detach (terminate "flutter run" but leave application running).             
+  c Clear the screen                                                            
+  q Quit (terminate the application on the device).                             
+                                                                                
+  A Dart VM Service on macOS is available at:                                   
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/                                          
+  The Flutter DevTools debugger and profiler on macOS is available at:          
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/devtools/?uri=ws://127.0.0.1:55498/ZNLx3r 
+  yPxz8=/ws                                                                     
+  flutter: [AnkiConnect Provider] 正在检测连接...                               
+  flutter: [AnkiConnect] 获取版本号...                                          
+  flutter: [AnkiConnect] 发送请求: version                                      
+  flutter: [AnkiConnect] 请求体: {"action":"version","version":6,"params":{}}   
+  flutter: [AnkiConnect] 响应状态: 200                                          
+  flutter: [AnkiConnect] 响应体: {"result": 6, "error": null}                   
+  flutter: [AnkiConnect] 版本号: 6                                              
+  flutter: [AnkiConnect Provider] 连接成功，版本: 6                             
+  ```                                                                           
+                                                                                
+  - error message in the input box below '剪贴板原文' on the app‘s              
+
+⏺ 请提供完整的错误信息。终端看起来正常，我需要看到 app
+  界面上显示的具体错误内容。
+
+✻ Churned for 12s
+
+❯ interface is                                                                  
+  ```                                                                           
+  ankihelper-pc  feature/clipboard-watch-edit (base) is 📦 v1.0.0+1 flutter    
+  run -d macos                                                                  
+  Launching lib/main.dart on macOS in debug mode...                             
+  Building macOS application...                                                 
+  ✓ Built build/macos/Build/Products/Debug/ankihelper.app                       
+  2026-05-21 14:40:22.379 ankihelper[23775:23036084] Running with merged UI and 
+   platform thread. Experimental.                                               
+  Failed to foreground app; open returned 1                                     
+  Syncing files to device macOS...                                    74ms      
+                                                                                
+  Flutter run key commands.                                                     
+  r Hot reload. 🔥🔥🔥                                                          
+  R Hot restart.                                                                
+  h List all available interactive commands.                                    
+  d Detach (terminate "flutter run" but leave application running).             
+  c Clear the screen                                                            
+  q Quit (terminate the application on the device).                             
+                                                                                
+  A Dart VM Service on macOS is available at:                                   
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/                                          
+  The Flutter DevTools debugger and profiler on macOS is available at:          
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/devtools/?uri=ws://127.0.0.1:55498/ZNLx3r 
+  yPxz8=/ws                                                                     
+  flutter: [AnkiConnect Provider] 正在检测连接...                               
+  flutter: [AnkiConnect] 获取版本号...                                          
+  flutter: [AnkiConnect] 发送请求: version                                      
+  flutter: [AnkiConnect] 请求体: {"action":"version","version":6,"params":{}}   
+  flutter: [AnkiConnect] 响应状态: 200                                          
+  flutter: [AnkiConnect] 响应体: {"result": 6, "error": null}                   
+  flutter: [AnkiConnect] 版本号: 6                                              
+  flutter: [AnkiConnect Provider] 连接成功，版本: 6                             
+  ```                                                                           
+
+⏺ 这是终端输出，看起来正常。请告诉我 app
+  界面上"剪贴板原文"输入框里显示的具体错误文字是什么？
+
+✻ Churned for 7s
+
+❯ ```                                                                           
+  ankihelper-pc  feature/clipboard-watch-edit (base) is 📦 v1.0.0+1 flutter    
+  run -d macos                                                                  
+  Launching lib/main.dart on macOS in debug mode...                             
+  Building macOS application...                                                 
+  ✓ Built build/macos/Build/Products/Debug/ankihelper.app                       
+  2026-05-21 14:40:22.379 ankihelper[23775:23036084] Running with merged UI and 
+   platform thread. Experimental.                                               
+  Failed to foreground app; open returned 1                                     
+  Syncing files to device macOS...                                    74ms      
+                                                                                
+  Flutter run key commands.                                                     
+  r Hot reload. 🔥🔥🔥                                                          
+  R Hot restart.                                                                
+  h List all available interactive commands.                                    
+  d Detach (terminate "flutter run" but leave application running).             
+  c Clear the screen                                                            
+  q Quit (terminate the application on the device).                             
+                                                                                
+  A Dart VM Service on macOS is available at:                                   
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/                                          
+  The Flutter DevTools debugger and profiler on macOS is available at:          
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/devtools/?uri=ws://127.0.0.1:55498/ZNLx3r 
+  yPxz8=/ws                                                                     
+  flutter: [AnkiConnect Provider] 正在检测连接...                               
+  flutter: [AnkiConnect] 获取版本号...                                          
+  flutter: [AnkiConnect] 发送请求: version                                      
+  flutter: [AnkiConnect] 请求体: {"action":"version","version":6,"params":{}}   
+  flutter: [AnkiConnect] 响应状态: 200                                          
+  flutter: [AnkiConnect] 响应体: {"result": 6, "error": null}                   
+  flutter: [AnkiConnect] 版本号: 6                                              
+  flutter: [AnkiConnect Provider] 连接成功，版本: 6                             
+  ```                                                                           
+
+⏺ 终端输出正常，没有报错。你说的"error message in the input
+  box"具体是什么内容？请直接描述你在 app 界面上看到的文字。
+
+✻ Churned for 13s
+
+❯ ankihelper-pc  feature/clipboard-watch-edit (base) is 📦 v1.0.0+1 flutter    
+  run -d macos                                                                  
+  Launching lib/main.dart on macOS in debug mode...                             
+  Building macOS application...                                                 
+  ✓ Built build/macos/Build/Products/Debug/ankihelper.app                       
+  2026-05-21 14:40:22.379 ankihelper[23775:23036084] Running with merged UI and 
+   platform thread. Experimental.                                               
+  Failed to foreground app; open returned 1                                     
+  Syncing files to device macOS...                                    74ms      
+                                                                                
+  Flutter run key commands.                                                     
+  r Hot reload. 🔥🔥🔥                                                          
+  R Hot restart.                                                                
+  h List all available interactive commands.                                    
+  d Detach (terminate "flutter run" but leave application running).             
+  c Clear the screen                                                            
+  q Quit (terminate the application on the device).                             
+                                                                                
+  A Dart VM Service on macOS is available at:                                   
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/                                          
+  The Flutter DevTools debugger and profiler on macOS is available at:          
+  http://127.0.0.1:55498/ZNLx3ryPxz8=/devtools/?uri=ws://127.0.0.1:55498/ZNLx3r 
+  yPxz8=/ws                                                                     
+  flutter: [AnkiConnect Provider] 正在检测连接...                               
+  flutter: [AnkiConnect] 获取版本号...                                          
+  flutter: [AnkiConnect] 发送请求: version                                      
+  flutter: [AnkiConnect] 请求体: {"action":"version","version":6,"params":{}}   
+  flutter: [AnkiConnect] 响应状态: 200                                          
+  flutter: [AnkiConnect] 响应体: {"result": 6, "error": null}                   
+  flutter: [AnkiConnect] 版本号: 6                                              
+  flutter: [AnkiConnect Provider] 连接成功，版本: 6                             
+
+⏺ 终端没有报错，app 正在运行。请直接描述你在 app
+  窗口界面上看到的内容，或者截图发给我。
+
+✻ Crunched for 6s
+
+※ recap: We're implementing clipboard watch and editable text for the Anki helper app. Task 4 (connecting app.dart and word_blocks_section.dart) is in progress — the app runs but we need to verify the UI works correctly with clipboard monitoring and text editing. (disable recaps in /config)
+❯ ok. the input box can watch the system's clipboard, and I can edit the        
+  content in the input box. all clear. please update the progress. and give me  
+  a proper message, I will manually commit                                      
+
+⏺ Update(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Added 1 line, removed 1 line
+      82  
+      83  ---
+      84  
+      85 -### Task 4: 连接 app.dart 并更新 WordBlocksSection             
+      85 +### Task 4: 连接 app.dart 并更新 WordBlocksSection ✅          
+      86  
+      87  **修改文件:**
+      88  - `lib/app.dart`
+
+⏺ git add lib/app.dart lib/widgets/clipboard_section.dart
+  lib/widgets/word_blocks_section.dart lib/providers/clipboard_provider.dart
+  git commit -m "feat(clipboard): 实现剪贴板监听与原文编辑功能"
+
+✻ Worked for 29s
+
+❯ now this plan is over. update the relative docs                               
+
+⏺ 我当前处于 Plan Mode，无法编辑 TODO.md 和 PRD.md。需要先退出 Plan Mode
+  才能更新这些文件。
+
+  要我退出 Plan Mode 吗？
+
+✻ Crunched for 18s
+
+❯ ok                                                                            
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Update(docs/TODO.md)
+  ⎿  Added 7 lines, removed 7 lines
+      114  
+      115  #### 剪贴板监听与原文编辑
+      116  
+      117 -- [ ] **剪贴板监听与原文编辑**                                
+      118 -    - [ ] 启动后自动监听系统剪贴板变化（clipboard_watcher）   
+      119 -    - [ ] 捕获到新的英文文本后自动更新 UI 原文展示区域        
+      120 -    - [ ] 防抖处理（延迟 200-300ms 避免频繁触发）             
+      121 -    - [ ] 原文展示区域支持手动编辑：用户可直接点击输入框修改、
+          -粘贴或输入英文文本                                            
+      122 -    - [ ] 手动编辑后当光标离开输入框（on blur）自动触发分词与 
+          -查询流程                                                      
+      123 -    - [ ] 手动编辑期间暂停剪贴板监听，编辑完成后恢复          
+      117 +- [x] **剪贴板监听与原文编辑**                                
+      118 +    - [x] 启动后自动监听系统剪贴板变化（clipboard_watcher）   
+      119 +    - [x] 捕获到新的英文文本后自动更新 UI 原文展示区域        
+      120 +    - [x] 防抖处理（延迟 200-300ms 避免频繁触发）             
+      121 +    - [x] 原文展示区域支持手动编辑：用户可直接点击输入框修改、
+          +粘贴或输入英文文本                                            
+      122 +    - [x] 手动编辑后当光标离开输入框（on blur）自动触发分词与 
+          +查询流程                                                      
+      123 +    - [x] 手动编辑期间暂停剪贴板监听，编辑完成后恢复          
+      124  
+      125  #### 分词引擎
+      126  
+
+⏺ Update(docs/PRD.md)
+  ⎿  Added 6 lines, removed 6 lines
+      113      - [x] 添加卡片时使用用户选中的牌组（替换硬编码的 `ankihelp
+           er-pc-test`）
+      114  
+      115  - **剪贴板监听与原文编辑**
+      116 -    - [ ] 启动后自动监听系统剪贴板变化（clipboard_watcher）   
+      117 -    - [ ] 捕获到新的英文文本后自动更新 UI 原文展示区域        
+      118 -    - [ ] 防抖处理（延迟 200-300ms 避免频繁触发）             
+      119 -    - [ ] 原文展示区域支持手动编辑：用户可直接点击输入框修改、
+          -粘贴或输入英文文本                                            
+      120 -    - [ ] 手动编辑后当光标离开输入框（on blur）自动触发分词与 
+          -查询流程                                                      
+      121 -    - [ ] 手动编辑期间暂停剪贴板监听，编辑完成后恢复          
+      116 +    - [x] 启动后自动监听系统剪贴板变化（clipboard_watcher）   
+      117 +    - [x] 捕获到新的英文文本后自动更新 UI 原文展示区域        
+      118 +    - [x] 防抖处理（延迟 200-300ms 避免频繁触发）             
+      119 +    - [x] 原文展示区域支持手动编辑：用户可直接点击输入框修改、
+          +粘贴或输入英文文本                                            
+      120 +    - [x] 手动编辑后当光标离开输入框（on blur）自动触发分词与 
+          +查询流程                                                      
+      121 +    - [x] 手动编辑期间暂停剪贴板监听，编辑完成后恢复          
+      122  
+      123  - **分词引擎**
+      124      - [ ] 对捕获的英文句子进行智能分词，拆分为独立单词/标点块
+
+⏺ Update(docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md)
+  ⎿  Added 2 lines, removed 1 line
+      107  
+      108  | 项目 | 原计划 | 实际实现 | 原因 |
+      109  |------|--------|----------|------|
+      110 -| （待填写） | | | |                                          
+      110 +| clipboard_watcher 版本 | `^3.0.0` | `^0.3.0` | pub.dev 最新 
+          +版本为 0.3.0 |                                                
+      111 +| ref.listen | `ref.listen` | `ref.listenManual` | Riverpod 3.
+          +x 中 initState 不能用 ref.listen |                            
+
+⏺ 已更新：
+  - docs/TODO.md - 剪贴板监听与原文编辑标记为完成
+  - docs/PRD.md - 同步更新
+  - docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md - 记录实现偏差
+
+  git add docs/TODO.md docs/PRD.md
+  docs/superpowers/plans/2026-05-21-clipboard-watch-edit.md
+  git commit -m "docs: 更新剪贴板监听与原文编辑功能进度为已完成"
+
+✻ Brewed for 1m 31s
+
+❯ /export                                                                       
+  ⎿  Export cancelled
+
+❯ /context 
+  ⎿  Context Usage
+     ⛁ ⛀ ⛀ ⛁ ⛁   mimo-v2.5-pro
+     ⛁ ⛁ ⛁ ⛁ ⛁   96.2k/200k tokens (48%)
+     ⛁ ⛁ ⛁ ⛁ ⛶ 
+     ⛶ ⛶ ⛶ ⛶ ⛶   Estimated usage by category
+     ⛶ ⛝ ⛝ ⛝ ⛝   ⛁ System prompt: 5.8k tokens (2.9%)
+                 ⛁ Memory files: 1k tokens (0.5%)
+                 ⛁ Skills: 1.6k tokens (0.8%)
+                 ⛁ Messages: 87.8k tokens (43.9%)
+                 ⛶ Free space: 70.8k (35.4%)
+                 ⛝ Autocompact buffer: 33k tokens (16.5%)
+
+     MCP tools · /mcp
+     ├ mcp__open-design__get_active_context: 0 tokens
+     ├ mcp__open-design__get_artifact: 0 tokens
+     ├ mcp__open-design__get_file: 0 tokens
+     ├ mcp__open-design__get_project: 0 tokens
+     ├ mcp__open-design__list_files: 0 tokens
+     ├ mcp__open-design__list_projects: 0 tokens
+     └ mcp__open-design__search_files: 0 tokens
+
+     Memory files · /memory
+     └ .claude/CLAUDE.md: 1k tokens
+
+     Skills · /skills
+
+     Plugin (superpowers)
+     ├ receiving-code-review: ~90 tokens
+     ├ verification-before-completion: ~90 tokens
+     ├ finishing-a-development-branch: ~80 tokens
+     ├ using-git-worktrees: ~80 tokens
+     ├ brainstorming: ~80 tokens
+     ├ using-superpowers: ~60 tokens
+     ├ dispatching-parallel-agents: ~50 tokens
+     ├ requesting-code-review: ~50 tokens
+     ├ executing-plans: ~40 tokens
+     ├ subagent-driven-development: ~40 tokens
+     ├ systematic-debugging: ~40 tokens
+     ├ writing-skills: ~40 tokens
+     ├ test-driven-development: ~40 tokens
+     └ writing-plans: ~40 tokens
+
+     Built-in
+     ├ claude-api: ~250 tokens
+     ├ update-config: ~240 tokens
+     ├ loop: ~100 tokens
+     ├ keybindings-help: ~80 tokens
+     ├ fewer-permission-prompts: ~60 tokens
+     ├ simplify: ~30 tokens
+     ├ security-review: ~30 tokens
+     ├ init: ~20 tokens
+     └ review: < 20 tokens
+
+      Suggestions
+      ℹ File reads using 15.8k tokens (8%) → save ~4.7k
+        If you are re-reading files, consider referencing earlier reads. Use offset/limit for large files.
