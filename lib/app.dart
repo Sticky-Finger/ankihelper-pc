@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/anki_connect_provider.dart';
-import 'providers/toast_provider.dart';
 import 'theme/fluent_tokens.dart';
 import 'theme/theme_provider.dart';
 import 'widgets/clipboard_section.dart';
@@ -81,10 +80,7 @@ class MainScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipboardSection(
-                    onRefreshTranslation: () =>
-                        ref.read(toastProvider.notifier).show('翻译已刷新'),
-                  ),
+                  const ClipboardSection(),
                   const SizedBox(height: FluentTokens.spaceL),
                   WordBlocksSection(),
                   const SizedBox(height: FluentTokens.spaceXs),

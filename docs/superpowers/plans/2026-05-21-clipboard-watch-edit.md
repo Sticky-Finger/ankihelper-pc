@@ -62,7 +62,7 @@ flutter analyze lib/providers/clipboard_provider.dart
 
 ---
 
-### Task 3: 改造 ClipboardSection 为可编辑
+### Task 3: 改造 ClipboardSection 为可编辑 ✅
 
 **修改文件:**
 - `lib/widgets/clipboard_section.dart`
@@ -82,7 +82,7 @@ flutter analyze lib/widgets/clipboard_section.dart
 
 ---
 
-### Task 4: 连接 app.dart 并更新 WordBlocksSection
+### Task 4: 连接 app.dart 并更新 WordBlocksSection ✅
 
 **修改文件:**
 - `lib/app.dart`
