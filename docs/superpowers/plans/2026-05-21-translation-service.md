@@ -138,7 +138,7 @@ flutter analyze lib/providers/clipboard_provider.dart
 
 ---
 
-### Task 6: 修改剪贴板区域 UI 集成翻译功能
+### Task 6: 修改剪贴板区域 UI 集成翻译功能 ✅
 
 **修改文件:**
 - `lib/widgets/clipboard_section.dart`
@@ -157,7 +157,7 @@ flutter analyze lib/providers/clipboard_provider.dart
 - 刷新翻译按钮：
   - 加载中时禁用并显示旋转图标
   - 点击时调用 `translationProvider.translate(originalText)`
-- 错误提示通过 `ScaffoldMessenger.showSnackBar` 显示
+- 错误提示通过 `toastProvider.notifier.show()` 显示（与其他模块一致）
 
 **验证:**
 ```bash
@@ -167,7 +167,7 @@ flutter analyze lib/widgets/clipboard_section.dart
 
 ---
 
-### Task 7: 修改设置弹窗添加翻译 API 配置界面
+### Task 7: 修改设置弹窗添加翻译 API 配置界面 ✅
 
 **修改文件:**
 - `lib/widgets/settings_dialog.dart`
@@ -192,7 +192,7 @@ flutter analyze lib/widgets/settings_dialog.dart
 
 ---
 
-### Task 8: 最终验证和测试
+### Task 8: 最终验证和测试 ✅
 
 **验证步骤:**
 
