@@ -23,13 +23,13 @@ lib/
 
 ## Tasks
 
-### Task 1: 添加 clipboard_watcher 依赖
+### Task 1: 添加 clipboard_watcher 依赖 ✅
 
 **修改文件:**
 - `pubspec.yaml`
 
 **实现内容:**
-- 在 `dependencies` 中添加 `clipboard_watcher: ^3.0.0`
+- 在 `dependencies` 中添加 `clipboard_watcher: ^0.3.0`
 - 运行 `flutter pub get`
 
 **验证:**
