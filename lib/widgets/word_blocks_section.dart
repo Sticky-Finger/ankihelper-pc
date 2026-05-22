@@ -25,9 +25,10 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.listenManual(clipboardProvider, (prev, next) {
-        if (next.originalText.isNotEmpty &&
-            next.originalText != prev?.originalText) {
-          final tokens = tokenize(next.originalText);
+        if (next.originalText != prev?.originalText) {
+          final tokens = next.originalText.isNotEmpty
+              ? tokenize(next.originalText)
+              : <WordTokenModel>[];
           ref.read(wordSelectionProvider.notifier).setTokens(tokens);
         }
       });
