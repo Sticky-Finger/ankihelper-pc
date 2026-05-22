@@ -1,0 +1,126 @@
+▗ ▗   ▖ ▖  Claude Code v2.1.142
+           mimo-v2.5-pro · API Usage Billing
+  ▘▘ ▝▝    ~/Codes/ankihelper-pc
+
+❯ /clear                                                                        
+  ⎿  (no content)
+
+❯ Now most of the requirements in the item ‘分词引擎’ of @docs/TODO.md have     
+  been fulfilled. But there is still a little question: not like                
+  '剪贴板原文内容变化时，清空翻译字段并显示占位符"（等待翻译...）"' of the      
+  upper item '翻译服务', '捕获的英文句子' of current item '分词引擎' has not    
+  been changed when the value of  '剪切板原文' input box changes                
+  ⎿  Read docs/TODO.md (193 lines)
+
+⏺ Explore(Explore clipboard change handling)
+  ⎿  Done (13 tool uses · 28.8k tokens · 35s)
+  (ctrl+o to expand)
+
+⏺ I see the issue. When the clipboard text changes, the translation field is
+  cleared immediately (showing "（等待翻译...）"), but the word blocks are not
+  similarly cleared. Let me read the relevant code to make the fix.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ I see the issue. In word_blocks_section.dart lines 27-32, the listener only
+  updates tokens when next.originalText.isNotEmpty, so when the text changes
+  (especially to empty), the old word blocks are never cleared. Compare this
+  with the translation field which is cleared immediately on any text change.
+
+  The fix is to always clear/update the tokens when the clipboard text changes,
+  regardless of whether the new text is empty.
+
+⏺ Update(lib/widgets/word_blocks_section.dart)
+  ⎿  Added 4 lines, removed 3 lines
+      25      super.initState();
+      26      WidgetsBinding.instance.addPostFrameCallback((_) {
+      27        ref.listenManual(clipboardProvider, (prev, next) {
+      28 -        if (next.originalText.isNotEmpty &&                    
+      29 -            next.originalText != prev?.originalText) {         
+      30 -          final tokens = tokenize(next.originalText);          
+      28 +        if (next.originalText != prev?.originalText) {         
+      29 +          final tokens = next.originalText.isNotEmpty          
+      30 +              ? tokenize(next.originalText)                    
+      31 +              : <WordTokenModel>[];                            
+      32            ref.read(wordSelectionProvider.notifier).setTokens(to
+          kens);
+      33          }
+      34        });
+
+⏺ Done. Now when the clipboard text changes:
+  - Before: word blocks only updated when new text was non-empty, old blocks
+  remained if text was cleared
+  - After: word blocks are always updated — cleared to empty when text is empty,
+   re-tokenized when non-empty
+
+  This matches the behavior of the translation field which is cleared
+  immediately on any text change.
+
+✻ Baked for 1m 36s
+
+⏺ Background command "Run macOS app with new icon" completed (exit code 0)
+
+⏺ Background task completed — the macOS app with the new icon finished running.
+
+✻ Cogitated for 3s
+
+❯ ok, this bug is fixed. Now update the TODO and PRD docs.                      
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Update(docs/TODO.md)
+  ⎿  Added 5 lines, removed 4 lines
+      143  
+      144  #### 分词引擎
+      145  
+      146 -- [ ] **分词引擎**                                            
+      147 -    - [ ] 对捕获的英文句子进行智能分词，拆分为独立单词/标点块 
+      148 -    - [ ] 支持常见英文分词规则（空格、标点分割等）            
+      149 -    - [ ] 输出单词块列表供单词块区域展示                      
+      146 +- [x] **分词引擎**                                            
+      147 +    - [x] 对捕获的英文句子进行智能分词，拆分为独立单词/标点块 
+      148 +    - [x] 支持常见英文分词规则（空格、标点分割等）            
+      149 +    - [x] 输出单词块列表供单词块区域展示                      
+      150 +    - [x] 原文变化时清空单词块区域，与翻译字段行为一致        
+      151  
+      152  #### 单词块交互逻辑
+      153  
+
+⏺ Update(docs/PRD.md)
+  ⎿  Added 4 lines, removed 3 lines
+      134      - [x] 异步获取，不阻塞分词和查询
+      135  
+      136  - **分词引擎**
+      137 -    - [ ] 对捕获的英文句子进行智能分词，拆分为独立单词/标点块 
+      138 -    - [ ] 支持常见英文分词规则（空格、标点分割等）            
+      139 -    - [ ] 输出单词块列表供单词块区域展示                      
+      137 +    - [x] 对捕获的英文句子进行智能分词，拆分为独立单词/标点块 
+      138 +    - [x] 支持常见英文分词规则（空格、标点分割等）            
+      139 +    - [x] 输出单词块列表供单词块区域展示                      
+      140 +    - [x] 原文变化时清空单词块区域，与翻译字段行为一致        
+      141  
+      142  - **单词块交互逻辑**
+      143      - [ ] 单词块单击选中 / Shift+单击多选状态管理
+
+⏺ Updated both files:
+  - TODO.md: 分词引擎所有条目已勾选，新增"原文变化时清空单词块区域"条目
+  - PRD.md: 同步更新分词引擎部分
+
+✻ Sautéed for 34s
+
+❯ I want to manually get commit. Please give me a proper message.               
+
+⏺ Based on the changes made:
+
+  1. Bug fix: word blocks now clear when clipboard text changes
+  2. Updated TODO.md and PRD.md
+
+  Suggested commit message:
+
+  fix(word_blocks): 原文变化时清空单词块区域，与翻译字段行为一致
+
+  - 移除 word_blocks_section.dart 中 originalText 非空的前置条件
+  - 原文变化时始终重新分词（空文本则清空单词块）
+  - 同步更新 TODO.md 和 PRD.md 分词引擎进度
+
+✻ Sautéed for 6s
