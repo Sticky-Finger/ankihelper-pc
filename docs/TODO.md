@@ -91,6 +91,15 @@
     - [x] 关于弹窗：显示应用信息
     - [x] 手动输入弹窗：文本框 + 确认按钮
 
+### 应用图标 ✅
+
+- [x] **应用图标更换**
+    - [x] 设计并创建新的应用图标
+    - [x] 使用 flutter_launcher_icons 配置图标生成
+    - [x] 为所有平台生成图标：macOS (.icns)、Windows (.ico)、iOS (多尺寸 PNG)、Web (favicon + icons)、Android (mipmap)
+    - [x] 源图标文件：assets/app_icon.png
+    - [x] 验证图标在构建中的正确应用
+
 ### P0 Phase 2 — 后端服务层（串联 UI 与数据）
 
 #### AnkiConnect 基础连接
