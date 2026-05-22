@@ -87,3 +87,8 @@
 > 次任务全程使用了模型：mimo-v2.5-pro、glm-4.7、mimo-v2.5-pro
 
 对话过程记录：[2026-05-21-235014-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-21-235014-local-command-caveatcaveat-the-messages-below.txt)
+
+## 8. 更新此应用的图标
+> 次任务全程使用了模型：glm-4.7
+
+对话过程记录：[2026-05-22-095221-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-22-095221-local-command-caveatcaveat-the-messages-below.txt)
