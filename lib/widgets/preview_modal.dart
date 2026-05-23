@@ -10,34 +10,64 @@ class PreviewCardData {
   final String phonetic;
   final String back;
   final String example;
+  final String exampleTranslation;
 
   const PreviewCardData({
     required this.front,
     this.phonetic = '',
     required this.back,
     this.example = '',
+    this.exampleTranslation = '',
   });
 }
 
 /// 展示卡片预览弹窗
-Future<bool?> showPreviewModal(
+Future<PreviewCardData?> showPreviewModal(
   BuildContext context, {
   required PreviewCardData data,
 }) {
-  return showDialog<bool>(
+  return showDialog<PreviewCardData>(
     context: context,
     barrierDismissible: true,
     builder: (ctx) => _PreviewModal(data: data),
   );
 }
 
-class _PreviewModal extends ConsumerWidget {
+class _PreviewModal extends ConsumerStatefulWidget {
   final PreviewCardData data;
 
   const _PreviewModal({required this.data});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PreviewModal> createState() => _PreviewModalState();
+}
+
+class _PreviewModalState extends ConsumerState<_PreviewModal> {
+  late final TextEditingController _frontController;
+  late final TextEditingController _phoneticController;
+  late final TextEditingController _backController;
+  late final TextEditingController _exampleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _frontController = TextEditingController(text: widget.data.front);
+    _phoneticController = TextEditingController(text: widget.data.phonetic);
+    _backController = TextEditingController(text: widget.data.back);
+    _exampleController = TextEditingController(text: widget.data.example);
+  }
+
+  @override
+  void dispose() {
+    _frontController.dispose();
+    _phoneticController.dispose();
+    _backController.dispose();
+    _exampleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tokens = ref.watch(fluentTokensProvider);
 
     return Dialog(
@@ -87,7 +117,7 @@ class _PreviewModal extends ConsumerWidget {
                   const Spacer(),
                   // 关闭按钮
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: () => Navigator.of(context).pop(null),
                     child: _CloseIcon(color: tokens.fg2),
                   ),
                 ],
@@ -101,28 +131,28 @@ class _PreviewModal extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Field(
+                      _EditableField(
                         label: '正面 (单词)',
-                        value: data.front,
+                        controller: _frontController,
                         tokens: tokens,
                       ),
                       const SizedBox(height: FluentTokens.spaceL),
-                      _Field(
+                      _EditableField(
                         label: '音标',
-                        value: data.phonetic.isNotEmpty ? data.phonetic : '—',
+                        controller: _phoneticController,
+                        tokens: tokens,
                         isMono: true,
-                        tokens: tokens,
                       ),
                       const SizedBox(height: FluentTokens.spaceL),
-                      _Field(
+                      _EditableField(
                         label: '背面 (释义)',
-                        value: data.back.isNotEmpty ? data.back : '—',
+                        controller: _backController,
                         tokens: tokens,
                       ),
                       const SizedBox(height: FluentTokens.spaceL),
-                      _Field(
+                      _EditableField(
                         label: '例句',
-                        value: data.example.isNotEmpty ? data.example : '—',
+                        controller: _exampleController,
                         tokens: tokens,
                       ),
                     ],
@@ -148,7 +178,7 @@ class _PreviewModal extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(false),
+                    onTap: () => Navigator.of(context).pop(null),
                     child: Container(
                       height: 32,
                       padding: const EdgeInsets.symmetric(
@@ -177,7 +207,15 @@ class _PreviewModal extends ConsumerWidget {
                   ),
                   const SizedBox(width: FluentTokens.spaceS),
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(true),
+                    onTap: () {
+                      Navigator.of(context).pop(PreviewCardData(
+                        front: _frontController.text.trim(),
+                        phonetic: _phoneticController.text.trim(),
+                        back: _backController.text.trim(),
+                        example: _exampleController.text.trim(),
+                        exampleTranslation: widget.data.exampleTranslation,
+                      ));
+                    },
                     child: Container(
                       height: 32,
                       padding: const EdgeInsets.symmetric(
@@ -214,16 +252,16 @@ class _PreviewModal extends ConsumerWidget {
   }
 }
 
-/// 弹窗字段组件
-class _Field extends StatelessWidget {
+/// 弹窗可编辑字段组件
+class _EditableField extends StatelessWidget {
   final String label;
-  final String value;
+  final TextEditingController controller;
   final bool isMono;
   final FluentTokens tokens;
 
-  const _Field({
+  const _EditableField({
     required this.label,
-    required this.value,
+    required this.controller,
     this.isMono = false,
     required this.tokens,
   });
@@ -258,14 +296,21 @@ class _Field extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(FluentTokens.radiusMd),
           ),
-          child: Text(
-            value,
+          child: TextField(
+            controller: controller,
             style: TextStyle(
               fontFamily:
                   isMono ? FluentTokens.fontFamilyMono : FluentTokens.fontFamilyBase,
               fontSize: isMono ? FluentTokens.fontSize300 : FluentTokens.fontSize400,
               color: isMono ? tokens.fg2 : tokens.fg1,
             ),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            maxLines: null,
+            textInputAction: TextInputAction.newline,
           ),
         ),
       ],

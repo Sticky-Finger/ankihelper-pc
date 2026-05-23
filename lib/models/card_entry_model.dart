@@ -6,6 +6,7 @@ class CardEntryModel {
   final String pos;
   final String meaning;
   final String example;
+  final String exampleTranslation;
 
   const CardEntryModel({
     required this.id,
@@ -14,6 +15,7 @@ class CardEntryModel {
     this.pos = '',
     this.meaning = '',
     this.example = '',
+    this.exampleTranslation = '',
   });
 
   /// 是否为占位空条目

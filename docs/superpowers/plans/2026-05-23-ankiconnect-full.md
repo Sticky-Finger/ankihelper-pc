@@ -30,7 +30,7 @@ lib/
 
 ## 第一部分：AnkiConnect 完整功能
 
-### Task 1: AnkiConnect 服务扩展 — 模板管理 API
+### Task 1: AnkiConnect 服务扩展 — 模板管理 API ✅
 
 **修改文件:**
 - `lib/services/anki_connect_service.dart`
@@ -48,7 +48,7 @@ flutter analyze
 
 ---
 
-### Task 2: 模板数据模型 + 管理服务
+### Task 2: 模板数据模型 + 管理服务 ✅
 
 **创建文件:**
 - `lib/models/card_template_model.dart`
@@ -69,7 +69,7 @@ flutter analyze
 
 ---
 
-### Task 3: 模板 Provider + CardEntryModel 扩展
+### Task 3: 模板 Provider + CardEntryModel 扩展 ✅
 
 **创建/修改文件:**
 - `lib/providers/template_provider.dart`（新建）
@@ -87,7 +87,7 @@ flutter analyze
 
 ---
 
-### Task 4: 设置面板 — 模板选择入口
+### Task 4: 设置面板 — 模板选择入口 ✅
 
 **修改文件:**
 - `lib/widgets/settings_dialog.dart`

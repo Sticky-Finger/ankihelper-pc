@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/translation_config_model.dart';
+import '../providers/template_provider.dart';
 import '../providers/translation_provider.dart';
 
 /// 显示设置弹窗
@@ -56,10 +57,11 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
       title: const Text('设置'),
       content: SizedBox(
         width: 480,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // ====== 词典管理 ======
             const Text(
               '词典管理',
@@ -69,14 +71,79 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
             const Text('（暂无词典 — 功能即将上线）',
                 style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 16),
-            // ====== 牌组选择 ======
+            // ====== 卡片模板 ======
             const Text(
-              '牌组选择',
+              '卡片模板',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(height: 8),
-            const Text('（默认牌组 — 功能即将上线）',
-                style: TextStyle(color: Colors.grey)),
+            Consumer(
+              builder: (context, ref, _) {
+                final currentTemplate = ref.watch(templateProvider);
+                final notifier = ref.read(templateProvider.notifier);
+
+                return DropdownButtonFormField<String>(
+                  initialValue: currentTemplate.id,
+                  decoration: const InputDecoration(
+                    labelText: '选择模板',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: notifier.presetTemplates
+                      .map(
+                        (template) => DropdownMenuItem(
+                          value: template.id,
+                          child: Text(template.name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      ref.read(templateProvider.notifier).selectTemplate(value);
+                    }
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            // 字段映射展示
+            Consumer(
+              builder: (context, ref, _) {
+                final currentTemplate = ref.watch(templateProvider);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '字段映射:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...currentTemplate.fieldMapping.entries.map(
+                      (entry) => Padding(
+                        padding: const EdgeInsets.only(left: 8, top: 2),
+                        child: Text(
+                          '${entry.key} → ${entry.value}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 16),
             // ====== 翻译 API 配置 ======
             const Text(
@@ -156,6 +223,7 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
               ),
             ),
           ],
+        ),
         ),
       ),
       actions: [

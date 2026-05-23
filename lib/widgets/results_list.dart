@@ -7,6 +7,9 @@ import '../providers/anki_connect_provider.dart';
 import '../providers/card_data_provider.dart';
 import '../providers/toast_provider.dart';
 import '../providers/deck_provider.dart';
+import '../providers/template_provider.dart';
+import '../providers/word_selection_provider.dart';
+import '../services/template_manager.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
 import 'deck_selector.dart';
@@ -115,10 +118,23 @@ class ResultsList extends ConsumerWidget {
           displayIndex: 0,
           isPlaceholder: true,
           onAdd: () => ref.read(toastProvider.notifier).show('空条目 — 请先编辑内容'),
-          onPreview: () => showPreviewModal(context, data: PreviewCardData(
-            front: entries.isNotEmpty ? entries.first.word : '',
-            back: '',
-          )),
+          onPreview: () async {
+            final result = await showPreviewModal(context, data: PreviewCardData(
+              front: entries.isNotEmpty ? entries.first.word : '',
+              back: '',
+            ));
+            if (result != null) {
+              final updatedEntry = CardEntryModel(
+                id: 'placeholder',
+                word: result.front,
+                phonetic: result.phonetic,
+                meaning: result.back,
+                example: result.example,
+                exampleTranslation: result.exampleTranslation,
+              );
+              await _addNoteToAnki(ref, updatedEntry);
+            }
+          },
         ),
       ),
     );
@@ -135,14 +151,22 @@ class ResultsList extends ConsumerWidget {
               _addNoteToAnki(ref, entries[i]);
             },
             onPreview: () async {
-              final confirmed = await showPreviewModal(context, data: PreviewCardData(
+              final result = await showPreviewModal(context, data: PreviewCardData(
                 front: entries[i].word,
                 phonetic: entries[i].phonetic,
                 back: entries[i].meaning,
                 example: entries[i].example,
               ));
-              if (confirmed == true) {
-                await _addNoteToAnki(ref, entries[i]);
+              if (result != null) {
+                final updatedEntry = CardEntryModel(
+                  id: entries[i].id,
+                  word: result.front,
+                  phonetic: result.phonetic,
+                  meaning: result.back,
+                  example: result.example,
+                  exampleTranslation: result.exampleTranslation,
+                );
+                await _addNoteToAnki(ref, updatedEntry);
               }
             },
           ),
@@ -163,10 +187,31 @@ class ResultsList extends ConsumerWidget {
     try {
       final service = ref.read(ankiConnectServiceProvider);
 
+      // 读取当前模板配置
+      final template = ref.read(templateProvider);
+
+      // 确保模板已注册到 Anki
+      await TemplateManager.ensureModelExists(service, template);
+
+      // 构建字段映射
+      final fields = TemplateManager.buildFields(template, entry);
+
+      // 例句高亮：将选中词汇用 <b> 包裹
+      final selectedText = ref.read(wordSelectionProvider).selectedText;
+      if (selectedText.isNotEmpty && entry.example.isNotEmpty) {
+        final templateExampleField = template.fieldMapping['example'];
+        if (templateExampleField != null) {
+          fields[templateExampleField] = entry.example.replaceFirst(selectedText, '<b>$selectedText</b>');
+        }
+      }
+
+      // 基础卡片使用 Anki 内置模型名 "Basic"
+      final modelName = template.id == 'basic' ? 'Basic' : template.name;
+
       final noteId = await service.addNote(
         deckName: deckName,
-        modelName: 'Basic',
-        fields: {'Front': entry.word, 'Back': entry.meaning},
+        modelName: modelName,
+        fields: fields,
         allowDuplicate: true,
       );
       if (kDebugMode) {
