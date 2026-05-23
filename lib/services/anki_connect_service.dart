@@ -127,4 +127,63 @@ class AnkiConnectService {
     }
   }
 
+  /// 获取所有模板名称
+  Future<List<String>> getModelNames() async {
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 获取所有模板名称...');
+    }
+    final result = await invoke('modelNames');
+    final modelNames = (result as List).cast<String>();
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 模板列表: $modelNames');
+    }
+    return modelNames;
+  }
+
+  /// 创建模板
+  Future<void> createModel({
+    required String name,
+    String css = '',
+    required String frontTemplate,
+    required String backTemplate,
+    required List<String> fieldNames,
+  }) async {
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 创建模板: $name');
+      debugPrint('[AnkiConnect] 字段: $fieldNames');
+    }
+
+    final params = {
+      'modelName': name,
+      'inOrderFields': fieldNames,
+      'css': css,
+      'cardTemplates': [
+        {
+          'Name': 'Card 1',
+          'Front': frontTemplate,
+          'Back': backTemplate,
+        }
+      ],
+    };
+
+    await invoke('createModel', params);
+
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 模板已创建: $name');
+    }
+  }
+
+  /// 获取模板字段名称
+  Future<List<String>> getModelFieldNames(String modelName) async {
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 获取模板字段: $modelName');
+    }
+    final result = await invoke('modelFieldNames', {'modelName': modelName});
+    final fieldNames = (result as List).cast<String>();
+    if (kDebugMode) {
+      debugPrint('[AnkiConnect] 字段列表: $fieldNames');
+    }
+    return fieldNames;
+  }
+
 }
