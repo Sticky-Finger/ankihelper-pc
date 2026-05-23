@@ -97,3 +97,13 @@
 > 次任务全程使用了模型：mimo-v2.5-pro
 
 对话过程记录：[2026-05-22-101009-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-22-101009-local-command-caveatcaveat-the-messages-below.txt)
+
+## 10. docs: 更新核心流程图与需求文档，拆分词典查询引擎为三阶段
+> 次任务使用了模型：glm-4.7、mimo-v2.5-pro
+
+对话过程记录：[2026-05-23-104921-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-23-104921-local-command-caveatcaveat-the-messages-below.txt)
+
+**要点内容**：
+
+- 流程图中节点 `H[自动查询当前选中词典]` 做细化修改：将词典查询引擎拆分为手动添加、云端词典、本地词典三阶段
+- 新增卡片模板与字段映射需求（设置入口、预设映射、预留自定义接口）
