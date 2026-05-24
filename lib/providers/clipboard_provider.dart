@@ -8,19 +8,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class ClipboardState {
   final String originalText;
   final bool isEditing;
+  final bool isLocked;
 
   const ClipboardState({
     this.originalText = '',
     this.isEditing = false,
+    this.isLocked = false,
   });
 
   ClipboardState copyWith({
     String? originalText,
     bool? isEditing,
+    bool? isLocked,
   }) =>
       ClipboardState(
         originalText: originalText ?? this.originalText,
         isEditing: isEditing ?? this.isEditing,
+        isLocked: isLocked ?? this.isLocked,
       );
 
   /// 原文是否为空
@@ -59,9 +63,14 @@ class ClipboardNotifier extends Notifier<ClipboardState>
     state = state.copyWith(isEditing: editing);
   }
 
+  /// 切换锁定状态（锁定后不可编辑且不监听剪贴板）
+  void toggleLock() {
+    state = state.copyWith(isLocked: !state.isLocked);
+  }
+
   @override
   void onClipboardChanged() {
-    if (state.isEditing) return;
+    if (state.isEditing || state.isLocked) return;
 
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {

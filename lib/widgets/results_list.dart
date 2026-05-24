@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/card_entry_model.dart';
 import '../models/card_template_model.dart';
 import '../providers/anki_connect_provider.dart';
-import '../providers/card_data_provider.dart';
 import '../providers/toast_provider.dart';
 import '../providers/deck_provider.dart';
 import '../providers/template_provider.dart';
+import '../providers/word_selection_provider.dart';
 import '../services/template_manager.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
@@ -23,7 +23,7 @@ class ResultsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = ref.watch(fluentTokensProvider);
-    final data = ref.watch(cardDataProvider);
+    final currentEntry = ref.watch(wordSelectionProvider).currentEntry;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,8 +84,8 @@ class ResultsList extends ConsumerWidget {
         ),
         const SizedBox(height: FluentTokens.spaceM),
         // ====== 条目列表 ======
-        // 空条目（占位）+ 数据条目
-        ..._buildEntries(context, ref, tokens, data.entries),
+        // 使用 currentEntry 渲染可编辑条目
+        ..._buildEntries(context, ref, tokens, currentEntry),
         const SizedBox(height: FluentTokens.spaceXs),
         // ====== 底部提示 ======
         Center(
@@ -103,28 +103,22 @@ class ResultsList extends ConsumerWidget {
   }
 
   List<Widget> _buildEntries(BuildContext context, WidgetRef ref,
-      FluentTokens tokens, List<CardEntryModel> entries) {
+      FluentTokens tokens, CardEntryModel? currentEntry) {
     final widgets = <Widget>[];
 
-    // 首条固定为空条目（占位符）
+    // 使用 currentEntry 的可编辑条目（无选中时为空条目）
+    final entry = currentEntry ?? const CardEntryModel(id: 'editable', word: '');
     widgets.add(
       Padding(
         padding: const EdgeInsets.only(bottom: FluentTokens.spaceXs),
         child: ResultEntry(
-          entry: CardEntryModel(
-            id: 'placeholder',
-            word: entries.isNotEmpty ? entries.first.word : '',
-          ),
+          entry: entry,
           displayIndex: 0,
-          isPlaceholder: true,
-          onAdd: () => ref.read(toastProvider.notifier).show('空条目 — 请先编辑内容'),
+          isPlaceholder: false,
+          onAdd: () { _addNoteToAnki(ref, entry); },
           onPreview: () async {
             final template = ref.read(templateProvider);
-            final initialValues = _buildPreviewInitialValues(
-              ref,
-              template,
-              entries.isNotEmpty ? entries.first : null,
-            );
+            final initialValues = _buildPreviewInitialValues(ref, template, entry);
             final result = await showPreviewModal(
               context,
               fields: template.fields,
@@ -137,34 +131,6 @@ class ResultsList extends ConsumerWidget {
         ),
       ),
     );
-
-    // 数据条目
-    for (int i = 0; i < entries.length; i++) {
-      widgets.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: FluentTokens.spaceXs),
-          child: ResultEntry(
-            entry: entries[i],
-            displayIndex: i + 1,
-            onAdd: () {
-              _addNoteToAnki(ref, entries[i]);
-            },
-            onPreview: () async {
-              final template = ref.read(templateProvider);
-              final initialValues = _buildPreviewInitialValues(ref, template, entries[i]);
-              final result = await showPreviewModal(
-                context,
-                fields: template.fields,
-                initialValues: initialValues,
-              );
-              if (result != null) {
-                await _addNoteWithFields(ref, result);
-              }
-            },
-          ),
-        ),
-      );
-    }
 
     return widgets;
   }
