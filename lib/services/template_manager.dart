@@ -78,18 +78,25 @@ class TemplateManager {
     // 构建默认字段映射（如果未提供，使用模板字段名作为 key）
     final mapping = fieldMapping ?? _buildDefaultMapping(parsed.fields);
 
-    // 注册到 Anki
-    await _registerToAnki(
-      service: service,
-      name: templateName,
-      parsed: parsed,
-    );
+    // best-effort 注册到 Anki（失败不阻塞导入，添加卡片时会自动补注册）
+    try {
+      await _registerToAnki(
+        service: service,
+        name: templateName,
+        parsed: parsed,
+      );
+    } catch (_) {
+      // Anki 未打开或连接失败时静默忽略
+    }
 
     return CardTemplateModel(
       id: id,
       name: templateName,
       fields: parsed.fields,
       fieldMapping: mapping,
+      frontHtml: parsed.frontTemplate,
+      backHtml: parsed.backTemplate,
+      css: parsed.css,
     );
   }
 
@@ -122,6 +129,9 @@ class TemplateManager {
       name: name,
       fields: parsed.fields,
       fieldMapping: fieldMapping,
+      frontHtml: parsed.frontTemplate,
+      backHtml: parsed.backTemplate,
+      css: parsed.css,
     );
   }
 

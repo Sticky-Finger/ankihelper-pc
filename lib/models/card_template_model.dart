@@ -12,11 +12,23 @@ class CardTemplateModel {
   /// 应用字段到模板字段的映射（应用字段名 → 模板字段名）
   final Map<String, String> fieldMapping;
 
+  /// 正面模板 HTML（用于向 Anki 注册时重建模型）
+  final String frontHtml;
+
+  /// 背面模板 HTML
+  final String backHtml;
+
+  /// 模板 CSS
+  final String css;
+
   const CardTemplateModel({
     required this.id,
     required this.name,
     required this.fields,
     required this.fieldMapping,
+    this.frontHtml = '',
+    this.backHtml = '',
+    this.css = '',
   });
 
   /// 是否可删除（内置模板不可删除）
