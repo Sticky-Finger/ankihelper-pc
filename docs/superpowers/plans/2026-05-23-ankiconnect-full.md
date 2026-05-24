@@ -2,18 +2,21 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**目标:** 实现统一的模板管理机制（从文件解析而非硬编码）、预览确认后添加、例句高亮，以及空条目手动编辑添加功能。
+**目标:** 实现统一的模板管理机制（从文件解析而非硬编码）、可编辑的字段映射配置、预览确认后添加、例句高亮，以及空条目手动编辑添加功能。
 
-**架构:** 模板的所有细节（字段、CSS、正反面 HTML、字段映射）均从 `.html` + `.json` 文件解析，内置模板和未来用户导入的模板共用同一套解析和注册逻辑。先实现手动导入，再实现首次运行自动导入内置模板。
+**架构:** 模板的所有细节（字段、CSS、正反面 HTML）从 `.html` 文件解析。字段映射独立存储：导入时默认映射（首字段→单词，其余→空），用户在设置弹窗中通过 Select 选择器配置，配置随模板持久化。
 
 **执行顺序:** Task 1/2/2.7/4/5/6 已完成。接下来依次完成 Task 2.8（模板系统修复）→ Task 7 → Task 8，最后执行 Task 3（内置模板自动导入）。
 
 **当前进度:**
 - Task 2.8.1: ✅ 导入 best-effort 注册
 - Task 2.8.2: ✅ CardTemplateModel 添加 HTML 字段
-- Task 2.8.3: ⏳ 添加卡片时模板验证逻辑
-- Task 2.8.4: ⏳ TemplateNotifier 模板名更新方法
-- Task 2.8.5: ⏳ _addNoteToAnki 接入 + 宽松字段验证
+- Task 2.8.3: ✅ 添加卡片时模板验证逻辑
+- Task 2.8.4: ✅ TemplateNotifier 模板名更新方法
+- Task 2.8.5: ✅ _addNoteToAnki 接入 + 宽松字段验证
+- Task 2.8.6: ✅ 修复 _buildDefaultMapping 中文→英文映射
+- Task 2.8.7: ⏳ 字段映射配置 UI + 持久化
+- Task 2.8.8: ⏳ 预览弹窗动态字段渲染
 - Task 7.1: ✅ WordSelectionState 增强
 
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
@@ -26,21 +29,22 @@ assets/template01/
 
 lib/
 ├── models/
-│   ├── card_template_model.dart    # [已完成] 纯数据类 + isDeletable
+│   ├── card_template_model.dart    # [已完成] 纯数据类 + isDeletable + frontHtml/backHtml/css
 │   └── card_entry_model.dart       # [已完成] toMap()
 ├── services/
 │   ├── anki_connect_service.dart   # [已完成] modelNames / createModel / modelFieldNames
-│   └── template_manager.dart       # [已完成] 统一解析器 + 动态 buildFields
+│   └── template_manager.dart       # [已完成] 统一解析器 + 动态 buildFields + ensureModelFields
 ├── providers/
 │   ├── word_selection_provider.dart # [Task 7] 增强：新增 currentEntry 派生
 │   ├── clipboard_provider.dart     # [已有] 剪贴板原文
 │   ├── translation_provider.dart   # [已有] 原文翻译
-│   └── template_provider.dart      # [已完成] 动态模板列表 + removeTemplate + 启动自动导入
+│   └── template_provider.dart      # [已完成] 动态模板列表 + removeTemplate + updateTemplateName
 ├── widgets/
-│   ├── settings_dialog.dart        # [已完成] 导入/删除模板
+│   ├── settings_dialog.dart        # [Task 2.8.7] 字段映射 Select 选择器 UI
+│   ├── field_mapping_editor.dart   # [Task 2.8.7] 字段映射编辑器（独立组件）
 │   ├── results_list.dart           # [Task 8] watch wordSelectionProvider
 │   ├── result_entry.dart           # [Task 7] 编辑模式：全部字段可编辑
-│   └── preview_modal.dart          # [已完成] 确认后触发添加
+│   └── preview_modal.dart          # [Task 2.8.8] 动态字段渲染
 ```
 
 ---
@@ -229,16 +233,16 @@ flutter run -d macos
            d. 返回 renamedFrom 信息
 ```
 
-#### 2.8.4 TemplateNotifier 暴露模板名更新方法
+#### 2.8.4 TemplateNotifier 暴露模板名更新方法 ✅
 
 - 新增 `updateTemplateName(String templateId, String newName)` 方法
 - 更新 `_templates` 列表中对应模板的 name
 - 更新 `state`（当前选中模板）
 - 持久化到 SharedPreferences
 
-#### 2.8.5 `_addNoteToAnki` 接入新逻辑 + 宽松字段验证
+#### 2.8.5 `_addNoteToAnki` 接入新逻辑 + 宽松字段验证 ✅
 
-- 替代原有的 `ensureModelExists` 调用，接入 2.8.2 的新验证
+- 替代原有的 `ensureModelExists` 调用，接入 2.8.3 的新验证
 - 新验证返回实际的模型名 + 是否重命名，重命名时调用 `updateTemplateName` 并 Toast 提示
 - **去除了"所有字段必须填满"的隐含限制**：
   - `buildFields` 只输出非空字段
@@ -246,24 +250,78 @@ flutter run -d macos
   - 全部为空时才拒绝添加，只要**至少有一个字段非空**就允许添加
   - 兼容自定义模板（不一定有 "word" 字段）
 
+#### 2.8.6 修复 _buildDefaultMapping 中文→英文映射 ✅
+
+- 添加 `_knownFieldNames` 映射表（中文→英文）
+- 导入模板时自动识别常见字段名（单词→word、音标→phonetic、释义→meaning、例句→example、例句翻译→exampleTranslation）
+- 未知字段（如 url、发音）不加入默认映射
+- `buildFields` 改用 `_knownFieldNames` 查找到的英文 key 去 `entry.toMap()` 取值
+
+#### 2.8.7 字段映射配置 UI + 持久化
+
+**目标:** 用户可在设置弹窗中查看和修改每个模板的字段映射，映射配置随模板持久化。
+
+**新建文件:**
+- `lib/widgets/field_mapping_editor.dart` — 字段映射编辑器组件
+
+**修改文件:**
+- `lib/widgets/settings_dialog.dart` — 用字段映射编辑器替换原有的只读展示区
+- `lib/providers/template_provider.dart` — 映射持久化 + 保存方法
+
+**UI 数据源（4 个可选值）:**
+| 数据源 | 说明 |
+|--------|------|
+| `单词` | 当前选中词组 |
+| `例句` | 剪贴板原文 |
+| `例句翻译` | 翻译 API 结果 |
+| `空` | 空字符串（默认值） |
+
+**字段映射编辑器（field_mapping_editor.dart）:**
+- 每行左侧显示模板字段名（label），右侧为 Select 下拉选择器
+- 选项：单词、例句、例句翻译、空
+- 显示格式：`<模板字段名> ← <选中的数据源>`
+- 导入默认映射：第一个模板字段→`单词`，其余→`空`
+- 基础卡片写死：`Front ← 单词`、`Back ← 空`
+- 底部"保存映射"按钮
+
+**持久化（template_provider.dart）:**
+- 新增 `saveFieldMapping(String templateId, Map<String, String> mapping)` 方法
+- 映射以 JSON 存入 SharedPreferences（key: `field_mapping_$templateId`）
+- 加载模板时从持久化恢复映射
+- 删除模板时同步清除映射
+
+#### 2.8.8 预览弹窗动态字段渲染
+
+**修改文件:** `lib/widgets/preview_modal.dart`
+
+**实现内容:**
+- 预览弹窗根据选中模板的字段列表动态生成输入框，label 为模板字段名
+- 输入框初始值按字段映射从 UI 数据源预填充：
+  - 映射→`单词`：填入 `entry.word`
+  - 映射→`例句`：填入 `entry.example`
+  - 映射→`例句翻译`：填入 `entry.exampleTranslation`
+  - 映射→`空`：填入空字符串
+- 用户可在预览弹窗中修改任何字段值
+- 确认添加时返回 `Map<String, String>`（字段名→值）
+- 移除硬编码的四个输入框，`PreviewCardData` 替换为 `Map<String, String>`
+
 **验证（需用户手动操作）:**
 ```bash
 flutter run -d macos
 ```
-1. 不打开 Anki → 导入模板 → 成功（不报错）
-2. 打开 Anki → 导入模板 → Anki 中出现对应模型
-3. Anki 中无同名模板 → 添加卡片 → 自动创建模板并添加成功
-4. Anki 中有同名同字段模板 → 添加卡片 → 直接使用已有模板
-5. Anki 中有同名但不同字段模板 → 添加卡片 → 模板自动改名 + 添加成功 + Toast 提示改名
-6. 预览弹窗中只填单词（其他字段留空）→ 添加成功
-7. 预览弹窗中所有字段留空 → 添加被拒绝（提示至少一个字段非空）
-8. `flutter analyze` 无报错
+1. 导入模板 → 设置中查看字段映射 → 默认首字段→单词，其余→空
+2. 修改映射 → 保存 → 关闭设置 → 重新打开 → 映射保持
+3. 选中单词 → 预览编辑 → 弹窗动态显示模板字段，label 正确
+4. 字段值按映射预填充
+5. 修改预览字段 → 添加到 Anki → 卡片内容正确
+6. 删除模板 → 重新导入 → 映射恢复默认
+7. `flutter analyze` 无报错
 
 ---
 
 ### Task 4: 设置面板 — 模板选择入口
 
-（已完成，无需改动 — 已通过 templateProvider 读取模板列表）
+（已完成，无需改动）
 
 ---
 
@@ -428,3 +486,8 @@ flutter run -d macos
 | app 删除模板 | 仅删本地 | 需同步删除 Anki 中的模型 | 待实现 |
 | 添加卡片字段验证 | 必须全部字段填满 | 至少一个字段非空即可 | 用户反馈全部填满才让添加不合理 |
 | 模板重建数据源 | ensureModelExists 从 assets/template01/ 读 HTML | 使用模板自身存储的 frontHtml/backHtml/css | 导入的模板字段和 assets 的不同 |
+| 字段映射来源 | 从 .json 配置文件解析 | UI 数据源（单词/例句/例句翻译/空）× 模板字段的 Select 选择器 | 用户要求直观可配置，且适配各种字段名的模板 |
+| 字段映射默认值 | 预期手动逐个配置 | 首字段→单词，其余→空 | 用户要求在导入时直接可用 |
+| 字段映射持久化 | 从 .json 文件读 | SharedPreferences JSON 字符串（模板 ID 索引） | 删除模板时方便一并清除 |
+| 预览弹窗字段 | 写死 front/phonetic/back/example 四个 | 根据模板字段列表动态渲染 | 不同模板字段不同，无法硬编码 |
+| _buildDefaultMapping | 模板字段名→自身 | 中文→英文映射表 | 中文模板字段名不匹配 entry.toMap() 的英文 key |
