@@ -6,7 +6,7 @@
 
 **架构:** 模板的所有细节（字段、CSS、正反面 HTML、字段映射）均从 `.html` + `.json` 文件解析，内置模板和未来用户导入的模板共用同一套解析和注册逻辑。先实现手动导入，再实现首次运行自动导入内置模板。
 
-**执行顺序:** 先完成 Task 1/2/2.7/4/5/6/7/8，最后执行 Task 3（内置模板自动导入）。
+**执行顺序:** Task 1/2/2.7/4/5/6 已完成。接下来依次完成 Task 7 → Task 8，最后执行 Task 3（内置模板自动导入）。
 
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
@@ -14,21 +14,24 @@
 ```
 assets/template01/
 ├── vocabulary_card_model.html    # [已有] 模板 HTML（4 段 @@@ 分隔）
-└── vocabulary_card_model.json    # [Task 2b] 模板配置（name + fieldMapping）
+└── vocabulary_card_model.json    # [Task 3] 模板配置（name + fieldMapping）
 
 lib/
 ├── models/
-│   ├── card_template_model.dart    # [Task 2a] 纯数据类 + [Task 2.7] isDeletable
-│   └── card_entry_model.dart       # [Task 2a] 新增 toMap()
+│   ├── card_template_model.dart    # [已完成] 纯数据类 + isDeletable
+│   └── card_entry_model.dart       # [已完成] toMap()
 ├── services/
 │   ├── anki_connect_service.dart   # [已完成] modelNames / createModel / modelFieldNames
-│   └── template_manager.dart       # [Task 2a] 统一解析器 + 动态 buildFields
+│   └── template_manager.dart       # [已完成] 统一解析器 + 动态 buildFields
 ├── providers/
-│   └── template_provider.dart      # [Task 2a] 动态模板列表 + [Task 2.7] removeTemplate + [Task 2b] 启动自动导入
+│   ├── word_selection_provider.dart # [Task 7] 增强：新增 currentEntry 派生
+│   ├── clipboard_provider.dart     # [已有] 剪贴板原文
+│   ├── translation_provider.dart   # [已有] 原文翻译
+│   └── template_provider.dart      # [已完成] 动态模板列表 + removeTemplate + 启动自动导入
 ├── widgets/
-│   ├── settings_dialog.dart        # [Task 2a] 添加"导入模板"按钮 + [Task 2.7] 删除按钮
-│   ├── results_list.dart           # [已完成] 自定义模板 + 例句高亮
-│   ├── result_entry.dart           # [Task 3] 支持编辑模式
+│   ├── settings_dialog.dart        # [已完成] 导入/删除模板
+│   ├── results_list.dart           # [Task 8] watch wordSelectionProvider
+│   ├── result_entry.dart           # [Task 7] 编辑模式：全部字段可编辑
 │   └── preview_modal.dart          # [已完成] 确认后触发添加
 ```
 
@@ -192,46 +195,79 @@ flutter run -d macos
 
 ## 第二部分：词典查询引擎 — Phase 1：手动添加
 
-### Task 7: 空条目可编辑 — ResultEntry 编辑模式
+### Task 7: 选中驱动结果列表 — wordSelectionProvider 增强
+
+**目标:** 选中单词块后，结果列表立即显示预填充的空条目（单词、例句、翻译来自 UI 状态）。不硬编码任何单词数据。
 
 **修改文件:**
-- `lib/widgets/result_entry.dart`
+- `lib/providers/word_selection_provider.dart` — 增强：新增 `currentEntry` 派生
+- `lib/widgets/result_entry.dart` — 编辑模式支持全部字段
+- 删除 `lib/providers/card_data_provider.dart`
 
 **实现内容:**
+
+#### 7.1 WordSelectionState 增强
+
+- 新增 `currentEntry` (CardEntryModel): 从选中状态 + 剪贴板 + 翻译自动派生
+- Provider 内 watch `clipboardProvider` 和 `translationProvider`，任一变化时重算 `currentEntry`
+- **防抖逻辑**：selectedText 变化后延迟 300ms 再重算 `currentEntry`
+  - 使用 `Timer` 或 Riverpod 的 `ref.listen` + debounce 模式
+  - 300ms 内再次变化则重置计时器
+  - 剪贴板原文 / 翻译 的变化不防抖（变化频率低，且用户期望即时响应）
+- 构建规则：
+  - `word` = selectedText（无选中时为空）
+  - `example` = 剪贴板原文，选中词用 `<b>` 包裹（无选中时为原始剪贴板文本）
+  - `exampleTranslation` = 翻译文本（无翻译时为空）
+  - `phonetic` / `meaning` = 空（Phase 1 无词典）
+
+#### 7.2 删除 cardDataProvider
+
+- 删除 `lib/providers/card_data_provider.dart`
+- 搜索所有引用处，替换为 `wordSelectionProvider.currentEntry`
+
+#### 7.3 ResultEntry 编辑模式
+
 - 新增 `isEditable` 参数（默认 `false`），空条目传入 `isEditable: true`
-- 编辑模式下单词和释义区域变为 `TextField`（Fluent 风格边框）
-- `onAdd` 回调签名改为 `void Function(CardEntryModel entry)`，传递编辑后的数据
-- 无输入时按钮 disabled
+- 编辑模式下**所有字段**变为 TextField：单词、音标、释义、例句、例句翻译
+- 输入框初始值来自 `entry` 的对应字段（自动预填充）
+- `onAdd` 回调签名改为 `void Function(CardEntryModel entry)`，传递编辑后的完整数据
+- 单词字段为空时，"添加卡片"按钮 disabled
 
 **验证（需用户手动操作）:**
 ```bash
 flutter run -d macos
 ```
-1. 空条目显示可编辑输入框（单词、释义）
-2. 不输入任何内容 → "添加卡片"按钮为灰色不可点击
-3. 输入单词和释义后 → 按钮变为可点击状态
-4. `flutter analyze` 无报错
+1. 不选中任何单词 → 结果列表显示空条目，所有字段为空
+2. 选中 "example" → 空条目预填充：单词=`example`，例句=`This is an <b>example</b>.`，翻译=原文翻译
+3. Shift+多选 "example sentence" → 单词变为 `example sentence`，例句高亮对应词组
+4. 取消所有选中 → 回到全空状态
+5. 快速连续点击多个单词块 → 结果列表只在停止点击 300ms 后更新一次（不闪烁）
+6. 剪贴板原文变化 → 结果列表即时更新（不走防抖）
+7. `flutter analyze` 无报错
 
 ---
 
-### Task 8: ResultsList — 空条目编辑集成
+### Task 8: ResultsList — 选中驱动集成
+
+**目标:** ResultsList 直接监听 `wordSelectionProvider`，渲染 `currentEntry`。
 
 **修改文件:**
 - `lib/widgets/results_list.dart`
 
 **实现内容:**
-- 空条目的 `ResultEntry` 传入 `isEditable: true`
-- `onAdd` 回调接收编辑后的 `CardEntryModel`，使用自定义模板调用 `_addNoteToAnki`
+- 移除对 `cardDataProvider` 的 watch，改为 `ref.watch(wordSelectionProvider)` 获取 `currentEntry`
+- 空条目的 `ResultEntry` 使用 `currentEntry` 数据，传入 `isEditable: true`
+- `onAdd` 回调接收编辑后的 `CardEntryModel`，使用当前模板调用 `_addNoteToAnki`
 - "预览编辑"按钮读取当前输入框内容传入 `showPreviewModal`
 
 **验证（需用户手动操作）:**
 ```bash
 flutter run -d macos
 ```
-1. 空条目显示可编辑输入框
-2. 输入单词和释义后点击"添加卡片"，Anki 中确认使用自定义模板，字段正确填充
-3. 点击"预览编辑" → 弹窗显示当前输入框内容 → 确认后添加成功
-4. 空输入时按钮不可点击
+1. 选中单词 → 结果列表立即显示预填充的空条目
+2. 编辑字段后点击"添加卡片" → Anki 中确认字段正确
+3. 点击"预览编辑" → 弹窗显示全部字段，均可编辑 → 确认后添加成功
+4. 单词为空时"添加卡片"不可点击
 5. `flutter analyze` 无报错
 
 ---
@@ -297,3 +333,6 @@ flutter run -d macos
 | 模板名称冲突 | 未考虑 | 实时验证 + 预填充建议名称 | 用户要求重名时提示且不让提交 |
 | macOS 文件权限 | 未考虑 | 添加 files.user-selected.read-only | file_picker 需要沙箱权限 |
 | 模板删除 | 未考虑 | isDeletable + removeTemplate + 删除按钮 | 用户要求可删除已导入模板，内置模板不可删 |
+| cardDataProvider | 独立 provider 硬编码数据 | 删除，职责移入 wordSelectionProvider.currentEntry | 选中单词后结果列表无响应，需选中状态与数据合一 |
+| 结果列表数据源 | cardDataProvider.entries | wordSelectionProvider.currentEntry | 选中变化 → 立即派生 entry → UI 刷新 |
+| 空条目编辑字段 | 仅单词+释义 | 全部字段（单词/音标/释义/例句/例句翻译） | 用户要求预览编辑时所有字段可编辑 |
