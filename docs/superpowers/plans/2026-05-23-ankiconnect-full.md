@@ -2,28 +2,32 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 
-**目标:** 实现自定义卡片模板注册与字段映射（替代硬编码 Basic 模型）、预览确认后添加、例句高亮，以及空条目手动编辑添加功能。
+**目标:** 实现统一的模板管理机制（从文件解析而非硬编码）、预览确认后添加、例句高亮，以及空条目手动编辑添加功能。
 
-**架构:** 先实现模板基础（模型注册、字段映射、Provider），再集成到添加流程，最后实现空条目编辑。模板配置在设置面板中选择，启动时自动应用默认模板并注册到 Anki。
+**架构:** 模板的所有细节（字段、CSS、正反面 HTML、字段映射）均从 `.html` + `.json` 文件解析，内置模板和未来用户导入的模板共用同一套解析和注册逻辑。首次连接 Anki 时自动导入内置模板。
 
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
 **核心文件结构:**
 ```
+assets/template01/
+├── vocabulary_card_model.html    # [已有] 模板 HTML（4 段 @@@ 分隔）
+└── vocabulary_card_model.json    # [新建] 模板配置（name + fieldMapping）
+
 lib/
 ├── models/
-│   ├── card_template_model.dart    # [新建] 模板配置数据模型
-│   └── card_entry_model.dart       # [修改] 新增 exampleTranslation 字段
+│   ├── card_template_model.dart    # [重写] 纯数据类，删除硬编码预设
+│   └── card_entry_model.dart       # [修改] 新增 exampleTranslation + toMap()
 ├── services/
-│   ├── anki_connect_service.dart   # [修改] 新增 modelNames / createModel / modelFieldNames
-│   └── template_manager.dart       # [新建] 模板注册、字段映射、HTML 解析
+│   ├── anki_connect_service.dart   # [已完成] modelNames / createModel / modelFieldNames
+│   └── template_manager.dart       # [重写] 统一解析器 + 动态 buildFields
 ├── providers/
-│   └── template_provider.dart      # [新建] 模板选择状态 + 持久化
+│   └── template_provider.dart      # [重写] 启动自动导入 + 动态模板列表
 ├── widgets/
-│   ├── settings_dialog.dart        # [修改] 新增卡片模板选择入口 + 字段映射展示
-│   ├── results_list.dart           # [修改] 使用自定义模板 + 例句高亮 + 空条目编辑
-│   ├── result_entry.dart           # [修改] 支持编辑模式
-│   └── preview_modal.dart          # [修改] 确认后触发添加
+│   ├── settings_dialog.dart        # [已完成] 模板选择入口
+│   ├── results_list.dart           # [已完成] 自定义模板 + 例句高亮
+│   ├── result_entry.dart           # [待做] 支持编辑模式
+│   └── preview_modal.dart          # [已完成] 确认后触发添加
 ```
 
 ---
@@ -40,26 +44,65 @@ lib/
 - 新增 `createModel({name, css, frontTemplate, backTemplate, fieldNames})` → 调用 `createModel` action
 - 新增 `getModelFieldNames(modelName)` → 调用 `modelFieldNames` action，返回 `List<String>`
 
-**验证:**
-```bash
-flutter analyze
-```
-无报错。
+**验证:** `flutter analyze` 无报错。
 
 ---
 
-### Task 2: 模板数据模型 + 管理服务 ✅
+### Task 2: 统一模板管理 — 消除硬编码
 
-**创建文件:**
+**新增文件:**
+- `assets/template01/vocabulary_card_model.json`
+
+**修改文件:**
 - `lib/models/card_template_model.dart`
 - `lib/services/template_manager.dart`
+- `lib/providers/template_provider.dart`
+- `lib/models/card_entry_model.dart`
+- `pubspec.yaml`
 
 **实现内容:**
-- `CardTemplateModel` 数据类：`id`、`name`、`fields`（字段名列表）、`fieldMapping`（`Map<String, String>` 应用字段→模板字段）
-- 预设两个配置：`vocabulary`（词汇卡片，7 字段）和 `basic`（基础卡片，Front/Back）
-- `TemplateManager`：
-  - `ensureModelExists(service, template)` — 检查模型是否存在，不存在则从 `assets/template01/vocabulary_card_model.html` 读取 HTML 并调用 `createModel` 注册
-  - `buildFields(template, entry)` — 根据字段映射将 `CardEntryModel` 转为 `Map<String, String>`
+
+#### 2.1 创建内置模板配置文件
+
+`assets/template01/vocabulary_card_model.json`：
+```json
+{
+  "name": "词汇卡片",
+  "fieldMapping": {
+    "word": "单词",
+    "phonetic": "音标",
+    "meaning": "释义",
+    "example": "例句",
+    "exampleTranslation": "例句翻译"
+  }
+}
+```
+
+#### 2.2 CardEntryModel 扩展
+
+- 新增 `toMap()` 方法：返回 `Map<String, String>`（字段名→值），用于动态字段映射
+
+#### 2.3 CardTemplateModel 简化
+
+- 删除 `static const vocabulary` 和 `static const basic` 预设
+- 保留纯数据类：`id`、`name`、`fields`、`fieldMapping`
+
+#### 2.4 TemplateManager 重写
+
+- `parseHtml(String html)` — 统一解析器，按 `@@@` 分割为 4 段（front/back/css/fields），第 4 段按换行得到字段名列表
+- `loadFromAssets(String basePath)` — 读取 `.html` + `.json`，组装为 `CardTemplateModel`
+- `ensureModelExists(service, template)` — 检查 Anki 中是否已注册，未注册则调用 `createModel`
+- `buildFields(template, entry)` — 遍历 `template.fieldMapping`，从 `entry.toMap()` 取值，只添加非空字段
+
+#### 2.5 TemplateProvider 重构
+
+- `build()` 时：加载内置模板 → 自动导入到 Anki → 恢复上次选中的模板 ID
+- `basic` 模板作为 Anki 自带模板始终出现在列表中（id='basic', name='基础卡片', fields=['Front','Back'], fieldMapping={word→Front, meaning→Back})
+- `presetTemplates` 返回动态列表
+
+#### 2.6 pubspec.yaml
+
+确认 `assets/template01/` 包含 `.json` 文件类型。
 
 **验证:**
 ```bash
@@ -69,89 +112,27 @@ flutter analyze
 
 ---
 
-### Task 3: 模板 Provider + CardEntryModel 扩展 ✅
+### Task 3: 设置面板 — 模板选择入口 ✅
 
-**创建/修改文件:**
-- `lib/providers/template_provider.dart`（新建）
-- `lib/models/card_entry_model.dart`（修改）
-
-**实现内容:**
-- `CardEntryModel` 新增 `exampleTranslation` 字段（默认空字符串）
-- `TemplateNotifier`：`build()` 从 SharedPreferences 读取已保存模板 ID（默认 `vocabulary`），`selectTemplate(id)` 切换并持久化，暴露 `presetTemplates` 列表
-
-**验证:**
-```bash
-flutter analyze
-```
-无报错。
+（已完成，无需改动 — 已通过 templateProvider 读取模板列表）
 
 ---
 
-### Task 4: 设置面板 — 模板选择入口 ✅
+### Task 4: ResultsList — 使用自定义模板 + 例句高亮 ✅
 
-**修改文件:**
-- `lib/widgets/settings_dialog.dart`
-
-**实现内容:**
-- 新增"卡片模板"配置区（在"翻译 API 配置"上方）
-- 下拉列表展示两个预设配置，从 `templateProvider` 读取
-- 选中后下方展示字段映射配置区（只读，灰色文字展示映射关系）
-- 切换时调用 `templateProvider.selectTemplate()`
-
-**验证:**
-```bash
-flutter run -d macos
-```
-1. 打开设置，看到"卡片模板"下拉，两个选项可切换
-2. 下方映射区实时更新
-3. 关闭重开，选择保持
+（已完成，无需改动 — 已通过 templateProvider + TemplateManager 工作）
 
 ---
 
-### Task 5: ResultsList — 使用自定义模板 + 例句高亮
+### Task 5: 预览弹窗 — 确认后触发添加 ✅
 
-**修改文件:**
-- `lib/widgets/results_list.dart`
-
-**实现内容:**
-- `_addNoteToAnki`：读取 `templateProvider`，调用 `TemplateManager.ensureModelExists()` 确保模板已注册，调用 `TemplateManager.buildFields()` 构建字段 Map，替换硬编码的 `modelName: 'Basic'` 和 `fields`
-- 例句高亮：构建 `example` 字段时，将选中词汇用 `<b>` 包裹（从 `wordSelectionProvider` 获取选中文本，替换原文中首次出现）
-
-**验证:**
-```bash
-flutter run -d macos
-```
-1. 选中单词后点击添加，Anki 中确认使用自定义模板
-2. 例句字段中选中词汇有高亮（`<b>` 标签）
-3. 切换到"基础卡片"模板后，添加的卡片使用 Front/Back 字段
-
----
-
-### Task 6: 预览弹窗 — 确认后触发添加
-
-**修改文件:**
-- `lib/widgets/preview_modal.dart`
-- `lib/widgets/results_list.dart`
-
-**实现内容:**
-- `showPreviewModal` 返回可编辑的 `PreviewCardData`（用户可修改字段后确认）
-- 预览弹窗字段改为可编辑 `TextField`
-- `PreviewCardData` 新增 `exampleTranslation` 字段
-- `ResultsList` 中预览确认后，用返回数据构建 `CardEntryModel` 并调用 `_addNoteToAnki`
-
-**验证:**
-```bash
-flutter run -d macos
-```
-1. 点击"预览"，弹窗展示可编辑字段
-2. 修改释义后点击"添加到 Anki"，卡片使用修改后内容
-3. 点击"取消"不触发添加
+（已完成，无需改动）
 
 ---
 
 ## 第二部分：词典查询引擎 — Phase 1：手动添加
 
-### Task 7: 空条目可编辑 — ResultEntry 编辑模式
+### Task 6: 空条目可编辑 — ResultEntry 编辑模式
 
 **修改文件:**
 - `lib/widgets/result_entry.dart`
@@ -162,22 +143,18 @@ flutter run -d macos
 - `onAdd` 回调签名改为 `void Function(CardEntryModel entry)`，传递编辑后的数据
 - 无输入时按钮 disabled
 
-**验证:**
-```bash
-flutter analyze
-```
-无报错。
+**验证:** `flutter analyze` 无报错。
 
 ---
 
-### Task 8: ResultsList — 空条目编辑集成
+### Task 7: ResultsList — 空条目编辑集成
 
 **修改文件:**
 - `lib/widgets/results_list.dart`
 
 **实现内容:**
 - 空条目的 `ResultEntry` 传入 `isEditable: true`
-- `onAdd` 回调接收编辑后的 `CardEntryModel`，使用 Task 5 中已切换的自定义模板调用 `_addNoteToAnki`
+- `onAdd` 回调接收编辑后的 `CardEntryModel`，使用自定义模板调用 `_addNoteToAnki`
 - "预览编辑"按钮读取当前输入框内容传入 `showPreviewModal`
 
 **验证:**
@@ -194,4 +171,7 @@ flutter run -d macos
 
 | 项目 | 原计划 | 实际实现 | 原因 |
 |------|--------|----------|------|
-| — | — | — | — |
+| 模板数据模型 | 静态常量预设 | 从 .html + .json 文件动态加载 | 用户要求不硬编码 |
+| HTML 解析器 | 3 段 @@@ 分割 | 4 段 @@@ 分割（含字段名） | 原实现忽略了第 4 段 |
+| 字段映射 | 硬编码 switch | 遍历 fieldMapping + entry.toMap() | 统一动态映射 |
+| basic 模板名 | "基础卡片" 直接传给 addNote | template.id=='basic' 时用 "Basic" | Anki 内置模型名为 "Basic" |
