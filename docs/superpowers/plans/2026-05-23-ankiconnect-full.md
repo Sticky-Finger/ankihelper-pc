@@ -6,6 +6,8 @@
 
 **架构:** 模板的所有细节（字段、CSS、正反面 HTML、字段映射）均从 `.html` + `.json` 文件解析，内置模板和未来用户导入的模板共用同一套解析和注册逻辑。先实现手动导入，再实现首次运行自动导入内置模板。
 
+**执行顺序:** 先完成 Task 1/2/2.7/4/5/6/7/8，最后执行 Task 3（内置模板自动导入）。
+
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
 **核心文件结构:**
@@ -170,55 +172,6 @@ flutter run -d macos
 
 ---
 
-### Task 3: 内置模板自动导入（首次运行）
-
-**目标:** 首次运行应用时，自动将内置 `vocabulary_card_model.html` 导入 Anki。
-
-**新增文件:**
-- `assets/template01/vocabulary_card_model.json`
-
-**修改文件:**
-- `lib/providers/template_provider.dart` — 启动时检测并自动导入内置模板
-- `pubspec.yaml` — 确认 assets 包含 `.json`
-
-**实现内容:**
-
-#### 3.1 创建内置模板配置文件
-
-`assets/template01/vocabulary_card_model.json`：
-```json
-{
-  "name": "词汇卡片",
-  "fieldMapping": {
-    "word": "单词",
-    "phonetic": "音标",
-    "meaning": "释义",
-    "example": "例句",
-    "exampleTranslation": "例句翻译"
-  }
-}
-```
-
-#### 3.2 TemplateProvider 启动自动导入
-
-- `build()` 时：检查 Anki 中是否已存在"词汇卡片"模型
-  - 已存在 → 跳过，从 Anki 获取字段列表构建 CardTemplateModel
-  - 不存在 → 从 assets 加载 HTML + JSON → 调用 `createModel` 注册
-- 内置模板添加到列表中（用户导入的模板仍排第一）
-
-**验证（需用户手动操作）:**
-```bash
-# 先在 Anki 中手动删除"词汇卡片"模型（如果存在）
-flutter run -d macos
-```
-1. 启动应用 → 设置 → 下拉列表出现"词汇卡片"和"基础卡片"
-2. 选择"词汇卡片" → 字段映射区正确显示所有映射
-3. 添加卡片 → Anki 中确认使用"词汇卡片"模板
-4. 关闭应用 → 重新打开 → Anki 中不重复创建"词汇卡片"模型
-5. `flutter analyze` 无报错
-
----
-
 ### Task 4: 设置面板 — 模板选择入口
 
 （已完成，无需改动 — 已通过 templateProvider 读取模板列表）
@@ -279,6 +232,55 @@ flutter run -d macos
 2. 输入单词和释义后点击"添加卡片"，Anki 中确认使用自定义模板，字段正确填充
 3. 点击"预览编辑" → 弹窗显示当前输入框内容 → 确认后添加成功
 4. 空输入时按钮不可点击
+5. `flutter analyze` 无报错
+
+---
+
+### Task 3: 内置模板自动导入（首次运行）⚠️ 最后执行
+
+**目标:** 首次运行应用时，自动将内置 `vocabulary_card_model.html` 导入 Anki。
+
+**新增文件:**
+- `assets/template01/vocabulary_card_model.json`
+
+**修改文件:**
+- `lib/providers/template_provider.dart` — 启动时检测并自动导入内置模板
+- `pubspec.yaml` — 确认 assets 包含 `.json`
+
+**实现内容:**
+
+#### 3.1 创建内置模板配置文件
+
+`assets/template01/vocabulary_card_model.json`：
+```json
+{
+  "name": "词汇卡片",
+  "fieldMapping": {
+    "word": "单词",
+    "phonetic": "音标",
+    "meaning": "释义",
+    "example": "例句",
+    "exampleTranslation": "例句翻译"
+  }
+}
+```
+
+#### 3.2 TemplateProvider 启动自动导入
+
+- `build()` 时：检查 Anki 中是否已存在"词汇卡片"模型
+  - 已存在 → 跳过，从 Anki 获取字段列表构建 CardTemplateModel
+  - 不存在 → 从 assets 加载 HTML + JSON → 调用 `createModel` 注册
+- 内置模板添加到列表中（用户导入的模板仍排第一）
+
+**验证（需用户手动操作）:**
+```bash
+# 先在 Anki 中手动删除"词汇卡片"模型（如果存在）
+flutter run -d macos
+```
+1. 启动应用 → 设置 → 下拉列表出现"词汇卡片"和"基础卡片"
+2. 选择"词汇卡片" → 字段映射区正确显示所有映射
+3. 添加卡片 → Anki 中确认使用"词汇卡片"模板
+4. 关闭应用 → 重新打开 → Anki 中不重复创建"词汇卡片"模型
 5. `flutter analyze` 无报错
 
 ---
