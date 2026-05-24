@@ -143,3 +143,17 @@
 > 这次任务使用了模型：mimo-v2.5-pro
 
 对话过程记录：[2026-05-24-183235-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-24-183235-local-command-caveatcaveat-the-messages-below.txt)
+
+### 11.5 【大量改动】改动和实现2026-05-23-ankiconnect-full.md中除了最后面task 3的所有需求
+> 这次任务使用了模型：前100k上下文用的 mimo-v2.5-pro【100k以后性能下降严重】，后面100k~300k上下文用 deepseek-v4-flash[1m]
+
+对话过程记录：[2026-05-25-005649-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-25-005649-local-command-caveatcaveat-the-messages-below.txt)
+
+**要点内容**：
+
+- 这次任务有大量UI交互的细节改动，上下文消耗大，mimo-v2.5-pro扛不住，换deepseek-v4-flash[1m]完美胜任
+- line 674【**大问题**】mimo-v2.5-pro模型下，把plan文档写到了`~/.claude/plans/task7-playful-horizon.md`,直接污染全局——【建议以后携代码都**不要用mimo-v2.5-pro**这个模型了】
+- line 1030 添加卡片时验证模板名+字段匹配，不匹配自动改名
+- line 1096 `/model deepseek-v4-flash[1m]`切换模型
+- line 2886 更新 PRD 字段映射说明
+- line 3086 模板验证逻辑 + 字段映射持久化 + 中文→英文字段映射
