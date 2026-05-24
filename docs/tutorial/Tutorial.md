@@ -107,3 +107,15 @@
 
 - 流程图中节点 `H[自动查询当前选中词典]` 做细化修改：将词典查询引擎拆分为手动添加、云端词典、本地词典三阶段
 - 新增卡片模板与字段映射需求（设置入口、预设映射、预留自定义接口）
+
+## 11. 调整PRD和TODO中的“AnkiConnect 完整功能 > 卡片模板与字段映射“、以及编写plan
+
+### 11.1 根据‘10’中的修改，调整当前“AnkiConnect 完整功能 > 卡片模板与字段映射”的实现plan，并编写一部分实现代码
+> 次任务使用了模型：subagent用glm-4.7、其他的大部分时候切换使用mimo-v2.5-pro
+
+对话过程记录：[2026-05-24-085925-local-command-caveatcaveat-the-messages-below.txt](../../chat-logs-sanitized/2026-05-24-085925-local-command-caveatcaveat-the-messages-below.txt)
+
+**要点内容**：
+
+- 编写plan后，使用superpowers:executing-plan写实现代码，做到task4时，发现“AnkiConnect 完整功能”这个功能点的实现不符合预期，需要进行需求修改
+- 在修改“AnkiConnect 完整功能”需求点时，没有修改完成（即没有改到符合预期的程度），但上下文已经用到了150k，于是准备终止当前cc会话。使用`/compact`压缩当前会话开始新会话，接下来继续讨论修改“AnkiConnect 完整功能”的需求
