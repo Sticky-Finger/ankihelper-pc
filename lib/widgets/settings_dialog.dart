@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/translation_config_model.dart';
 import '../providers/template_provider.dart';
 import '../providers/translation_provider.dart';
+import 'field_mapping_editor.dart';
 
 /// 显示设置弹窗
 void showSettingsDialog(BuildContext context) {
@@ -334,37 +335,20 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
               ),
             ),
             const SizedBox(height: 8),
-            // 字段映射展示
+            // 字段映射编辑器
             Consumer(
               builder: (context, ref, _) {
                 final currentTemplate = ref.watch(templateProvider);
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '字段映射:',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    ...currentTemplate.fieldMapping.entries.map(
-                      (entry) => Padding(
-                        padding: const EdgeInsets.only(left: 8, top: 2),
-                        child: Text(
-                          '${entry.key} → ${entry.value}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                return FieldMappingEditor(
+                  templateFields: currentTemplate.fields,
+                  initialMapping: currentTemplate.fieldMapping,
+                  onChanged: (newMapping) {
+                    // 修改 Select 时自动保存，用户无需额外操作
+                    ref
+                        .read(templateProvider.notifier)
+                        .updateFieldMapping(currentTemplate.id, newMapping);
+                  },
                 );
               },
             ),

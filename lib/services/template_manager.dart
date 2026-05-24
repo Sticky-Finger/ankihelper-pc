@@ -252,22 +252,36 @@ class TemplateManager {
     '例句翻译': 'exampleTranslation',
   };
 
-  /// 构建默认字段映射（尝试识别中文/英文字段名，未知字段跳过）
+  /// 构建默认字段映射（尝试识别中文/英文字段名，未识别字段默认为空）
+  ///
+  /// 格式: {模板字段名: 数据源key}
+  /// 第一个匹配到的字段映射到 'word'，其余已知字段映射到对应数据源，未知字段映射到 ''(空)
   static Map<String, String> _buildDefaultMapping(List<String> fields) {
     final mapping = <String, String>{};
+    bool firstMatched = false;
     for (final field in fields) {
-      // 先尝试直接匹配已知的应用字段名
       final knownKey = _knownFieldNames[field];
       if (knownKey != null) {
-        mapping[knownKey] = field;
+        if (!firstMatched && knownKey == 'word') {
+          // 第一个匹配到 word 的字段映射到单词数据源
+          mapping[field] = 'word';
+          firstMatched = true;
+        } else {
+          mapping[field] = knownKey;
+        }
+      } else {
+        // 未知字段（如 'url'、'发音'）不加入默认映射
+        // 用户在 buildFields 中会得到空字符串
       }
-      // 未知字段（如 'url'、'发音'）不加入默认映射
-      // 用户可以手动配置或直接忽略
     }
     return mapping;
   }
 
   /// 根据模板配置将卡片条目转换为 Anki 字段映射
+  ///
+  /// fieldMapping 格式: {模板字段名: 数据源key}
+  /// 数据源key: 'word'/'example'/'exampleTranslation'/''(空)
+  /// 遍历模板所有字段，按字段映射填充值。未映射的字段填空字符串。
   static Map<String, String> buildFields(
     CardTemplateModel template,
     CardEntryModel entry,
@@ -275,12 +289,17 @@ class TemplateManager {
     final Map<String, String> result = {};
     final entryMap = entry.toMap();
 
-    template.fieldMapping.forEach((appField, templateField) {
-      final value = entryMap[appField];
-      if (value != null && value.isNotEmpty) {
-        result[templateField] = value;
+    // 遍历所有模板字段
+    for (final field in template.fields) {
+      final dataSource = template.fieldMapping[field];
+      if (dataSource == null || dataSource.isEmpty) {
+        // 未映射或映射到'空' → 空字符串
+        result[field] = '';
+      } else {
+        final value = entryMap[dataSource];
+        result[field] = (value != null && value.isNotEmpty) ? value : '';
       }
-    });
+    }
 
     return result;
   }

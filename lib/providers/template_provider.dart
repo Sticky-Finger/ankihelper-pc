@@ -177,20 +177,33 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
     await prefs.setString(key, json.encode(mapping));
   }
 
-  /// 从持久化存储加载字段映射配置
-  Map<String, String>? getFieldMapping(String templateId) {
-    // 基础卡片使用写死映射
-    if (templateId == 'basic') {
-      return {'word': 'Front', 'meaning': '空'};
+  /// 更新内存中模板的 fieldMapping（同时持久化）
+  Future<void> updateFieldMapping(String templateId, Map<String, String> newMapping) async {
+    final index = _templates.indexWhere((t) => t.id == templateId);
+    if (index == -1) return;
+
+    _templates[index] = CardTemplateModel(
+      id: _templates[index].id,
+      name: _templates[index].name,
+      fields: _templates[index].fields,
+      fieldMapping: newMapping,
+      frontHtml: _templates[index].frontHtml,
+      backHtml: _templates[index].backHtml,
+      css: _templates[index].css,
+    );
+
+    if (state.id == templateId) {
+      state = _templates[index];
     }
-    // 注意：这里无法同步读 SharedPreferences，由调用方通过异步方法获取
-    return null;
+
+    await saveFieldMapping(templateId, newMapping);
   }
 
-  /// 异步加载字段映射配置
+  /// 从持久化存储加载字段映射配置
+  /// 返回格式: {模板字段名: 数据源key}
   Future<Map<String, String>?> loadFieldMappingAsync(String templateId) async {
     if (templateId == 'basic') {
-      return {'word': 'Front', 'meaning': '空'};
+      return null; // 基础卡片直接在 CardTemplateModel.basic 中定义
     }
     final prefs = await SharedPreferences.getInstance();
     final key = 'field_mapping_$templateId';

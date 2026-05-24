@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/card_entry_model.dart';
+import '../models/card_template_model.dart';
 import '../providers/anki_connect_provider.dart';
 import '../providers/card_data_provider.dart';
 import '../providers/toast_provider.dart';
@@ -118,20 +119,19 @@ class ResultsList extends ConsumerWidget {
           isPlaceholder: true,
           onAdd: () => ref.read(toastProvider.notifier).show('空条目 — 请先编辑内容'),
           onPreview: () async {
-            final result = await showPreviewModal(context, data: PreviewCardData(
-              front: entries.isNotEmpty ? entries.first.word : '',
-              back: '',
-            ));
+            final template = ref.read(templateProvider);
+            final initialValues = _buildPreviewInitialValues(
+              ref,
+              template,
+              entries.isNotEmpty ? entries.first : null,
+            );
+            final result = await showPreviewModal(
+              context,
+              fields: template.fields,
+              initialValues: initialValues,
+            );
             if (result != null) {
-              final updatedEntry = CardEntryModel(
-                id: 'placeholder',
-                word: result.front,
-                phonetic: result.phonetic,
-                meaning: result.back,
-                example: result.example,
-                exampleTranslation: result.exampleTranslation,
-              );
-              await _addNoteToAnki(ref, updatedEntry);
+              await _addNoteWithFields(ref, result);
             }
           },
         ),
@@ -150,22 +150,15 @@ class ResultsList extends ConsumerWidget {
               _addNoteToAnki(ref, entries[i]);
             },
             onPreview: () async {
-              final result = await showPreviewModal(context, data: PreviewCardData(
-                front: entries[i].word,
-                phonetic: entries[i].phonetic,
-                back: entries[i].meaning,
-                example: entries[i].example,
-              ));
+              final template = ref.read(templateProvider);
+              final initialValues = _buildPreviewInitialValues(ref, template, entries[i]);
+              final result = await showPreviewModal(
+                context,
+                fields: template.fields,
+                initialValues: initialValues,
+              );
               if (result != null) {
-                final updatedEntry = CardEntryModel(
-                  id: entries[i].id,
-                  word: result.front,
-                  phonetic: result.phonetic,
-                  meaning: result.back,
-                  example: result.example,
-                  exampleTranslation: result.exampleTranslation,
-                );
-                await _addNoteToAnki(ref, updatedEntry);
+                await _addNoteWithFields(ref, result);
               }
             },
           ),
@@ -210,25 +203,89 @@ class ResultsList extends ConsumerWidget {
       final fields = TemplateManager.buildFields(template, entry);
 
       // 至少一个字段非空才能添加
-      if (fields.isEmpty) {
+      if (fields.values.every((v) => v.isEmpty)) {
         ref.read(toastProvider.notifier).show('请至少填写一个字段');
         return;
       }
 
-      final noteId = await service.addNote(
+      await service.addNote(
         deckName: deckName,
         modelName: validation.modelName,
         fields: fields,
         allowDuplicate: true,
       );
-      if (kDebugMode) {
-        debugPrint('[AddNote] 添加成功，noteId: $noteId');
-      }
       ref.read(toastProvider.notifier).show('卡片已添加到 $deckName');
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[AddNote] 添加失败: $e');
       }
+      ref.read(toastProvider.notifier).show('添加失败: $e');
+    }
+  }
+
+  /// 为预览弹窗构建初始值（模板字段名 → 值）
+  /// 按字段映射从 entry 中取值，未映射的字段填空字符串
+  Map<String, String> _buildPreviewInitialValues(
+    WidgetRef ref,
+    CardTemplateModel template,
+    CardEntryModel? entry,
+  ) {
+    final initial = <String, String>{};
+    if (entry == null) return initial;
+
+    final entryMap = entry.toMap();
+
+    // fieldMapping 格式: {模板字段名: 数据源key}，直接使用
+    for (final field in template.fields) {
+      final dataSource = template.fieldMapping[field];
+      if (dataSource != null && dataSource.isNotEmpty) {
+        initial[field] = entryMap[dataSource] ?? '';
+      } else {
+        initial[field] = '';
+      }
+    }
+
+    return initial;
+  }
+
+  /// 使用预构建的字段映射直接添加卡片（跳过 buildFields）
+  Future<void> _addNoteWithFields(
+    WidgetRef ref,
+    Map<String, String> fields,
+  ) async {
+    final deckName = ref.read(selectedDeckProvider);
+    try {
+      final service = ref.read(ankiConnectServiceProvider);
+      final template = ref.read(templateProvider);
+
+      final validation = await TemplateManager.ensureModelFields(
+        service: service,
+        template: template,
+      );
+
+      if (validation.wasRenamed) {
+        await ref.read(templateProvider.notifier).updateTemplateName(
+              template.id,
+              validation.modelName,
+            );
+        ref.read(toastProvider.notifier).show(
+              '模板名称已改为 ${validation.modelName}',
+            );
+      }
+
+      if (fields.values.every((v) => v.isEmpty)) {
+        ref.read(toastProvider.notifier).show('请至少填写一个字段');
+        return;
+      }
+
+      await service.addNote(
+        deckName: deckName,
+        modelName: validation.modelName,
+        fields: fields,
+        allowDuplicate: true,
+      );
+      ref.read(toastProvider.notifier).show('卡片已添加到 $deckName');
+    } catch (e) {
       ref.read(toastProvider.notifier).show('添加失败: $e');
     }
   }

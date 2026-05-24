@@ -35,13 +35,14 @@ class CardTemplateModel {
   bool get isDeletable => id != 'basic' && !id.startsWith('builtin_');
 
   /// 基础卡片模板（Anki 自带）
+  /// 字段映射格式: {模板字段名: 数据源key}
+  /// Front ← 单词(word)，Back ← 空('')
   static const CardTemplateModel basic = CardTemplateModel(
     id: 'basic',
     name: '基础卡片',
     fields: ['Front', 'Back'],
     fieldMapping: {
-      'word': 'Front',
-      'meaning': 'Back',
+      'Front': 'word',
     },
   );
 }
