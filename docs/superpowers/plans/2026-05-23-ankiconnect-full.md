@@ -6,7 +6,7 @@
 
 **架构:** 模板的所有细节（字段、CSS、正反面 HTML、字段映射）均从 `.html` + `.json` 文件解析，内置模板和未来用户导入的模板共用同一套解析和注册逻辑。先实现手动导入，再实现首次运行自动导入内置模板。
 
-**执行顺序:** Task 1/2/2.7/4/5/6 已完成。接下来依次完成 Task 7 → Task 8，最后执行 Task 3（内置模板自动导入）。
+**执行顺序:** Task 1/2/2.7/4/5/6 已完成。接下来依次完成 Task 2.8（模板系统修复）→ Task 7 → Task 8，最后执行 Task 3（内置模板自动导入）。
 
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
@@ -175,6 +175,63 @@ flutter run -d macos
 
 ---
 
+### Task 2.8: 模板系统修复 — 导入不依赖 Anki + 添加卡片时模板验证
+
+**问题:**
+1. `importFromFile` 中 `_registerToAnki` 失败会阻塞整个导入（Anki 未打开时导入失败）
+2. 添加卡片时没有验证 Anki 中模板的字段是否匹配
+3. app 中删除模板不同步删除 Anki 中的模型
+
+**修改文件:**
+- `lib/services/template_manager.dart`
+- `lib/providers/template_provider.dart`
+- `lib/widgets/results_list.dart`（`_addNoteToAnki` 中调用新验证逻辑）
+
+**实现内容:**
+
+#### 2.8.1 导入模板：best-effort 注册
+
+- `importFromFile` 中 `_registerToAnki` 包裹 try-catch，失败不抛异常
+- 模板正常返回并存入本地，Anki 注册延迟到添加卡片时
+- 设计原则：导入模板 = 本地操作（解析 + 存储），不依赖 Anki
+
+#### 2.8.2 添加卡片：模板验证逻辑（替换 `ensureModelExists`）
+
+添加卡片前，执行以下验证流程：
+
+```
+1. 获取 Anki 中所有模型名 → getModelNames()
+2. 检查 app 模板名是否在 Anki 中
+   ├─ 不在 → 直接 createModel，用当前模板添加卡片
+   └─ 在 → 获取该模型的字段 → getModelFieldNames()
+       ├─ 字段匹配 → 直接用这个模型添加卡片
+       └─ 字段不匹配 →
+           a. 将 app 模板名改为 "<原名>-1"（递增数字避免冲突）
+           b. 用新名 createModel
+           c. 添加卡片
+           d. Toast 提示："模板名称已改为 <新名>"
+```
+
+#### 2.8.3 TemplateNotifier 暴露模板名更新方法
+
+- 新增 `updateTemplateName(String templateId, String newName)` 方法
+- 更新 `_templates` 列表中对应模板的 name
+- 更新 `state`（当前选中模板）
+- 持久化到 SharedPreferences
+
+**验证（需用户手动操作）:**
+```bash
+flutter run -d macos
+```
+1. 不打开 Anki → 导入模板 → 成功（不报错）
+2. 打开 Anki → 导入模板 → Anki 中出现对应模型
+3. Anki 中无同名模板 → 添加卡片 → 自动创建模板并添加成功
+4. Anki 中有同名同字段模板 → 添加卡片 → 直接使用已有模板
+5. Anki 中有同名但不同字段模板 → 添加卡片 → 模板自动改名 + 添加成功 + Toast 提示改名
+6. `flutter analyze` 无报错
+
+---
+
 ### Task 4: 设置面板 — 模板选择入口
 
 （已完成，无需改动 — 已通过 templateProvider 读取模板列表）
@@ -206,7 +263,7 @@ flutter run -d macos
 
 **实现内容:**
 
-#### 7.1 WordSelectionState 增强
+#### 7.1 WordSelectionState 增强 ✅
 
 - 新增 `currentEntry` (CardEntryModel): 从选中状态 + 剪贴板 + 翻译自动派生
 - Provider 内 watch `clipboardProvider` 和 `translationProvider`，任一变化时重算 `currentEntry`
@@ -258,6 +315,7 @@ flutter run -d macos
 - 移除对 `cardDataProvider` 的 watch，改为 `ref.watch(wordSelectionProvider)` 获取 `currentEntry`
 - 空条目的 `ResultEntry` 使用 `currentEntry` 数据，传入 `isEditable: true`
 - `onAdd` 回调接收编辑后的 `CardEntryModel`，使用当前模板调用 `_addNoteToAnki`
+- `_addNoteToAnki` 中使用 Task 2.8 的模板验证逻辑（替换原 `ensureModelExists`）
 - "预览编辑"按钮读取当前输入框内容传入 `showPreviewModal`
 
 **验证（需用户手动操作）:**
@@ -336,3 +394,6 @@ flutter run -d macos
 | cardDataProvider | 独立 provider 硬编码数据 | 删除，职责移入 wordSelectionProvider.currentEntry | 选中单词后结果列表无响应，需选中状态与数据合一 |
 | 结果列表数据源 | cardDataProvider.entries | wordSelectionProvider.currentEntry | 选中变化 → 立即派生 entry → UI 刷新 |
 | 空条目编辑字段 | 仅单词+释义 | 全部字段（单词/音标/释义/例句/例句翻译） | 用户要求预览编辑时所有字段可编辑 |
+| 模板导入 | 必须连接 Anki | best-effort 注册，失败不阻塞 | 用户发现 Anki 未打开时导入失败 |
+| 添加卡片模板验证 | ensureModelExists 仅检查名称 | 验证名称+字段，不匹配时自动改名 | 用户要求字段也要对上 |
+| app 删除模板 | 仅删本地 | 需同步删除 Anki 中的模型 | 待实现 |
