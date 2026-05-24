@@ -156,11 +156,19 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     );
   }
 
-  /// 构建 example 字段：选中词用 <b> 包裹
+  /// 构建 example 字段：每个选中的单词单独用 <b> 包裹
   String _buildExample(String selectedText, String clipboard) {
     if (clipboard.isEmpty) return '';
     if (selectedText.isEmpty) return clipboard;
-    return clipboard.replaceFirst(selectedText, '<b>$selectedText</b>');
+
+    // 按空格分割选中词组，逐个单词单独高亮
+    final words = selectedText.split(' ');
+    String result = clipboard;
+    for (final word in words) {
+      if (word.isEmpty) continue;
+      result = result.replaceFirst(word, '<b>$word</b>');
+    }
+    return result;
   }
 
   /// 构建 currentEntry

@@ -6,12 +6,14 @@
 
 **架构:** 模板的所有细节（字段、CSS、正反面 HTML）从 `.html` 文件解析。字段映射独立存储：导入时默认映射（首字段→单词，其余→空），用户在设置弹窗中通过 Select 选择器配置，配置随模板持久化。
 
-**执行顺序:** Task 1/2/2.7/4/5/6 已完成。Task 2.8（模板系统修复）已完成。接下来依次完成 Task 7 → Task 8，最后执行 Task 3（内置模板自动导入）。
+**执行顺序:** Task 1/2/2.7/4/5/6 已完成。Task 2.8（模板系统修复）已完成。Task 7 已完成。接下来完成 Task 8（ResultsList 连接字段映射），最后执行 Task 3（内置模板自动导入）。
 
 **当前进度:**
 - Task 2.8: ✅ 全部完成（1~8）
 - Task 7.1: ✅ WordSelectionState 增强
-- Task 7.2/7.3/8: ⏳ 待实现
+- Task 7.2: ✅ 删除 cardDataProvider，数据源切换到 wordSelectionProvider
+- Task 7.3: ⏳ ResultEntry 编辑模式（待评估优先级）
+- Task 8: ⏳ 选中词高亮已做，剩余字段映射连接
 
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
@@ -29,8 +31,8 @@ lib/
 │   ├── anki_connect_service.dart   # [已完成] modelNames / createModel / modelFieldNames
 │   └── template_manager.dart       # [已完成] 统一解析器 + 动态 buildFields + ensureModelFields
 ├── providers/
-│   ├── word_selection_provider.dart # [Task 7] 增强：新增 currentEntry 派生
-│   ├── clipboard_provider.dart     # [已有] 剪贴板原文
+│   ├── word_selection_provider.dart # [已完成] 增强：currentEntry + 多词高亮
+│   ├── clipboard_provider.dart     # [已完成] 剪贴板原文 + 锁定功能
 │   ├── translation_provider.dart   # [已有] 原文翻译
 │   └── template_provider.dart      # [已完成] 动态模板列表 + removeTemplate + updateFieldMapping
 ├── widgets/
@@ -486,3 +488,6 @@ flutter run -d macos
 | 预览弹窗字段 | 写死 front/phonetic/back/example 四个 | 根据模板字段列表动态渲染 | 不同模板字段不同，无法硬编码 |
 | _buildDefaultMapping | 模板字段名→自身 | 中文→英文映射表 | 中文模板字段名不匹配 entry.toMap() 的英文 key |
 | 字段映射 key 方向 | {数据源key: 模板字段名} | {模板字段名: 数据源key} | 旧格式多个'空'字段 key 重复被覆盖，映射不保存、字段顺序乱跳 |
+| 结果列表数据源 | cardDataProvider（硬编码 example） | wordSelectionProvider.currentEntry | 用户选中词后结果列表无响 |
+| 剪贴板锁定功能 | 未规划 | isLocked + toggleLock + UI 锁按钮 | 用户反馈翻译复制时会覆盖原文 |
+| 多词高亮 | 整个选中词组用 <b> 包裹 | 每个单词单独用 <b> 包裹 | 非连续选中词时整体替换不匹配 |
