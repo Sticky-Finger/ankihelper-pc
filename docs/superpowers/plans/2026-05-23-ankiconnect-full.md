@@ -8,6 +8,14 @@
 
 **执行顺序:** Task 1/2/2.7/4/5/6 已完成。接下来依次完成 Task 2.8（模板系统修复）→ Task 7 → Task 8，最后执行 Task 3（内置模板自动导入）。
 
+**当前进度:**
+- Task 2.8.1: ✅ 导入 best-effort 注册
+- Task 2.8.2: ✅ CardTemplateModel 添加 HTML 字段
+- Task 2.8.3: ⏳ 添加卡片时模板验证逻辑
+- Task 2.8.4: ⏳ TemplateNotifier 模板名更新方法
+- Task 2.8.5: ⏳ _addNoteToAnki 接入 + 宽松字段验证
+- Task 7.1: ✅ WordSelectionState 增强
+
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
 **核心文件结构:**
@@ -186,38 +194,57 @@ flutter run -d macos
 - `lib/services/template_manager.dart`
 - `lib/providers/template_provider.dart`
 - `lib/widgets/results_list.dart`（`_addNoteToAnki` 中调用新验证逻辑）
+- `lib/models/card_template_model.dart`（添加 frontHtml/backHtml/css 字段）
 
 **实现内容:**
 
-#### 2.8.1 导入模板：best-effort 注册
+#### 2.8.1 导入模板：best-effort 注册 ✅
 
 - `importFromFile` 中 `_registerToAnki` 包裹 try-catch，失败不抛异常
 - 模板正常返回并存入本地，Anki 注册延迟到添加卡片时
 - 设计原则：导入模板 = 本地操作（解析 + 存储），不依赖 Anki
 
-#### 2.8.2 添加卡片：模板验证逻辑（替换 `ensureModelExists`）
+#### 2.8.2 CardTemplateModel 添加 HTML 字段 ✅
+
+- 新增 `frontHtml`/`backHtml`/`css` 字段（默认空字符串）
+- `importFromFile` 和 `loadFromAssets` 在构建时从 parsed 中传入
+
+#### 2.8.3 添加卡片：模板验证逻辑（替换 `ensureModelExists`）
+
+- **使用模板自身存储的 HTML 注册到 Anki**（不再从 `assets/template01/` 读取）
+- 基础卡片（`id=='basic'`）跳过验证，直接用 Anki 内置模型名 "Basic"
 
 添加卡片前，执行以下验证流程：
 
 ```
 1. 获取 Anki 中所有模型名 → getModelNames()
 2. 检查 app 模板名是否在 Anki 中
-   ├─ 不在 → 直接 createModel，用当前模板添加卡片
+   ├─ 不在 → 使用模板的 frontHtml/backHtml/css 调用 createModel，添加卡片
    └─ 在 → 获取该模型的字段 → getModelFieldNames()
        ├─ 字段匹配 → 直接用这个模型添加卡片
        └─ 字段不匹配 →
-           a. 将 app 模板名改为 "<原名>-1"（递增数字避免冲突）
+           a. 递增后缀找到可用名（<原名>-1，-2...）
            b. 用新名 createModel
            c. 添加卡片
-           d. Toast 提示："模板名称已改为 <新名>"
+           d. 返回 renamedFrom 信息
 ```
 
-#### 2.8.3 TemplateNotifier 暴露模板名更新方法
+#### 2.8.4 TemplateNotifier 暴露模板名更新方法
 
 - 新增 `updateTemplateName(String templateId, String newName)` 方法
 - 更新 `_templates` 列表中对应模板的 name
 - 更新 `state`（当前选中模板）
 - 持久化到 SharedPreferences
+
+#### 2.8.5 `_addNoteToAnki` 接入新逻辑 + 宽松字段验证
+
+- 替代原有的 `ensureModelExists` 调用，接入 2.8.2 的新验证
+- 新验证返回实际的模型名 + 是否重命名，重命名时调用 `updateTemplateName` 并 Toast 提示
+- **去除了"所有字段必须填满"的隐含限制**：
+  - `buildFields` 只输出非空字段
+  - `addNote` 前检查构建后的 `fields` 是否**全部为空**（`fields.isEmpty`）
+  - 全部为空时才拒绝添加，只要**至少有一个字段非空**就允许添加
+  - 兼容自定义模板（不一定有 "word" 字段）
 
 **验证（需用户手动操作）:**
 ```bash
@@ -228,7 +255,9 @@ flutter run -d macos
 3. Anki 中无同名模板 → 添加卡片 → 自动创建模板并添加成功
 4. Anki 中有同名同字段模板 → 添加卡片 → 直接使用已有模板
 5. Anki 中有同名但不同字段模板 → 添加卡片 → 模板自动改名 + 添加成功 + Toast 提示改名
-6. `flutter analyze` 无报错
+6. 预览弹窗中只填单词（其他字段留空）→ 添加成功
+7. 预览弹窗中所有字段留空 → 添加被拒绝（提示至少一个字段非空）
+8. `flutter analyze` 无报错
 
 ---
 
@@ -395,5 +424,7 @@ flutter run -d macos
 | 结果列表数据源 | cardDataProvider.entries | wordSelectionProvider.currentEntry | 选中变化 → 立即派生 entry → UI 刷新 |
 | 空条目编辑字段 | 仅单词+释义 | 全部字段（单词/音标/释义/例句/例句翻译） | 用户要求预览编辑时所有字段可编辑 |
 | 模板导入 | 必须连接 Anki | best-effort 注册，失败不阻塞 | 用户发现 Anki 未打开时导入失败 |
-| 添加卡片模板验证 | ensureModelExists 仅检查名称 | 验证名称+字段，不匹配时自动改名 | 用户要求字段也要对上 |
+| 添加卡片模板验证 | ensureModelExists 仅检查名称+从 assets 注册 | 验证名称+字段，使用模板自身 HTML 注册 | 用户要求字段也要对上 |
 | app 删除模板 | 仅删本地 | 需同步删除 Anki 中的模型 | 待实现 |
+| 添加卡片字段验证 | 必须全部字段填满 | 至少一个字段非空即可 | 用户反馈全部填满才让添加不合理 |
+| 模板重建数据源 | ensureModelExists 从 assets/template01/ 读 HTML | 使用模板自身存储的 frontHtml/backHtml/css | 导入的模板字段和 assets 的不同 |
