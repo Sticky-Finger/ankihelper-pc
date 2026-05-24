@@ -119,3 +119,13 @@
 
 - 编写plan后，使用superpowers:executing-plan写实现代码，做到task4时，发现“AnkiConnect 完整功能”这个功能点的实现不符合预期，需要进行需求修改
 - 在修改“AnkiConnect 完整功能”需求点时，没有修改完成（即没有改到符合预期的程度），但上下文已经用到了150k，于是准备终止当前cc会话。使用`/compact`压缩当前会话开始新会话，接下来继续讨论修改“AnkiConnect 完整功能”的需求
+
+### 11.2 `/compact`压缩前面的对话，重新修改调整PRD和TODO中“AnkiConnect 完整功能”需求，修改PLAN，然后实现到Task2
+> 次任务使用了模型：glm-4.7、大部分时候使用mimo-v2.5-pro
+
+对话过程记录：[2026-05-24-114955-this-session-is-being-continued-from-a-previous-c.txt](../../chat-logs-sanitized/2026-05-24-114955-this-session-is-being-continued-from-a-previous-c.txt)
+
+**要点内容**：
+
+- 使用`/compact`压缩上一个cc会话，来开启新的
+- 先做PRD和TODO中的需求更改，改好后再去改动PLAN。原因是：上一个对话先改的PLAN，然后改动跑偏效果不好，且占了很大的上下文。
