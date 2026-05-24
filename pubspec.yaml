@@ -39,6 +39,7 @@ dependencies:
   clipboard_watcher: ^0.3.0
   crypto: ^3.0.6
   shared_preferences: ^2.3.5
+  file_picker: ^8.0.0
 
 dev_dependencies:
   flutter_test:

@@ -19,21 +19,7 @@ class CardTemplateModel {
     required this.fieldMapping,
   });
 
-  /// 词汇卡片模板预设
-  static const CardTemplateModel vocabulary = CardTemplateModel(
-    id: 'vocabulary',
-    name: '词汇卡片',
-    fields: ['单词', '音标', '发音', '例句', '释义', '例句翻译', 'url'],
-    fieldMapping: {
-      'word': '单词',
-      'phonetic': '音标',
-      'meaning': '释义',
-      'example': '例句',
-      'exampleTranslation': '例句翻译',
-    },
-  );
-
-  /// 基础卡片模板预设（Anki 自带）
+  /// 基础卡片模板（Anki 自带）
   static const CardTemplateModel basic = CardTemplateModel(
     id: 'basic',
     name: '基础卡片',

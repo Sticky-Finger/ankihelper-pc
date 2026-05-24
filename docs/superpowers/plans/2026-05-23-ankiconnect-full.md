@@ -48,7 +48,7 @@ lib/
 
 ---
 
-### Task 2: 手动导入 HTML 模板
+### Task 2: 手动导入 HTML 模板 ✅
 
 **目标:** 在设置弹窗添加"导入模板"按钮，用户选择 HTML 文件后解析并注册到 Anki，导入的模板作为默认选项。
 
@@ -61,12 +61,12 @@ lib/
 
 **实现内容:**
 
-#### 2.1 CardTemplateModel 简化
+#### 2.1 CardTemplateModel 简化 ✅
 
 - 删除 `static const vocabulary` 和 `static const basic` 预设
 - 保留纯数据类：`id`、`name`、`fields`、`fieldMapping`
 
-#### 2.2 CardEntryModel 扩展
+#### 2.2 CardEntryModel 扩展 ✅
 
 - 新增 `toMap()` 方法：返回 `Map<String, String>`（字段名→值），用于动态字段映射
   ```dart
@@ -79,7 +79,7 @@ lib/
   };
   ```
 
-#### 2.3 TemplateManager 重写
+#### 2.3 TemplateManager 重写 ✅
 
 - `parseHtml(String html)` — 统一解析器，按 `@@@` 分割为 4 段（front/back/css/fields），第 4 段按换行得到字段名列表
 - `parseHtmlFromFile(String filePath)` — 从文件路径读取 HTML 内容后调用 parseHtml
@@ -87,19 +87,28 @@ lib/
 - `ensureModelExists(service, template)` — 检查 Anki 中是否已注册，未注册则调用 `createModel`
 - `buildFields(template, entry)` — 遍历 `template.fieldMapping`，从 `entry.toMap()` 取值，只添加非空字段
 
-#### 2.4 TemplateProvider 重构
+#### 2.4 TemplateProvider 重构 ✅
 
 - `presetTemplates` 改为动态列表，包含 Anki 自带的 basic 模板 + 用户导入的模板
 - `importTemplate(String filePath)` — 调用 TemplateManager 导入，添加到列表第一位，设为默认
 - basic 模板作为 Anki 自带模板始终出现在列表中（id='basic', name='基础卡片', fields=['Front','Back'], fieldMapping={word→Front, meaning→Back})
 - 持久化用户导入的模板路径到 SharedPreferences，下次启动自动加载
 
-#### 2.5 设置弹窗 — 导入模板入口
+#### 2.5 设置弹窗 — 导入模板入口 ✅
 
 - 在"卡片模板"区域添加"导入模板"按钮
 - 点击后打开文件选择器（file_picker），过滤 .html 文件
 - 导入成功后 Toast 提示，下拉列表更新，新模板设为默认
 - 导入失败（格式错误、Anki 连接失败）显示错误提示
+
+#### 2.6 模板名称冲突处理 ✅
+
+- 选择文件后，自动检测文件名是否与已有模板重名
+- 重名时预填充 `<文件名>-<数字>` 格式的建议名称（自动递增数字）
+- 弹出模板名称确认对话框，显示建议名称
+- 对话框中实时验证：输入框下方显示"该模板名称已存在"错误提示
+- 重名时"确认导入"按钮禁用，直到名称唯一
+- macOS 需添加 `com.apple.security.files.user-selected.read-only` 权限
 
 **验证（需用户手动操作）:**
 ```bash
@@ -107,11 +116,13 @@ flutter run -d macos
 ```
 1. 打开设置 → 卡片模板区域出现"导入模板"按钮
 2. 点击"导入模板" → 选择 `assets/template01/vocabulary_card_model.html`
-3. Toast 提示导入成功，下拉列表第一位显示"词汇卡片"
-4. 字段映射区正确显示所有映射
-5. 选中单词 → 添加卡片 → Anki 中确认使用"词汇卡片"模板
-6. 关闭应用 → 重新打开 → 设置中模板列表保持"词汇卡片"为默认
-7. `flutter analyze` 无报错
+3. 弹出名称确认框 → 确认后 Toast 提示导入成功
+4. 下拉列表第一位显示新模板，字段映射区正确显示所有映射
+5. 再次导入同一文件 → 弹窗预填充 `<文件名>-2`，实时验证重名
+6. 修改为不重名的名称 → 按钮恢复可用 → 导入成功
+7. 选中单词 → 添加卡片 → Anki 中确认使用导入的模板
+8. 关闭应用 → 重新打开 → 设置中模板列表保持
+9. `flutter analyze` 无报错
 
 ---
 
@@ -164,19 +175,19 @@ flutter run -d macos
 
 ---
 
-### Task 4: 设置面板 — 模板选择入口 ✅
+### Task 4: 设置面板 — 模板选择入口
 
 （已完成，无需改动 — 已通过 templateProvider 读取模板列表）
 
 ---
 
-### Task 5: ResultsList — 使用自定义模板 + 例句高亮 ✅
+### Task 5: ResultsList — 使用自定义模板 + 例句高亮
 
 （已完成，无需改动 — 已通过 templateProvider + TemplateManager 工作）
 
 ---
 
-### Task 6: 预览弹窗 — 确认后触发添加 ✅
+### Task 6: 预览弹窗 — 确认后触发添加
 
 （已完成，无需改动）
 
@@ -237,3 +248,5 @@ flutter run -d macos
 | 字段映射 | 硬编码 switch | 遍历 fieldMapping + entry.toMap() | 统一动态映射 |
 | basic 模板名 | "基础卡片" 直接传给 addNote | template.id=='basic' 时用 "Basic" | Anki 内置模型名为 "Basic" |
 | 模板导入顺序 | 先自动导入内置模板 | 先手动导入，再自动导入 | 用户要求手动导入优先 |
+| 模板名称冲突 | 未考虑 | 实时验证 + 预填充建议名称 | 用户要求重名时提示且不让提交 |
+| macOS 文件权限 | 未考虑 | 添加 files.user-selected.read-only | file_picker 需要沙箱权限 |
