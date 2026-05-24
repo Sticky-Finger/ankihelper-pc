@@ -1,0 +1,1056 @@
+▗ ▗   ▖ ▖  Claude Code v2.1.148
+           mimo-v2.5-pro · API Usage Billing
+  ▘▘ ▝▝    ~/Codes/ankihelper-pc
+
+❯ /clear                                                                        
+  ⎿  (no content)
+
+❯ 参考 @docs/PRD.md 中“单词块交互逻辑”的需求记录，我把这个需求分成了三个阶段，  
+                                                                                
+                                                                                
+  阶段2和3算是高阶后期做的需求，要等把所有其他需求流程泡通才去回头做阶段2和3【  
+                                                                                
+                                                                                
+  你可以把这个两个阶段的需求丢到‘P1功能’或‘P2功能’段落里面，它们是未来要做的需  
+                                                                                
+    求】。现阶段直接从“**词典查询引擎 — Phase                                   
+                                                                                
+    1：手动添加（默认兜底，始终可用）”开始做的下一个需求“AnkiConnect            
+                                                                                
+    完整功能”流程。实际‘词典查询引擎 — Phase                                    
+  1：手动添加’是完全跳过了查词典，但我                                          
+    们可以等效认为查了词典，但是没有查到东西，就是查寻结果是空。                
+                                                                                
+  你先把PRD和TODO中国中需求”词典查询引擎“阶段2和阶段3，放到合适的位置，或者标注 
+                                                                                
+    为暂时不做做完整个流程后再做也可以。                                        
+  ⎿  Read docs/PRD.md (270 lines)
+
+⏺ Let me first read the TODO.md to understand the current task list.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ I've read both files. Let me create the plan for this reorganization.
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ 好的，直接执行。
+
+⏺ User approved Claude's plan
+  ⎿  Plan saved to: ~/.claude/plans/docs-prd-md-2-3-2-3-validated-truffle.md · 
+     /plan to edit
+     计划：词典查询引擎 Phase 2/3 需求降级
+
+     Context
+
+     用户希望将"词典查询引擎"的 Phase 2（云端词典查询）和 Phase
+     3（本地词典查询）从当前 P0 需求位置移到 P1/P2
+     功能区域，标记为后期实现。当前阶段聚焦于完成 Phase
+     1（手动添加）后直接进入"AnkiConnect 完整功能"流程。
+
+     同时，"单词块交互逻辑"中的"选中变化后防抖 300ms
+     自动触发词典查询"依赖词典查询引擎的完整实现，也应一并移到后期。
+
+     变更内容
+
+     1. PRD.md 修改
+
+     移除当前位置的 Phase 2/3 段落（约 L154-165）：
+     - 删除"词典查询引擎 — Phase 2：云端词典查询"整个段落
+     - 删除"词典查询引擎 — Phase 3：本地词典查询"整个段落
+
+     移除单词块交互逻辑中的后期需求（约 L146）：
+     - 删除 - [ ] 选中变化后防抖 300ms 自动触发词典查询（优先级：手动 > 云端 > 
+     本地）
+
+     添加到 P1 功能段落：
+     - 词典查询引擎 — Phase 2：云端词典查询（完整内容搬移）
+
+     添加到 P2 功能段落：
+     - 词典查询引擎 — Phase 3：本地词典查询（完整内容搬移）
+     - 单词块交互：选中变化后防抖 300ms 自动触发词典查询
+
+     2. TODO.md 修改
+
+     移除当前位置的 Phase 2/3 段落（约 L168-183）：
+     - 删除"词典查询引擎 — Phase 2：云端词典查询"整个段落
+     - 删除"词典查询引擎 — Phase 3：本地词典查询"整个段落
+
+     移除单词块交互逻辑中的后期需求（约 L158）：
+     - 删除 - [ ] 选中变化后防抖 300ms 自动触发词典查询（优先级：手动 > 云端 > 
+     本地）
+
+     添加到 P1 功能段落（现有 P1 段落后追加）：
+     - 词典查询引擎 — Phase 2：云端词典查询（完整内容搬移）
+     - 单词块交互：选中变化后防抖 300ms 自动触发词典查询
+
+     添加到 P2 功能段落（现有 P2 段落后追加）：
+     - 词典查询引擎 — Phase 3：本地词典查询（完整内容搬移）
+
+     涉及文件
+
+     - docs/PRD.md
+     - docs/TODO.md
+
+     验证
+
+     - 确认 Phase 2/3 内容已从原位置完全移除
+     - 确认 P1/P2 段落包含搬移后的内容
+     - 确认"单词块交互逻辑"段落中不再包含防抖查询需求
+     - 确认文档结构完整、无遗漏
+
+⏺ 现在开始执行计划。先重新读取两个文件的当前内容。
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ 开始执行编辑。同时修改 PRD.md 和 TODO.md。
+
+⏺ Update(docs/PRD.md)
+  ⎿  User rejected update to docs/PRD.md
+
+⏺ Update(docs/PRD.md)
+  ⎿  Interrupted · What should Claude do instead?
+
+⏺ Update(docs/PRD.md)
+  ⎿  Interrupted · What should Claude do instead?
+
+⏺ Update(docs/PRD.md)
+  ⎿  Interrupted · What should Claude do instead?
+
+⏺ Update(docs/TODO.md)
+  ⎿  Interrupted · What should Claude do instead?
+
+⏺ Update(docs/TODO.md)
+  ⎿  Interrupted · What should Claude do instead?
+
+⏺ Update(docs/TODO.md)
+  ⎿  Interrupted · What should Claude do instead?
+
+⏺ Update(docs/TODO.md)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ 虽然阶段一“词典查询引擎 — Phase 1：手动添加”不会真正的去查辞典，但是后面两个  
+  阶段是会真正的查词典的。所以你刚刚想要删掉的那个“选中变化后防抖 300ms         
+  自动触发词典查询（优先级：手动 > 云端 >                                       
+  本地）”防抖查询，是要补充给后面的Phase2和Phase3的                             
+
+⏺ 明白了。防抖查询是 Phase 2/3
+  的配套需求，应该跟着它们走，而不是单独拆出来。我重新调整方案：
+
+  - 从"单词块交互逻辑"中移除防抖需求
+  - Phase 2 搬到 P1 时，附带防抖查询需求
+  - Phase 3 搬到 P2 时，也附带防抖查询需求
+⏺ Update(docs/PRD.md)
+  ⎿  Removed 1 line
+      143      - [x] 单词块单击选中 / Shift+单击多选状态管理
+      144      - [x] 选中状态与 UI 高亮同步
+      145      - [x] 当前选中词组文本实时更新
+      146 -    - [ ] 选中变化后防抖 300ms 自动触发词典查询（优先级：手动 
+          -> 云端 > 本地）                                               
+      146  
+      147  - **词典查询引擎 — Phase 1：手动添加（默认兜底，始终可用）** 
+           ✅
+      148      - [x] 结果列表第一条固定为空条目（序号▶、标签"[空条目] 手
+           动编辑卡片"）
+
+⏺ Update(docs/PRD.md)
+  ⎿  Removed 13 lines
+      150      - [ ] 用户可手动编辑卡片字段后添加到 Anki
+      151      - [ ] 无需任何词典即可使用此功能
+      152  
+      153 -- **词典查询引擎 — Phase 2：云端词典查询**                    
+      154 -    - [ ] 接入有道智云 API 进行单词查询                       
+      155 -    - [ ] 查询超时机制（默认 5 秒，可配置）                   
+      156 -    - [ ] 查询失败或超时时结果列表仅保留空条目，显示相应提示  
+      157 -    - [ ] API 密钥配置（在设置面板中）                        
+      158 -    - [ ] 手动重试刷新按钮功能                                
+      159 -                                                              
+      160 -- **词典查询引擎 — Phase 3：本地词典查询**                    
+      161 -    - [ ] 加载 AnkiHelper 格式的 .txt 纯文本词典              
+      162 -    - [ ] 多本词典导入并自动建立索引                          
+      163 -    - [ ] 用户在设置中选择当前启用的词典                      
+      164 -    - [ ] 本地查询优先级低于云端词典（作为备选方案）          
+      165 -                                                              
+      153  - **AnkiConnect 完整功能**
+      154      - [ ] **卡片模板管理（统一文件解析）**：
+      155          - [x] 模板由 `.html` 文件定义（4 段 `@@@` 分隔：正面/
+           背面/CSS/字段名）
+
+⏺ Update(docs/PRD.md)
+  ⎿  Added 7 lines
+      169  ### P1功能（体验增强）
+      170  
+      171  - [ ] **手动输入模式**：用户可不依赖剪贴板，在手动输入弹窗中输
+           入英文文本进行查询制卡
+      172 +- [ ] **词典查询引擎 — Phase 2：云端词典查询**                
+      173 +    - [ ] 选中变化后防抖 300ms 自动触发词典查询               
+      174 +    - [ ] 接入有道智云 API 进行单词查询                       
+      175 +    - [ ] 查询超时机制（默认 5 秒，可配置）                   
+      176 +    - [ ] 查询失败或超时时结果列表仅保留空条目，显示相应提示  
+      177 +    - [ ] API 密钥配置（在设置面板中）                        
+      178 +    - [ ] 手动重试刷新按钮功能                                
+      179  
+      180  ### P2功能（未来考虑）
+      181  
+
+⏺ Update(docs/PRD.md)
+  ⎿  Added 6 lines
+      185  - [ ] **多语言支持**：扩展剪贴板监听和翻译支持更多语言
+      186  - [ ] **在线词典**：接入在线词典 API（如有道、牛津在线）作为本
+           地词典的补充
+      187  - [ ] **自动主题切换**：跟随系统主题自动切换亮色/暗色
+      188 +- [ ] **词典查询引擎 — Phase 3：本地词典查询**                
+      189 +    - [ ] 选中变化后防抖 300ms 自动触发词典查询               
+      190 +    - [ ] 加载 AnkiHelper 格式的 .txt 纯文本词典              
+      191 +    - [ ] 多本词典导入并自动建立索引                          
+      192 +    - [ ] 用户在设置中选择当前启用的词典                      
+      193 +    - [ ] 本地查询优先级低于云端词典（作为备选方案）          
+      194  
+      195  ## 4. 用户界面布局
+      196  
+
+⏺ PRD.md 已完成，现在修改 TODO.md。
+
+⏺ Update(docs/TODO.md)
+  ⎿  Removed 1 line
+      155      - [x] 单词块单击选中 / Shift+单击多选状态管理
+      156      - [x] 选中状态与 UI 高亮同步
+      157      - [x] 当前选中词组文本实时更新
+      158 -    - [ ] 选中变化后防抖 300ms 自动触发词典查询（优先级：手动 
+          -> 云端 > 本地）                                               
+      158  
+      159  #### 词典查询引擎 — Phase 1：手动添加（默认兜底，始终可用） ✅
+      160  
+
+⏺ Update(docs/TODO.md)
+  ⎿  Removed 17 lines
+      164      - [ ] 用户可手动编辑卡片字段后添加到 Anki
+      165      - [ ] 无需任何词典即可使用此功能
+      166  
+      167 -#### 词典查询引擎 — Phase 2：云端词典查询                     
+      168 -                                                              
+      169 -- [ ] **词典查询引擎 — Phase 2：云端词典查询**                
+      170 -    - [ ] 接入有道智云 API 进行单词查询                       
+      171 -    - [ ] 查询超时机制（默认 5 秒，可配置）                   
+      172 -    - [ ] 查询失败或超时时结果列表仅保留空条目，显示相应提示  
+      173 -    - [ ] API 密钥配置（在设置面板中）                        
+      174 -    - [ ] 手动重试刷新按钮功能                                
+      175 -                                                              
+      176 -#### 词典查询引擎 — Phase 3：本地词典查询                     
+      177 -                                                              
+      178 -- [ ] **词典查询引擎 — Phase 3：本地词典查询**                
+      179 -    - [ ] 加载 AnkiHelper 格式的 .txt 纯文本词典              
+      180 -    - [ ] 多本词典导入并自动建立索引                          
+      181 -    - [ ] 用户在设置中选择当前启用的词典                      
+      182 -    - [ ] 本地查询优先级低于云端词典（作为备选方案）          
+      183 -                                                              
+      167  #### AnkiConnect 完整功能
+      168  
+      169  - [ ] **AnkiConnect 完整功能**
+
+⏺ Update(docs/TODO.md)
+  ⎿  Added 7 lines
+      187  ### P1 功能（体验增强）
+      188  
+      189  - [ ] **手动输入模式**：用户可不依赖剪贴板，在手动输入弹窗中输
+           入英文文本进行查询制卡
+      190 +- [ ] **词典查询引擎 — Phase 2：云端词典查询**                
+      191 +    - [ ] 选中变化后防抖 300ms 自动触发词典查询               
+      192 +    - [ ] 接入有道智云 API 进行单词查询                       
+      193 +    - [ ] 查询超时机制（默认 5 秒，可配置）                   
+      194 +    - [ ] 查询失败或超时时结果列表仅保留空条目，显示相应提示  
+      195 +    - [ ] API 密钥配置（在设置面板中）                        
+      196 +    - [ ] 手动重试刷新按钮功能                                
+      197  
+      198  ### P2 功能（未来考虑）
+      199  
+
+⏺ Update(docs/TODO.md)
+  ⎿  Added 6 lines
+      203  - [ ] **多语言支持**：扩展剪贴板监听和翻译支持更多语言
+      204  - [ ] **在线词典**：接入在线词典 API（如有道、牛津在线）作为本
+           地词典的补充
+      205  - [ ] **自动主题切换**：跟随系统主题自动切换亮色/暗色
+      206 +- [ ] **词典查询引擎 — Phase 3：本地词典查询**                
+      207 +    - [ ] 选中变化后防抖 300ms 自动触发词典查询               
+      208 +    - [ ] 加载 AnkiHelper 格式的 .txt 纯文本词典              
+      209 +    - [ ] 多本词典导入并自动建立索引                          
+      210 +    - [ ] 用户在设置中选择当前启用的词典                      
+      211 +    - [ ] 本地查询优先级低于云端词典（作为备选方案）          
+
+⏺ 全部编辑完成。验证一下两个文件的最终结果。
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ 验证通过。两个文件的变更总结：
+
+  PRD.md & TODO.md 完成的调整：
+
+  1. 单词块交互逻辑：移除了"选中变化后防抖 300ms"条目（Phase 1 不需要）
+  2. 原位置：Phase 2（云端词典）和 Phase 3（本地词典）已从 P0 后端服务层中移除
+  3. P1 功能：添加了 Phase 2（云端词典查询），首条为"选中变化后防抖 300ms
+  自动触发词典查询"
+  4. P2 功能：添加了 Phase 3（本地词典查询），同样包含防抖查询需求
+
+  现在 P0 的执行路径是：Phase 1（手动添加）→ AnkiConnect 完整功能 →
+  发音服务，Phase 2/3 留待后期。
+
+✻ Baked for 55s
+
+❯ 好，我要手动git提交但前更改，给我一个合适的信息                               
+
+⏺ Bash(git diff)
+  ⎿  diff --git a/docs/PRD.md b/docs/PRD.md
+     index 755ed51..8dddea3 100644
+     --- a/docs/PRD.md
+     … +43 lines (ctrl+o to expand)
+
+⏺ 建议的提交信息：
+
+  docs(plan): 将词典查询引擎 Phase 2/3 从 P0 降级到 P1/P2
+
+  云端词典和本地词典查询延后实现，当前聚焦 Phase 1（手动添加）后
+  直接进入 AnkiConnect 完整功能流程。防抖查询需求随 Phase 2/3 移动。
+
+✻ Crunched for 27s
+
+❯ 我在 @docs/superpowers/plans/2026-05-23-ankiconnect-full.md                   
+  里实现PRD里面的需求点“AnkiConnect 完整功能”，实现到了这个plan文件里的Task3。  
+  现在发现一个大问题：在APP中，当我选择‘单词块’之后，‘结果列表’里没有按照选中的 
+  单词块去查、并且显示出来的列表条目中的单词也不是选中的单词。                  
+  因此这个计划文档从Task3之后的Task要做一些修改。我们来讨论一下这一块的更改，你 
+  先不要急着去改这个文档。我们确定好需求之后，我是让你改，再去改。              
+  ⎿  Read docs/superpowers/plans/2026-05-23-ankiconnect-full.md (300 lines)
+
+⏺ 明白，先讨论再改。让我先了解一下当前代码的状态，看看问题出在哪里。
+
+⏺ Explore(探索选词→结果列表的数据流)
+  ⎿  Done (34 tool uses · 38.3k tokens · 1m 30s)
+  (ctrl+o to expand)
+
+⏺ 问题很清楚了。总结一下探索结果：
+
+  根本原因：wordSelectionProvider 和 cardDataProvider 之间完全断开。
+
+  数据流在选中单词后断开：
+  用户点击单词块 → wordSelectionProvider.selectedText 更新
+                            ↓
+                      ??? (没有桥接)
+                            ↓
+  cardDataProvider 从未被调用 → 结果列表始终显示硬编码的 "example" 条目
+
+  三个具体问题：
+  1. 没有监听桥接 — 没有代码监听 selectedText 变化并更新 cardDataProvider
+  2. cardDataProvider 初始数据是硬编码的 — 写死了 word: 'example' 等测试数据
+  3. 没有词典查询服务 — lib/services/ 下没有查词相关代码（但 Phase 1
+  不需要实际查词）
+
+  对于 Phase 1（手动添加）的修复思路：
+
+  Phase 1 不需要真正的词典查询，按 PRD
+  的说法就是"等效于查了词典但没查到东西"。所以需要做的是：
+
+  1. 清空 cardDataProvider 的硬编码初始数据（entries 改为空列表）
+  2. 建立桥接：监听 wordSelectionProvider.selectedText
+  变化，将选中的单词更新到结果列表
+  3. 空条目的 word 字段应该显示当前选中的单词（而不是空或 "example"）
+
+  想跟你确认几个点：
+
+❯ 我来说明下几个点：                                                            
+                                                                                
+  关于app上字段的事项：                                                         
+    - `剪切板原文`这个input box的值就是字段‘例句’【假定例句是 This is an        
+                                                                                
+    example】                                                                   
+                                                                                
+    - ‘原文翻译’这个input box的值就是字段‘例句翻译’                             
+                                                                                
+    - 选中的‘单词块’就是字段‘单词’ 【假定被选中的单词是 example】               
+                                                                                
+    - 选中单词后，例句字段的内容，要对被选中的单词添加`<b>`标签做高亮           
+                                                                                
+    【根据上面假定的例句和单词，则此时例句变为 This is an <b>example</b>.】     
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+  这里说的字段不是模板上面的字段，是当前APP上单词的字段；要给选中的模板添加对应 
+                                                                                
+    的卡片的话，要设置好app上单词的字段和模板的字段的对应关系。                 
+                                                                                
+  根据我上面的想法，我们讨论下“选择‘单词块’之后，‘结果列表’关联变化”相关的逻辑  
+⏺ 理解了。你说的逻辑很清晰，让我梳理一下确认我们理解一致：
+
+  字段数据来源映射：
+
+  ┌─────────────┬───────────────────────────┬────────────────────────────┐
+  │ APP UI 字段 │         数据来源          │           示例值           │
+  ├─────────────┼───────────────────────────┼────────────────────────────┤
+  │ 单词        │ 选中的单词块              │ example                    │
+  ├─────────────┼───────────────────────────┼────────────────────────────┤
+  │ 例句        │ 剪贴板原文 + 选中词加 <b> │ This is an <b>example</b>. │
+  ├─────────────┼───────────────────────────┼────────────────────────────┤
+  │ 例句翻译    │ 原文翻译输入框            │ 这是一个例子。             │
+  ├─────────────┼───────────────────────────┼────────────────────────────┤
+  │ 音标        │ （Phase 1 无来源，留空）  │                            │
+  ├─────────────┼───────────────────────────┼────────────────────────────┤
+  │ 释义        │ （Phase 1 无来源，留空）  │                            │
+  └─────────────┴───────────────────────────┴────────────────────────────┘
+
+  需要讨论的几个问题：
+
+  1. 空条目的展示
+
+  当前空条目的 word 取自 entries.first.word（硬编码的
+  "example"）。按你的设计，选中单词后，空条目应该显示：
+  - 单词 = example（选中的单词）
+  - 例句 = This is an <b>example</b>.（自动高亮）
+  - 例句翻译 = 这是一个例子。（自动填入）
+  - 音标、释义 = 空（用户可手动编辑）
+
+  2. 选中单词块的时机
+
+  用户点击一个单词块后，是否立即触发以下操作：
+  - 清空旧的 entries
+  - 用选中单词 + 剪贴板原文 + 翻译构建一个新的 CardEntryModel
+  - 更新 cardDataProvider → 结果列表刷新显示
+
+  3. 取消选中
+
+  如果用户取消所有选中（再次点击已选中的单词块），结果列表是否回到空状态（仅保留
+  空条目且所有字段为空）？
+
+  4. 多选场景
+
+  用户 Shift+单击选中多个单词（如 "example
+  sentence"），是作为一个整体词组生成一个条目，还是分别生成多个条目？
+
+  5. Task 7/8 的影响
+
+  原计划 Task 7/8 是让空条目可编辑。结合上面的逻辑，编辑模式下用户可以修改单词和
+  释义。那么选中单词后自动填入的例句/翻译，在编辑模式下是否也可修改？
+
+  想先确认这些再动计划。
+
+✻ Sautéed for 25s
+
+❯ 我来说下我的看法：                                                            
+  - 对于1：第一，不要硬编码任何单词相关的东西，如果单词都没选，那就显示一个连单 
+  词都是空的空条目；第二，空条目上点击‘预览编辑’按钮后所有字段都是可以让用户编  
+  辑的。上面说的app字段值只是会去预填充对应的字段（发散下，如果剪切板原文是空的 
+  ，也是可以得到一个所有字段都是空值的空条目）                                  
+  - 对于2：选了新的单词块（即产生了新的词组），就要立马再查询生成新的‘结果列表’ 
+  。同理，如果UI上面的‘剪切板原文’发生了改变，导致单词块刷新，从而使得选中的词  
+  归0，此时也是导致了新的词组（空词组），也要再查询生成‘结果列表’               
+  - 对于3：如上面一点，如果产生了新的词组，直接如上处理                         
+  - 对于4: 一个条目。选中的词组不管是多少个单词组成的，都是一个词组，会作为整体 
+  发给词典去查，如果查出多条解释则会产生除空条目外的解释条数那么过的条目（一条  
+  解释一个条目）                                                                
+  - 现在先只管空条目，空条目里的‘预览编辑’如上描述就是可以编辑所有字段的        
+
+⏺ 理解清楚了。让我把你的设计总结一下，确认一致：
+
+  核心机制：选中变化 → 立即重建结果列表
+
+  数据流：
+  选中单词块 → wordSelectionProvider.selectedText 变化
+      → 立即构建 CardEntryModel：
+          word = selectedText（如 "example"）
+          example = 剪贴板原文 + <b>高亮（如 "This is an <b>example</b>."）
+          exampleTranslation = 原文翻译（如 "这是一个例子。"）
+          phonetic/pos/meaning = 空
+      → 更新 cardDataProvider → 结果列表刷新
+
+  几种触发场景：
+
+  ┌──────────────────────────────┬────────────────┬─────────────────────────┐
+  │             场景             │  selectedText  │          结果           │
+  ├──────────────────────────────┼────────────────┼─────────────────────────┤
+  │ 选中单词 "example"           │ "example"      │ 空条目预填充            │
+  │                              │                │ word/example/翻译       │
+  ├──────────────────────────────┼────────────────┼─────────────────────────┤
+  │ Shift多选 "example sentence" │ "example       │ 同上，整体作为一个词组  │
+  │                              │ sentence"      │                         │
+  ├──────────────────────────────┼────────────────┼─────────────────────────┤
+  │ 取消所有选中                 │ ""             │ 空条目所有字段为空      │
+  ├──────────────────────────────┼────────────────┼─────────────────────────┤
+  │ 剪贴板原文变化导致单词块刷新 │ ""（选中归零） │ 同上                    │
+  └──────────────────────────────┴────────────────┴─────────────────────────┘
+
+  Phase 1 的结果列表：
+  - 只有 1 个空条目（因为没有词典查询，不会有释义条目）
+  - 空条目的"预览编辑"允许编辑所有字段
+  - 预填充的字段来自 UI 状态，不是硬编码
+
+  对原计划 Task 7/8 的影响：
+  - Task 7（ResultEntry 编辑模式）— 保持不变，仍需实现输入框
+  - Task 8（ResultsList 集成）— 需要新增：监听选中变化 → 构建 entry → 更新
+  cardDataProvider
+  - 可能需要一个新的 bridge 逻辑（或直接在 ResultsList 里处理）
+
+  有一个问题想确认：这个桥接逻辑你倾向放在哪里？是新建一个 provider
+  做中间层，还是直接在 ResultsList 的 build 方法里
+  ref.watch(wordSelectionProvider) 来驱动更新？
+
+✻ Cogitated for 24s
+
+❯ 希望代码更加可维护模块化，你帮我选一个方案                                    
+
+⏺ 我推荐 让 wordSelectionProvider 直接产出 currentEntry，去掉独立的
+  cardDataProvider。
+
+  理由：
+
+  1. 当前架构的问题
+
+  cardDataProvider 是一个"被动"的 store，需要外部调用 setEntries()
+  才能更新。这导致必须有一个桥接代码来调用它——而这个桥接本质上只是把
+  wordSelectionProvider 的状态转换成 CardEntryModel。多了一层不必要的间接。
+
+  2. 推荐方案：选中状态 + 衍生数据合一
+
+  wordSelectionProvider (增强)
+  ├── tokens          ← 分词结果
+  ├── selectedIndices ← 选中索引
+  ├── selectedText    ← 拼接文本（已有计算属性）
+  └── currentEntry    ← 新增：从选中状态 + 剪贴板 + 翻译 自动派生
+
+  数据流变成单向、自洽：
+  选中变化 → wordSelectionProvider 状态更新
+           → currentEntry 自动重算（word/example/翻译 从自身状态 +
+  clipboardProvider 派生）
+           → ResultsList 直接 watch → UI 刷新
+
+  3. 好处
+
+  - 单一职责：选中逻辑和"当前要展示什么数据"在同一个 provider 里，不会出现两个
+  provider 状态不同步
+  - ResultsList 极简：只管 ref.watch(wordSelectionProvider).currentEntry
+  拿数据渲染，不参与数据构建
+  - 无桥接代码：不需要监听一个 provider 再手动调用另一个 provider 的 setEntries
+  - 未来扩展清晰：Phase 2 加词典查询时，在 currentEntry 的计算逻辑后追加"查词典
+  → 追加释义条目"即可，数据流方向不变
+
+  4. cardDataProvider 的处理
+
+  删除。它的职责被 wordSelectionProvider.currentEntry 完全替代。
+
+  你觉得这个方向可以吗？确认后我来改计划。
+
+✻ Cogitated for 41s
+
+❯ 可以的。那你开始做当前plan                                                    
+  @docs/superpowers/plans/2026-05-23-ankiconnect-full.md 冲Task                 
+  2（已做完且已通过人工验证）之后的需求，注意其中的‘### Task 3:                 
+  内置模板自动导入（首次运行）⚠️                                                
+  最后执行’段落中的需求是放在这个plan的最后去实现的（对应 @docs/PRD.md 中的line 
+   163-164的两个需求点）。先不要直接修改文件，先展示初步修改内容给我看一下，我  
+  觉得可以会告诉你去修改。                                                      
+  ⎿  Read docs/superpowers/plans/2026-05-23-ankiconnect-full.md (300 lines)
+  ⎿  Read docs/PRD.md (269 lines)
+
+⏺ 好的，我先展示需要修改的内容。基于我们的讨论，需要修改 Task 7 和 Task
+  8，并更新文件结构说明。
+
+  以下是初步修改内容：
+
+  ---
+  文件结构部分（第13-33行），新增/变更：
+
+  lib/
+  ├── models/
+  │   ├── card_template_model.dart    # [已完成] 纯数据类 + isDeletable
+  │   └── card_entry_model.dart       # [已完成] toMap()
+  ├── services/
+  │   ├── anki_connect_service.dart   # [已完成] modelNames / createModel /
+  modelFieldNames
+  │   └── template_manager.dart       # [已完成] 统一解析器 + 动态 buildFields
+  ├── providers/
+  │   ├── word_selection_provider.dart # [Task 7] 增强：新增 currentEntry 派生
+  │   ├── clipboard_provider.dart     # [已有] 剪贴板原文
+  │   ├── translation_provider.dart   # [已有] 原文翻译
+  │   └── template_provider.dart      # [已完成] 动态模板列表
+  ├── widgets/
+  │   ├── settings_dialog.dart        # [已完成] 导入/删除模板
+  │   ├── results_list.dart           # [Task 8] watch wordSelectionProvider
+  │   ├── result_entry.dart           # [Task 7] 编辑模式：全部字段可编辑
+  │   └── preview_modal.dart          # [已完成] 确认后触发添加
+
+  删除 card_data_provider.dart — 职责被 wordSelectionProvider.currentEntry
+  替代。
+
+  ---
+  Task 7 重写：
+
+  Task 7: 选中驱动结果列表 — wordSelectionProvider 增强
+
+  目标: 选中单词块后，结果列表立即显示预填充的空条目（单词、例句、翻译来自 UI
+  状态）。不硬编码任何单词数据。
+
+  修改文件:
+  - lib/providers/word_selection_provider.dart — 增强：新增 currentEntry 派生
+  - lib/widgets/result_entry.dart — 编辑模式支持全部字段
+  - 删除 lib/providers/card_data_provider.dart
+
+  实现内容:
+
+  7.1 WordSelectionState 增强
+
+  新增字段和逻辑：
+  - currentEntry (CardEntryModel): 从选中状态 + 剪贴板 + 翻译自动派生
+  - 监听 clipboardProvider 和 translationProvider，任一变化时重算 currentEntry
+  - 构建规则：
+    - word = selectedText（无选中时为空）
+    - example = 剪贴板原文，选中词用 <b> 包裹（无选中时为原始剪贴板文本）
+    - exampleTranslation = 翻译文本（无翻译时为空）
+    - phonetic / meaning = 空（Phase 1 无词典）
+  - 每次 currentEntry 变化，自动更新 state
+
+  7.2 删除 cardDataProvider
+
+  - 删除 lib/providers/card_data_provider.dart
+  - 搜索所有引用处，替换为 wordSelectionProvider.currentEntry
+
+  7.3 ResultEntry 编辑模式
+
+  - 新增 isEditable 参数（默认 false），空条目传入 isEditable: true
+  - 编辑模式下所有字段变为 TextField：单词、音标、释义、例句、例句翻译
+  - 输入框初始值来自 entry 的对应字段（自动预填充）
+  - onAdd 回调签名改为 void Function(CardEntryModel entry)，传递编辑后的完整数据
+  - 单词字段为空时，"添加卡片"按钮 disabled
+
+  验证:
+  flutter run -d macos
+  1. 不选中任何单词 → 结果列表显示空条目，所有字段为空
+  2. 选中 "example" → 空条目预填充：单词=example，例句=This is an 
+  <b>example</b>.，翻译=原文翻译
+  3. Shift+多选 "example sentence" → 单词变为 example sentence，例句高亮对应词组
+  4. 取消所有选中 → 回到全空状态
+  5. 剪贴板原文变化 → 单词块刷新，选中归零，结果列表重置
+  6. 点击"预览编辑" → 弹窗显示全部字段，均可编辑
+  7. flutter analyze 无报错
+
+  ---
+  Task 8 重写：
+
+  Task 8: ResultsList — 选中驱动集成
+
+  目标: ResultsList 直接监听 wordSelectionProvider，渲染 currentEntry。
+
+  修改文件:
+  - lib/widgets/results_list.dart
+
+  实现内容:
+  - 移除对 cardDataProvider 的 watch
+  - 改为 ref.watch(wordSelectionProvider) 获取 currentEntry
+  - 空条目的 ResultEntry 使用 currentEntry 数据，传入 isEditable: true
+  - onAdd 回调接收编辑后的 CardEntryModel，使用当前模板调用 _addNoteToAnki
+  - "预览编辑"按钮读取当前输入框内容传入 showPreviewModal
+
+  验证:
+  flutter run -d macos
+  1. 选中单词 → 结果列表立即显示预填充的空条目
+  2. 编辑字段后点击"添加卡片" → Anki 中确认字段正确
+  3. 点击"预览编辑" → 弹窗显示当前编辑内容 → 确认后添加成功
+  4. 单词为空时"添加卡片"不可点击
+  5. flutter analyze 无报错
+
+  ---
+  这是初步方案，你看看有没有需要调整的地方。
+
+✻ Worked for 34s
+
+❯ 好的你改下plan文件内容，改好后，我会人工去看一下，觉得可以会直接告诉你。      
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  Added 1 line, removed 1 line
+       6  
+       7  **架构:** 模板的所有细节（字段、CSS、正反面 HTML、字段映射）均
+          从 `.html` + `.json` 文件解析，内置模板和未来用户导入的模板共用
+          同一套解析和注册逻辑。先实现手动导入，再实现首次运行自动导入内
+          置模板。
+       8  
+       9 -**执行顺序:** 先完成 Task 1/2/2.7/4/5/6/7/8，最后执行 Task 3（ 
+         -内置模板自动导入）。                                           
+       9 +**执行顺序:** Task 1/2/2.7/4/5/6 已完成。接下来依次完成 Task 7 
+         +→ Task 8，最后执行 Task 3（内置模板自动导入）。                
+      10  
+      11  **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPref
+          erences
+      12  
+
+⏺ Update(docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  Added 11 lines, removed 8 lines
+      14  ```
+      15  assets/template01/
+      16  ├── vocabulary_card_model.html    # [已有] 模板 HTML（4 段 @@@ 
+          分隔）
+      17 -└── vocabulary_card_model.json    # [Task 2b] 模板配置（name + 
+         -fieldMapping）                                                 
+      17 +└── vocabulary_card_model.json    # [Task 3] 模板配置（name + f
+         +ieldMapping）                                                  
+      18  
+      19  lib/
+      20  ├── models/
+      21 -│   ├── card_template_model.dart    # [Task 2a] 纯数据类 + [Tas
+         -k 2.7] isDeletable                                             
+      22 -│   └── card_entry_model.dart       # [Task 2a] 新增 toMap()   
+      21 +│   ├── card_template_model.dart    # [已完成] 纯数据类 + isDel
+         +etable                                                         
+      22 +│   └── card_entry_model.dart       # [已完成] toMap()         
+      23  ├── services/
+      24  │   ├── anki_connect_service.dart   # [已完成] modelNames / cre
+          ateModel / modelFieldNames
+      25 -│   └── template_manager.dart       # [Task 2a] 统一解析器 + 动
+         -态 buildFields                                                 
+      25 +│   └── template_manager.dart       # [已完成] 统一解析器 + 动 
+         +态 buildFields                                                 
+      26  ├── providers/
+      27 -│   └── template_provider.dart      # [Task 2a] 动态模板列表 + 
+         -[Task 2.7] removeTemplate + [Task 2b] 启动自动导入             
+      27 +│   ├── word_selection_provider.dart # [Task 7] 增强：新增 curr
+         +entEntry 派生                                                  
+      28 +│   ├── clipboard_provider.dart     # [已有] 剪贴板原文        
+      29 +│   ├── translation_provider.dart   # [已有] 原文翻译          
+      30 +│   └── template_provider.dart      # [已完成] 动态模板列表 + r
+         +emoveTemplate + 启动自动导入                                   
+      31  ├── widgets/
+      29 -│   ├── settings_dialog.dart        # [Task 2a] 添加"导入模板" 
+         -按钮 + [Task 2.7] 删除按钮                                     
+      30 -│   ├── results_list.dart           # [已完成] 自定义模板 + 例 
+         -句高亮                                                         
+      31 -│   ├── result_entry.dart           # [Task 3] 支持编辑模式    
+      32 +│   ├── settings_dialog.dart        # [已完成] 导入/删除模板   
+      33 +│   ├── results_list.dart           # [Task 8] watch wordSelect
+         +ionProvider                                                    
+      34 +│   ├── result_entry.dart           # [Task 7] 编辑模式：全部字
+         +段可编辑                                                       
+      35  │   └── preview_modal.dart          # [已完成] 确认后触发添加
+      36  ```
+      37  
+
+⏺ 现在替换 Task 7 和 Task 8 的内容。
+
+⏺ Update(docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  Added 45 lines, removed 16 lines
+      195  
+      196  ## 第二部分：词典查询引擎 — Phase 1：手动添加
+      197  
+      198 -### Task 7: 空条目可编辑 — ResultEntry 编辑模式               
+      198 +### Task 7: 选中驱动结果列表 — wordSelectionProvider 增强     
+      199  
+      200 +**目标:** 选中单词块后，结果列表立即显示预填充的空条目（单词、
+          +例句、翻译来自 UI 状态）。不硬编码任何单词数据。              
+      201 +                                                              
+      202  **修改文件:**
+      201 -- `lib/widgets/result_entry.dart`                             
+      203 +- `lib/providers/word_selection_provider.dart` — 增强：新增 `c
+          +urrentEntry` 派生                                             
+      204 +- `lib/widgets/result_entry.dart` — 编辑模式支持全部字段      
+      205 +- 删除 `lib/providers/card_data_provider.dart`                
+      206  
+      207  **实现内容:**
+      208 +                                                              
+      209 +#### 7.1 WordSelectionState 增强                              
+      210 +                                                              
+      211 +- 新增 `currentEntry` (CardEntryModel): 从选中状态 + 剪贴板 + 
+          +翻译自动派生                                                  
+      212 +- Provider 内 watch `clipboardProvider` 和 `translationProvide
+          +r`，任一变化时重算 `currentEntry`                             
+      213 +- 构建规则：                                                  
+      214 +  - `word` = selectedText（无选中时为空）                     
+      215 +  - `example` = 剪贴板原文，选中词用 `<b>` 包裹（无选中时为原 
+          +始剪贴板文本）                                                
+      216 +  - `exampleTranslation` = 翻译文本（无翻译时为空）           
+      217 +  - `phonetic` / `meaning` = 空（Phase 1 无词典）             
+      218 +- 每次 selectedText / 剪贴板原文 / 翻译 任一变化，自动重算 `cu
+          +rrentEntry`                                                   
+      219 +                                                              
+      220 +#### 7.2 删除 cardDataProvider                                
+      221 +                                                              
+      222 +- 删除 `lib/providers/card_data_provider.dart`                
+      223 +- 搜索所有引用处，替换为 `wordSelectionProvider.currentEntry` 
+      224 +                                                              
+      225 +#### 7.3 ResultEntry 编辑模式                                 
+      226 +                                                              
+      227  - 新增 `isEditable` 参数（默认 `false`），空条目传入 `isEditab
+           le: true`
+      205 -- 编辑模式下单词和释义区域变为 `TextField`（Fluent 风格边框） 
+      206 -- `onAdd` 回调签名改为 `void Function(CardEntryModel entry)`，
+          -传递编辑后的数据                                              
+      207 -- 无输入时按钮 disabled                                       
+      228 +- 编辑模式下**所有字段**变为 TextField：单词、音标、释义、例句
+          +、例句翻译                                                    
+      229 +- 输入框初始值来自 `entry` 的对应字段（自动预填充）           
+      230 +- `onAdd` 回调签名改为 `void Function(CardEntryModel entry)`，
+          +传递编辑后的完整数据                                          
+      231 +- 单词字段为空时，"添加卡片"按钮 disabled                     
+      232  
+      233  **验证（需用户手动操作）:**
+      234  ```bash
+      235  flutter run -d macos
+      236  ```
+      213 -1. 空条目显示可编辑输入框（单词、释义）                       
+      214 -2. 不输入任何内容 → "添加卡片"按钮为灰色不可点击              
+      215 -3. 输入单词和释义后 → 按钮变为可点击状态                      
+      216 -4. `flutter analyze` 无报错                                   
+      237 +1. 不选中任何单词 → 结果列表显示空条目，所有字段为空          
+      238 +2. 选中 "example" → 空条目预填充：单词=`example`，例句=`This i
+          +s an <b>example</b>.`，翻译=原文翻译                          
+      239 +3. Shift+多选 "example sentence" → 单词变为 `example sentence`
+          +，例句高亮对应词组                                            
+      240 +4. 取消所有选中 → 回到全空状态                                
+      241 +5. 剪贴板原文变化 → 单词块刷新，选中归零，结果列表重置        
+      242 +6. `flutter analyze` 无报错                                   
+      243  
+      244  ---
+      245  
+      220 -### Task 8: ResultsList — 空条目编辑集成                      
+      246 +### Task 8: ResultsList — 选中驱动集成                        
+      247  
+      248 +**目标:** ResultsList 直接监听 `wordSelectionProvider`，渲染 `
+          +currentEntry`。                                               
+      249 +                                                              
+      250  **修改文件:**
+      251  - `lib/widgets/results_list.dart`
+      252  
+      253  **实现内容:**
+      226 -- 空条目的 `ResultEntry` 传入 `isEditable: true`              
+      227 -- `onAdd` 回调接收编辑后的 `CardEntryModel`，使用自定义模板调 
+          -用 `_addNoteToAnki`                                           
+      254 +- 移除对 `cardDataProvider` 的 watch，改为 `ref.watch(wordSele
+          +ctionProvider)` 获取 `currentEntry`                           
+      255 +- 空条目的 `ResultEntry` 使用 `currentEntry` 数据，传入 `isEdi
+          +table: true`                                                  
+      256 +- `onAdd` 回调接收编辑后的 `CardEntryModel`，使用当前模板调用 
+          +`_addNoteToAnki`                                              
+      257  - "预览编辑"按钮读取当前输入框内容传入 `showPreviewModal`
+      258  
+      259  **验证（需用户手动操作）:**
+      260  ```bash
+      261  flutter run -d macos
+      262  ```
+      234 -1. 空条目显示可编辑输入框                                     
+      235 -2. 输入单词和释义后点击"添加卡片"，Anki 中确认使用自定义模板，
+          -字段正确填充                                                  
+      236 -3. 点击"预览编辑" → 弹窗显示当前输入框内容 → 确认后添加成功   
+      237 -4. 空输入时按钮不可点击                                       
+      263 +1. 选中单词 → 结果列表立即显示预填充的空条目                  
+      264 +2. 编辑字段后点击"添加卡片" → Anki 中确认字段正确             
+      265 +3. 点击"预览编辑" → 弹窗显示全部字段，均可编辑 → 确认后添加成 
+          +功                                                            
+      266 +4. 单词为空时"添加卡片"不可点击                               
+      267  5. `flutter analyze` 无报错
+      268  
+      269  ---
+
+⏺ 最后更新实现偏差记录表。
+
+⏺ Update(docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  Added 3 lines
+      329  | 模板名称冲突 | 未考虑 | 实时验证 + 预填充建议名称 | 用户要求
+           重名时提示且不让提交 |
+      330  | macOS 文件权限 | 未考虑 | 添加 files.user-selected.read-only
+            | file_picker 需要沙箱权限 |
+      331  | 模板删除 | 未考虑 | isDeletable + removeTemplate + 删除按钮 
+           | 用户要求可删除已导入模板，内置模板不可删 |
+      332 +| cardDataProvider | 独立 provider 硬编码数据 | 删除，职责移入
+          + wordSelectionProvider.currentEntry | 选中单词后结果列表无响应
+          +，需选中状态与数据合一 |                                      
+      333 +| 结果列表数据源 | cardDataProvider.entries | wordSelectionPro
+          +vider.currentEntry | 选中变化 → 立即派生 entry → UI 刷新 |    
+      334 +| 空条目编辑字段 | 仅单词+释义 | 全部字段（单词/音标/释义/例句
+          +/例句翻译） | 用户要求预览编辑时所有字段可编辑 |              
+
+⏺ 改好了，验证一下最终内容。
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ 改好了。主要变更点：
+
+  1. 执行顺序：明确 Task 1/2/2.7/4/5/6 已完成，接下来 Task 7 → 8 → 3
+  2. 文件结构：新增 word_selection_provider.dart、clipboard_provider.dart、trans
+  lation_provider.dart；删除 card_data_provider.dart
+  3. Task 7 
+  完全重写：从"空条目可编辑"改为"选中驱动结果列表"，包含三个子任务（7.1 增强
+  wordSelectionProvider、7.2 删除 cardDataProvider、7.3 ResultEntry
+  编辑模式支持全部字段）
+  4. Task 8 完全重写：从"空条目编辑集成"改为"ResultsList watch
+  wordSelectionProvider"
+  5. 偏差记录：新增 3 条偏差（cardDataProvider
+  删除、结果列表数据源、空条目编辑字段范围）
+
+  你去审阅一下，觉得可以就告诉我。
+
+✻ Baked for 1m 1s
+
+❯ 由于从上到下的字段（“剪切板原文”imput                                         
+  box的值，选中的单词块，但前选中的词组，结果列表）中，前面的字段改变，都会导致 
+  后面的字段发生改变，所以我觉得应该加上一些防抖的逻辑。防止比如我在选单词块这  
+  个会较高频率改变值的操作导致后面的字段更高频的更改                            
+⏺ 有道理。点击单词块是高频操作，每次点击都重建 currentEntry
+  并刷新结果列表确实浪费。
+
+  防抖应该加在 currentEntry 的派生环节——选中变化后等 300ms
+  稳定再重算，而不是每个 click 都触发。这正好对应之前从 PRD
+  中移出的"选中变化后防抖 300ms"需求。
+
+  修改 Task 7.1 的实现内容：
+
+  #### 7.1 WordSelectionState 增强
+
+  - 新增 `currentEntry` (CardEntryModel): 从选中状态 + 剪贴板 + 翻译自动派生
+  - Provider 内 watch `clipboardProvider` 和
+  `translationProvider`，任一变化时重算 `currentEntry`
+  - **防抖逻辑**：selectedText 变化后延迟 300ms 再重算 `currentEntry`
+    - 使用 `Timer` 或 Riverpod 的 `ref.listen` + debounce 模式
+    - 300ms 内再次变化则重置计时器
+    - 剪贴板原文 / 翻译 的变化不防抖（变化频率低，且用户期望即时响应）
+  - 构建规则：
+    - `word` = selectedText（无选中时为空）
+    - `example` = 剪贴板原文，选中词用 `<b>` 包裹（无选中时为原始剪贴板文本）
+    - `exampleTranslation` = 翻译文本（无翻译时为空）
+    - `phonetic` / `meaning` = 空（Phase 1 无词典）
+
+  这样只对高频的选中操作防抖，剪贴板和翻译的变化仍然即时更新。要不要把这条加进
+  plan 里？
+
+✻ Baked for 16s
+
+❯ 好的                                                                          
+
+⏺ Update(docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  Added 4 lines, removed 1 line
+      210  
+      211  - 新增 `currentEntry` (CardEntryModel): 从选中状态 + 剪贴板 + 
+           翻译自动派生
+      212  - Provider 内 watch `clipboardProvider` 和 `translationProvide
+           r`，任一变化时重算 `currentEntry`
+      213 +- **防抖逻辑**：selectedText 变化后延迟 300ms 再重算 `currentE
+          +ntry`                                                         
+      214 +  - 使用 `Timer` 或 Riverpod 的 `ref.listen` + debounce 模式  
+      215 +  - 300ms 内再次变化则重置计时器                              
+      216 +  - 剪贴板原文 / 翻译 的变化不防抖（变化频率低，且用户期望即时
+          +响应）                                                        
+      217  - 构建规则：
+      218    - `word` = selectedText（无选中时为空）
+      219    - `example` = 剪贴板原文，选中词用 `<b>` 包裹（无选中时为原
+           始剪贴板文本）
+      220    - `exampleTranslation` = 翻译文本（无翻译时为空）
+      221    - `phonetic` / `meaning` = 空（Phase 1 无词典）
+      218 -- 每次 selectedText / 剪贴板原文 / 翻译 任一变化，自动重算 `cu
+          -rrentEntry`                                                   
+      222  
+      223  #### 7.2 删除 cardDataProvider
+      224  
+
+⏺ 已更新。验证步骤中也补充一下防抖相关的测试：
+
+⏺ Update(docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  Added 3 lines, removed 2 lines
+      241  2. 选中 "example" → 空条目预填充：单词=`example`，例句=`This i
+           s an <b>example</b>.`，翻译=原文翻译
+      242  3. Shift+多选 "example sentence" → 单词变为 `example sentence`
+           ，例句高亮对应词组
+      243  4. 取消所有选中 → 回到全空状态
+      244 -5. 剪贴板原文变化 → 单词块刷新，选中归零，结果列表重置        
+      245 -6. `flutter analyze` 无报错                                   
+      244 +5. 快速连续点击多个单词块 → 结果列表只在停止点击 300ms 后更新 
+          +一次（不闪烁）                                                
+      245 +6. 剪贴板原文变化 → 结果列表即时更新（不走防抖）              
+      246 +7. `flutter analyze` 无报错                                   
+      247  
+      248  ---
+      249  
+
+⏺ 改好了。防抖逻辑只针对选中操作（300ms debounce），剪贴板/翻译变化仍即时响应。
+  验证步骤新增了快速连续点击和即时更新两条测试。
+
+✻ Brewed for 38s
+
+❯ 好的，plan那可以了.我要手动git提交，现在给我一个合适的提交信息。              
+
+⏺ Bash(git diff docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  (No output)
+
+⏺ Bash(git status docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  位于分支 feature/ankiconnect-full
+     要提交的变更：
+       （使用 "git restore --staged <文件>..." 以取消暂存）
+        修改：
+     docs/superpowers/plans/2026-05-23-ankiconnect-full.md
+
+⏺ Bash(git diff --cached docs/superpowers/plans/2026-05-23-ankiconnect-full.md)
+  ⎿  diff --git a/docs/superpowers/plans/2026-05-23-ankiconnect-full.md b/d
+     ocs/superpowers/plans/2026-05-23-ankiconnect-full.md
+     index bf02f95..594cb08 100644
+     … +78 lines (ctrl+o to expand)
+
+⏺ 建议的提交信息：
+
+  docs(plan): 重构 Task 7/8 为选中驱动结果列表
+
+  选中单词块后立即派生 currentEntry 预填充结果列表，删除
+  cardDataProvider 硬编码数据，新增 300ms 防抖避免高频刷新。
+
+✻ Crunched for 19s
+
+❯ /context 
+  ⎿  Context Usage
+     ⛁ ⛀ ⛀ ⛁ ⛁   mimo-v2.5-pro
+     ⛁ ⛁ ⛁ ⛁ ⛁   93.3k/200k tokens (47%)
+     ⛁ ⛁ ⛁ ⛀ ⛶ 
+     ⛶ ⛶ ⛶ ⛶ ⛶   Estimated usage by category
+     ⛶ ⛝ ⛝ ⛝ ⛝   ⛁ System prompt: 5.8k tokens (2.9%)
+                 ⛁ Memory files: 1k tokens (0.5%)
+                 ⛁ Skills: 1.9k tokens (0.9%)
+                 ⛁ Messages: 84.5k tokens (42.3%)
+                 ⛶ Free space: 73.7k (36.8%)
+                 ⛝ Autocompact buffer: 33k tokens (16.5%)
+
+     MCP tools · /mcp
+     ├ mcp__open-design__get_active_context: 0 tokens
+     ├ mcp__open-design__get_artifact: 0 tokens
+     ├ mcp__open-design__get_file: 0 tokens
+     ├ mcp__open-design__get_project: 0 tokens
+     ├ mcp__open-design__list_files: 0 tokens
+     ├ mcp__open-design__list_projects: 0 tokens
+     └ mcp__open-design__search_files: 0 tokens
+
+     Memory files · /memory
+     └ .claude/CLAUDE.md: 1k tokens
+
+     Skills · /skills
+
+     Plugin (superpowers)
+     ├ verification-before-completion: ~90 tokens
+     ├ receiving-code-review: ~90 tokens
+     ├ finishing-a-development-branch: ~80 tokens
+     ├ using-git-worktrees: ~80 tokens
+     ├ brainstorming: ~80 tokens
+     ├ using-superpowers: ~60 tokens
+     ├ dispatching-parallel-agents: ~50 tokens
+     ├ requesting-code-review: ~50 tokens
+     ├ executing-plans: ~40 tokens
+     ├ subagent-driven-development: ~40 tokens
+     ├ writing-skills: ~40 tokens
+     ├ systematic-debugging: ~40 tokens
+     ├ test-driven-development: ~40 tokens
+     └ writing-plans: ~40 tokens
+
+     Built-in
+     ├ claude-api: ~250 tokens
+     ├ update-config: ~240 tokens
+     ├ run: ~120 tokens
+     ├ loop: ~100 tokens
+     ├ verify: ~90 tokens
+     ├ keybindings-help: ~80 tokens
+     ├ code-review: ~80 tokens
+     ├ fewer-permission-prompts: ~60 tokens
+     ├ security-review: ~30 tokens
+     ├ init: ~20 tokens
+     └ review: < 20 tokens
