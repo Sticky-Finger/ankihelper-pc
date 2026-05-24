@@ -19,6 +19,9 @@ class CardTemplateModel {
     required this.fieldMapping,
   });
 
+  /// 是否可删除（内置模板不可删除）
+  bool get isDeletable => id != 'basic' && !id.startsWith('builtin_');
+
   /// 基础卡片模板（Anki 自带）
   static const CardTemplateModel basic = CardTemplateModel(
     id: 'basic',

@@ -16,15 +16,15 @@ assets/template01/
 
 lib/
 ├── models/
-│   ├── card_template_model.dart    # [Task 2a] 纯数据类，删除硬编码预设
+│   ├── card_template_model.dart    # [Task 2a] 纯数据类 + [Task 2.7] isDeletable
 │   └── card_entry_model.dart       # [Task 2a] 新增 toMap()
 ├── services/
 │   ├── anki_connect_service.dart   # [已完成] modelNames / createModel / modelFieldNames
 │   └── template_manager.dart       # [Task 2a] 统一解析器 + 动态 buildFields
 ├── providers/
-│   └── template_provider.dart      # [Task 2a] 动态模板列表 + [Task 2b] 启动自动导入
+│   └── template_provider.dart      # [Task 2a] 动态模板列表 + [Task 2.7] removeTemplate + [Task 2b] 启动自动导入
 ├── widgets/
-│   ├── settings_dialog.dart        # [Task 2a] 添加"导入模板"按钮
+│   ├── settings_dialog.dart        # [Task 2a] 添加"导入模板"按钮 + [Task 2.7] 删除按钮
 │   ├── results_list.dart           # [已完成] 自定义模板 + 例句高亮
 │   ├── result_entry.dart           # [Task 3] 支持编辑模式
 │   └── preview_modal.dart          # [已完成] 确认后触发添加
@@ -126,7 +126,7 @@ flutter run -d macos
 
 ---
 
-### Task 2.7: 已有模板删除功能
+### Task 2.7: 已有模板删除功能 ✅
 
 **目标:** 在设置弹窗中删除已导入的模板，内置模板（如"基础卡片"）不可删除。
 
@@ -294,3 +294,4 @@ flutter run -d macos
 | 模板导入顺序 | 先自动导入内置模板 | 先手动导入，再自动导入 | 用户要求手动导入优先 |
 | 模板名称冲突 | 未考虑 | 实时验证 + 预填充建议名称 | 用户要求重名时提示且不让提交 |
 | macOS 文件权限 | 未考虑 | 添加 files.user-selected.read-only | file_picker 需要沙箱权限 |
+| 模板删除 | 未考虑 | isDeletable + removeTemplate + 删除按钮 | 用户要求可删除已导入模板，内置模板不可删 |

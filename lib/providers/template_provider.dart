@@ -110,6 +110,37 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
     return _templates.any((t) => t.name == name);
   }
 
+  /// 删除模板（内置模板不可删除）
+  Future<void> removeTemplate(String templateId) async {
+    final template = _templates.cast<CardTemplateModel?>().firstWhere(
+          (t) => t?.id == templateId,
+          orElse: () => null,
+        );
+    if (template == null || !template.isDeletable) return;
+
+    _templates.removeWhere((t) => t.id == templateId);
+
+    // 如果删除的是当前选中的模板，切换到基础卡片
+    if (state.id == templateId) {
+      state = CardTemplateModel.basic;
+    } else {
+      // 触发 UI 更新
+      state = state;
+    }
+
+    // 持久化
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedTemplateIdKey, state.id);
+    final paths = prefs.getStringList(_importedTemplatesKey) ?? [];
+    paths.removeWhere((path) {
+      final fileName =
+          path.split(RegExp(r'[/\\]')).last.replaceAll(RegExp(r'\.html$'), '');
+      return fileName == template.name ||
+          template.name.startsWith('$fileName-');
+    });
+    await prefs.setStringList(_importedTemplatesKey, paths);
+  }
+
   /// 预设模板列表
   List<CardTemplateModel> get presetTemplates => List.unmodifiable(_templates);
 }

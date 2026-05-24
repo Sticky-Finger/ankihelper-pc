@@ -161,30 +161,81 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
                 final currentTemplate = ref.watch(templateProvider);
                 final notifier = ref.read(templateProvider.notifier);
 
-                return DropdownButtonFormField<String>(
-                  initialValue: currentTemplate.id,
-                  decoration: const InputDecoration(
-                    labelText: '选择模板',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                  ),
-                  items: notifier.presetTemplates
-                      .map(
-                        (template) => DropdownMenuItem(
-                          value: template.id,
-                          child: Text(template.name),
+                return Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        initialValue: currentTemplate.id,
+                        decoration: const InputDecoration(
+                          labelText: '选择模板',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      ref.read(templateProvider.notifier).selectTemplate(value);
-                    }
-                  },
+                        items: notifier.presetTemplates
+                            .map(
+                              (template) => DropdownMenuItem(
+                                value: template.id,
+                                child: Text(template.name),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            ref
+                                .read(templateProvider.notifier)
+                                .selectTemplate(value);
+                          }
+                        },
+                      ),
+                    ),
+                    if (currentTemplate.isDeletable) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline,
+                            color: Colors.red),
+                        tooltip: '删除模板',
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('确认删除'),
+                              content: Text(
+                                  '确定要删除模板"${currentTemplate.name}"吗？'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(ctx).pop(false),
+                                  child: const Text('取消'),
+                                ),
+                                FilledButton(
+                                  onPressed: () =>
+                                      Navigator.of(ctx).pop(true),
+                                  style: FilledButton.styleFrom(
+                                      backgroundColor: Colors.red),
+                                  child: const Text('删除'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true) {
+                            await ref
+                                .read(templateProvider.notifier)
+                                .removeTemplate(currentTemplate.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('模板已删除')),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ],
                 );
               },
             ),
