@@ -114,7 +114,6 @@ class ResultsList extends ConsumerWidget {
         child: ResultEntry(
           entry: entry,
           displayIndex: 0,
-          isPlaceholder: false,
           onAdd: () { _addNoteToAnki(ref, entry); },
           onPreview: () async {
             final template = ref.read(templateProvider);

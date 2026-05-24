@@ -68,6 +68,8 @@ class _FluentButtonState extends ConsumerState<FluentButton> {
   Widget build(BuildContext context) {
     final tokens = ref.watch(fluentTokensProvider);
 
+    final bool disabled = widget.onPressed == null;
+
     Color bgColor;
     Color fgColor;
     Color borderColor;
@@ -75,7 +77,11 @@ class _FluentButtonState extends ConsumerState<FluentButton> {
     final isOutline = widget.style == FluentButtonStyle.outline;
     final isPrimary = widget.style == FluentButtonStyle.primary;
 
-    if (isPrimary) {
+    if (disabled) {
+      bgColor = tokens.bgSubtle;
+      fgColor = tokens.fg4;
+      borderColor = isOutline ? tokens.stroke3 : Colors.transparent;
+    } else if (isPrimary) {
       bgColor = _pressed
           ? tokens.bgBrandPressed
           : _hovered
@@ -106,11 +112,17 @@ class _FluentButtonState extends ConsumerState<FluentButton> {
     final hPadding = widget.isSmall ? FluentTokens.spaceS : FluentTokens.spaceM;
 
     return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() {
-        _hovered = false;
-        _pressed = false;
-      }),
+      onEnter: widget.onPressed != null
+          ? (_) => setState(() => _hovered = true)
+          : null,
+      onExit: widget.onPressed != null
+          ? (_) {
+              setState(() {
+                _hovered = false;
+                _pressed = false;
+              });
+            }
+          : null,
       child: GestureDetector(
         onTapDown: widget.onPressed != null
             ? (_) => setState(() => _pressed = true)
@@ -204,19 +216,29 @@ class _IconFluentButtonState extends ConsumerState<IconFluentButton> {
   Widget build(BuildContext context) {
     final tokens = ref.watch(fluentTokensProvider);
 
-    final bgColor = _pressed
-        ? tokens.bgSubtlePressed
-        : _hovered
-            ? tokens.bgSubtleHover
-            : tokens.bgSubtle;
-    final fgColor = _hovered ? tokens.fg1 : tokens.fg2;
+    final bool iconDisabled = widget.onPressed == null;
+
+    final bgColor = iconDisabled
+        ? tokens.bgSubtle
+        : _pressed
+            ? tokens.bgSubtlePressed
+            : _hovered
+                ? tokens.bgSubtleHover
+                : tokens.bgSubtle;
+    final fgColor = iconDisabled ? tokens.fg4 : _hovered ? tokens.fg1 : tokens.fg2;
 
     return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() {
-        _hovered = false;
-        _pressed = false;
-      }),
+      onEnter: widget.onPressed != null
+          ? (_) => setState(() => _hovered = true)
+          : null,
+      onExit: widget.onPressed != null
+          ? (_) {
+              setState(() {
+                _hovered = false;
+                _pressed = false;
+              });
+            }
+          : null,
       child: GestureDetector(
         onTapDown: widget.onPressed != null
             ? (_) => setState(() => _pressed = true)

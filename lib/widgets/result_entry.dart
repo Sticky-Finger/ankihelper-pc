@@ -6,11 +6,10 @@ import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
 import 'fluent_buttons.dart';
 
-/// 单个结果条目 — 支持空条目（虚线边框+▶+空标签）和释义条目
+/// 单个结果条目 — 显示卡片数据 + 添加/预览按钮
 class ResultEntry extends ConsumerStatefulWidget {
   final CardEntryModel entry;
   final int displayIndex;
-  final bool isPlaceholder;
   final VoidCallback? onAdd;
   final VoidCallback? onPreview;
 
@@ -18,7 +17,6 @@ class ResultEntry extends ConsumerStatefulWidget {
     super.key,
     required this.entry,
     required this.displayIndex,
-    this.isPlaceholder = false,
     this.onAdd,
     this.onPreview,
   });
@@ -33,12 +31,13 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
   @override
   Widget build(BuildContext context) {
     final tokens = ref.watch(fluentTokensProvider);
+    final wordEmpty = widget.entry.word.isEmpty;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
-        onDoubleTap: widget.onAdd,
+        onDoubleTap: wordEmpty ? null : widget.onAdd,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 80),
           padding: const EdgeInsets.symmetric(
@@ -46,13 +45,9 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
             vertical: FluentTokens.spaceM,
           ),
           decoration: BoxDecoration(
-            color: widget.isPlaceholder
-                ? (_hovered ? tokens.emptyEntryHover : Colors.transparent)
-                : (_hovered ? tokens.bgCardHover : tokens.bgCard),
+            color: _hovered ? tokens.bgCardHover : tokens.bgCard,
             border: Border.all(
-              color: widget.isPlaceholder
-                  ? (_hovered ? tokens.stroke1 : tokens.stroke2)
-                  : (_hovered ? tokens.stroke2 : tokens.stroke3),
+              color: _hovered ? tokens.stroke2 : tokens.stroke3,
               width: FluentTokens.strokeWidthThin,
             ),
             borderRadius: BorderRadius.circular(FluentTokens.radiusLg),
@@ -67,12 +62,10 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
                 child: SizedBox(
                 width: 20,
                 child: Text(
-                  widget.isPlaceholder ? '▶' : '${widget.displayIndex}.',
+                  '${widget.displayIndex}.',
                   textAlign: TextAlign.right,
                   style: TextStyle(
-                    fontFamily: widget.isPlaceholder
-                        ? FluentTokens.fontFamilyBase
-                        : FluentTokens.fontFamilyMono,
+                    fontFamily: FluentTokens.fontFamilyMono,
                     fontSize: FluentTokens.fontSize200,
                     fontWeight: FluentTokens.fontWeightSemibold,
                     color: tokens.fg4,
@@ -157,25 +150,11 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
                           ],
                         ),
                       ),
-                    // 空条目提示
-                    if (widget.isPlaceholder)
-                      Padding(
-                        padding: const EdgeInsets.only(top: FluentTokens.spaceXxs),
-                        child: Text(
-                          '[空条目] 手动编辑卡片',
-                          style: TextStyle(
-                            fontFamily: FluentTokens.fontFamilyBase,
-                            fontSize: FluentTokens.fontSize300,
-                            fontStyle: FontStyle.italic,
-                            color: tokens.fg4,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
                 ),
               ),
-              // ====== 操作按钮组（水平排列） ======
+              // ====== 操作按钮组 ======
               const SizedBox(width: FluentTokens.spaceM),
               Align(
                 alignment: Alignment.center,
@@ -183,13 +162,13 @@ class _ResultEntryState extends ConsumerState<ResultEntry> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   FluentButton.outline(
-                    label: widget.isPlaceholder ? '添加卡片' : '添加',
+                    label: '添加',
                     isSmall: true,
-                    onPressed: widget.onAdd,
+                    onPressed: wordEmpty ? null : widget.onAdd,
                   ),
                   const SizedBox(width: FluentTokens.spaceXs),
                   FluentButton.subtle(
-                    label: widget.isPlaceholder ? '预览编辑' : '预览',
+                    label: '预览',
                     isSmall: true,
                     onPressed: widget.onPreview,
                   ),

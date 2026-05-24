@@ -6,14 +6,15 @@
 
 **架构:** 模板的所有细节（字段、CSS、正反面 HTML）从 `.html` 文件解析。字段映射独立存储：导入时默认映射（首字段→单词，其余→空），用户在设置弹窗中通过 Select 选择器配置，配置随模板持久化。
 
-**执行顺序:** Task 1/2/2.7/4/5/6 已完成。Task 2.8（模板系统修复）已完成。Task 7 已完成。接下来完成 Task 8（ResultsList 连接字段映射），最后执行 Task 3（内置模板自动导入）。
+**执行顺序:** Task 1/2/2.7/4/5/6 已完成。Task 2.8（模板系统修复）已完成。Task 7/8（选中驱动结果列表）已完成。最后执行 Task 3（内置模板自动导入）。
 
 **当前进度:**
 - Task 2.8: ✅ 全部完成（1~8）
 - Task 7.1: ✅ WordSelectionState 增强
 - Task 7.2: ✅ 删除 cardDataProvider，数据源切换到 wordSelectionProvider
-- Task 7.3: ⏳ ResultEntry 编辑模式（待评估优先级）
-- Task 8: ⏳ 选中词高亮已做，剩余字段映射连接
+- Task 7.3: ✅ 清理 isPlaceholder 冗余，添加按钮 word 为空时 disabled
+- FluentButton: ✅ 新增 disabled 样式（onPressed==null 时灰色、无 hover）
+- Task 8: ✅ 数据源切换、预览弹窗动态字段、添加流程均已实现
 
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
@@ -365,13 +366,12 @@ flutter run -d macos
 - 删除 `lib/providers/card_data_provider.dart`
 - 搜索所有引用处，替换为 `wordSelectionProvider.currentEntry`
 
-#### 7.3 ResultEntry 编辑模式
+#### 7.3 ResultEntry 清理冗余 + 按钮禁用 ✅
 
-- 新增 `isEditable` 参数（默认 `false`），空条目传入 `isEditable: true`
-- 编辑模式下**所有字段**变为 TextField：单词、音标、释义、例句、例句翻译
-- 输入框初始值来自 `entry` 的对应字段（自动预填充）
-- `onAdd` 回调签名改为 `void Function(CardEntryModel entry)`，传递编辑后的完整数据
-- 单词字段为空时，"添加卡片"按钮 disabled
+- 删除 `isPlaceholder` 参数和所有相关逻辑（▶、"[空条目]"、虚线边框）
+- 条目显示统一的序号、单词、音标、释义
+- word 为空时"添加"按钮 disabled
+- FluentButton 新增 disabled 样式（灰色、无 hover 反馈）
 
 **验证（需用户手动操作）:**
 ```bash
@@ -387,19 +387,16 @@ flutter run -d macos
 
 ---
 
-### Task 8: ResultsList — 选中驱动集成
+### Task 8: ResultsList — 选中驱动集成 ✅
 
 **目标:** ResultsList 直接监听 `wordSelectionProvider`，渲染 `currentEntry`。
 
-**修改文件:**
-- `lib/widgets/results_list.dart`
-
 **实现内容:**
 - 移除对 `cardDataProvider` 的 watch，改为 `ref.watch(wordSelectionProvider)` 获取 `currentEntry`
-- 空条目的 `ResultEntry` 使用 `currentEntry` 数据，传入 `isEditable: true`
-- `onAdd` 回调接收编辑后的 `CardEntryModel`，使用当前模板调用 `_addNoteToAnki`
+- 结果列表使用 `currentEntry` 数据展示，word 为空时按钮 disabled
+- `onAdd` 使用当前模板调用 `_addNoteToAnki`
 - `_addNoteToAnki` 中使用 Task 2.8 的模板验证逻辑（替换原 `ensureModelExists`）
-- "预览编辑"按钮读取当前输入框内容传入 `showPreviewModal`
+- "预览"按钮打开动态字段预览弹窗，确认后调用 `_addNoteWithFields`
 
 **验证（需用户手动操作）:**
 ```bash
