@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -139,6 +141,67 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
           template.name.startsWith('$fileName-');
     });
     await prefs.setStringList(_importedTemplatesKey, paths);
+    // 删除已保存的字段映射
+    await prefs.remove('field_mapping_$templateId');
+  }
+
+  /// 更新模板名称（用于 Anki 中同名但字段不匹配时自动改名）
+  Future<void> updateTemplateName(String templateId, String newName) async {
+    final index = _templates.indexWhere((t) => t.id == templateId);
+    if (index == -1) return;
+
+    _templates[index] = CardTemplateModel(
+      id: _templates[index].id,
+      name: newName,
+      fields: _templates[index].fields,
+      fieldMapping: _templates[index].fieldMapping,
+      frontHtml: _templates[index].frontHtml,
+      backHtml: _templates[index].backHtml,
+      css: _templates[index].css,
+    );
+
+    // 如果当前选中的就是被改名的模板，同步更新 state
+    if (state.id == templateId) {
+      state = _templates[index];
+    }
+
+    // 持久化
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_selectedTemplateIdKey, state.id);
+  }
+
+  /// 保存字段映射配置到持久化存储
+  Future<void> saveFieldMapping(String templateId, Map<String, String> mapping) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'field_mapping_$templateId';
+    await prefs.setString(key, json.encode(mapping));
+  }
+
+  /// 从持久化存储加载字段映射配置
+  Map<String, String>? getFieldMapping(String templateId) {
+    // 基础卡片使用写死映射
+    if (templateId == 'basic') {
+      return {'word': 'Front', 'meaning': '空'};
+    }
+    // 注意：这里无法同步读 SharedPreferences，由调用方通过异步方法获取
+    return null;
+  }
+
+  /// 异步加载字段映射配置
+  Future<Map<String, String>?> loadFieldMappingAsync(String templateId) async {
+    if (templateId == 'basic') {
+      return {'word': 'Front', 'meaning': '空'};
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'field_mapping_$templateId';
+    final jsonStr = prefs.getString(key);
+    if (jsonStr == null) return null;
+    try {
+      final decoded = json.decode(jsonStr) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, v as String));
+    } catch (_) {
+      return null;
+    }
   }
 
   /// 预设模板列表

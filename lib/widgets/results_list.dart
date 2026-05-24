@@ -8,7 +8,6 @@ import '../providers/card_data_provider.dart';
 import '../providers/toast_provider.dart';
 import '../providers/deck_provider.dart';
 import '../providers/template_provider.dart';
-import '../providers/word_selection_provider.dart';
 import '../services/template_manager.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
@@ -190,27 +189,35 @@ class ResultsList extends ConsumerWidget {
       // 读取当前模板配置
       final template = ref.read(templateProvider);
 
-      // 确保模板已注册到 Anki
-      await TemplateManager.ensureModelExists(service, template);
+      // 验证 Anki 中模板存在且字段匹配，不匹配时自动改名创建
+      final validation = await TemplateManager.ensureModelFields(
+        service: service,
+        template: template,
+      );
+
+      // 如果模板被改名，更新本地状态并提示用户
+      if (validation.wasRenamed) {
+        await ref.read(templateProvider.notifier).updateTemplateName(
+              template.id,
+              validation.modelName,
+            );
+        ref.read(toastProvider.notifier).show(
+              '模板名称已改为 ${validation.modelName}',
+            );
+      }
 
       // 构建字段映射
       final fields = TemplateManager.buildFields(template, entry);
 
-      // 例句高亮：将选中词汇用 <b> 包裹
-      final selectedText = ref.read(wordSelectionProvider).selectedText;
-      if (selectedText.isNotEmpty && entry.example.isNotEmpty) {
-        final templateExampleField = template.fieldMapping['example'];
-        if (templateExampleField != null) {
-          fields[templateExampleField] = entry.example.replaceFirst(selectedText, '<b>$selectedText</b>');
-        }
+      // 至少一个字段非空才能添加
+      if (fields.isEmpty) {
+        ref.read(toastProvider.notifier).show('请至少填写一个字段');
+        return;
       }
-
-      // 基础卡片使用 Anki 内置模型名 "Basic"
-      final modelName = template.id == 'basic' ? 'Basic' : template.name;
 
       final noteId = await service.addNote(
         deckName: deckName,
-        modelName: modelName,
+        modelName: validation.modelName,
         fields: fields,
         allowDuplicate: true,
       );

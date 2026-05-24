@@ -19,6 +19,22 @@ class ParsedTemplate {
   });
 }
 
+/// 模板验证结果
+class TemplateValidationResult {
+  /// 实际用于添加卡片的 Anki 模型名
+  final String modelName;
+
+  /// 如果已改名，原名称（否则为 null）
+  final String? renamedFrom;
+
+  const TemplateValidationResult({
+    required this.modelName,
+    this.renamedFrom,
+  });
+
+  bool get wasRenamed => renamedFrom != null;
+}
+
 /// 模板管理工具类
 class TemplateManager {
   TemplateManager._();
@@ -135,28 +151,73 @@ class TemplateManager {
     );
   }
 
-  /// 确保模板模型在 Anki 中存在
-  static Future<void> ensureModelExists(
-    AnkiConnectService service,
-    CardTemplateModel template,
-  ) async {
-    // 基础卡片模板是 Anki 自带的，跳过注册
-    if (template.id == 'basic') return;
+  /// 验证 Anki 中模板名称+字段是否匹配，不匹配时自动改名创建
+  static Future<TemplateValidationResult> ensureModelFields({
+    required AnkiConnectService service,
+    required CardTemplateModel template,
+  }) async {
+    // 基础卡片使用 Anki 内置模型名 "Basic"
+    if (template.id == 'basic') {
+      return const TemplateValidationResult(modelName: 'Basic');
+    }
 
     final existingModels = await service.getModelNames();
-    if (existingModels.contains(template.name)) return;
 
-    // 从 assets 读取模板 HTML
-    final htmlContent = await rootBundle.loadString(
-      'assets/template01/vocabulary_card_model.html',
-    );
-    final parsed = parseHtml(htmlContent);
+    // 名称不在 Anki 中 → 直接创建
+    if (!existingModels.contains(template.name)) {
+      await _registerToAnki(
+        service: service,
+        name: template.name,
+        parsed: _templateToParsed(template),
+      );
+      return TemplateValidationResult(modelName: template.name);
+    }
+
+    // 名称已存在 → 检查字段
+    final existingFields = await service.getModelFieldNames(template.name);
+    if (_fieldListsMatch(existingFields, template.fields)) {
+      // 字段匹配 → 直接使用
+      return TemplateValidationResult(modelName: template.name);
+    }
+
+    // 字段不匹配 → 递增后缀找可用名
+    int suffix = 1;
+    String newName;
+    do {
+      newName = '${template.name}-$suffix';
+      suffix++;
+    } while (existingModels.contains(newName));
 
     await _registerToAnki(
       service: service,
-      name: template.name,
-      parsed: parsed,
+      name: newName,
+      parsed: _templateToParsed(template),
     );
+    return TemplateValidationResult(
+      modelName: newName,
+      renamedFrom: template.name,
+    );
+  }
+
+  /// 将 CardTemplateModel 转为 ParsedTemplate
+  static ParsedTemplate _templateToParsed(CardTemplateModel template) {
+    return ParsedTemplate(
+      frontTemplate: template.frontHtml,
+      backTemplate: template.backHtml,
+      css: template.css,
+      fields: template.fields,
+    );
+  }
+
+  /// 比较两个字段列表是否一致（忽略顺序）
+  static bool _fieldListsMatch(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    final sortedA = List<String>.from(a)..sort();
+    final sortedB = List<String>.from(b)..sort();
+    for (int i = 0; i < sortedA.length; i++) {
+      if (sortedA[i] != sortedB[i]) return false;
+    }
+    return true;
   }
 
   /// 注册模板到 Anki
@@ -177,11 +238,31 @@ class TemplateManager {
     );
   }
 
-  /// 构建默认字段映射（模板字段名 → 模板字段名）
+  /// 中文模板字段名 → 应用字段名（entry.toMap() key）的映射表
+  static const Map<String, String> _knownFieldNames = {
+    '单词': 'word',
+    'word': 'word',
+    '音标': 'phonetic',
+    'phonetic': 'phonetic',
+    '释义': 'meaning',
+    'meaning': 'meaning',
+    '例句': 'example',
+    'example': 'example',
+    'exampleTranslation': 'exampleTranslation',
+    '例句翻译': 'exampleTranslation',
+  };
+
+  /// 构建默认字段映射（尝试识别中文/英文字段名，未知字段跳过）
   static Map<String, String> _buildDefaultMapping(List<String> fields) {
     final mapping = <String, String>{};
     for (final field in fields) {
-      mapping[field] = field;
+      // 先尝试直接匹配已知的应用字段名
+      final knownKey = _knownFieldNames[field];
+      if (knownKey != null) {
+        mapping[knownKey] = field;
+      }
+      // 未知字段（如 'url'、'发音'）不加入默认映射
+      // 用户可以手动配置或直接忽略
     }
     return mapping;
   }
