@@ -126,6 +126,50 @@ flutter run -d macos
 
 ---
 
+### Task 2.7: 已有模板删除功能
+
+**目标:** 在设置弹窗中删除已导入的模板，内置模板（如"基础卡片"）不可删除。
+
+**修改文件:**
+- `lib/models/card_template_model.dart` — 添加 `isDeletable` getter
+- `lib/providers/template_provider.dart` — 添加 `removeTemplate()` 方法
+- `lib/widgets/settings_dialog.dart` — 添加删除按钮 UI
+
+**实现内容:**
+
+#### 2.7.1 CardTemplateModel 添加 isDeletable
+
+- 添加 `bool get isDeletable`：`id != 'basic' && !id.startsWith('builtin_')` 时为 true
+- 基础卡片和未来内置模板不可删除
+
+#### 2.7.2 TemplateNotifier 添加 removeTemplate
+
+- `removeTemplate(String templateId)` — 从 `_templates` 列表移除，从 SharedPreferences 持久化路径中移除
+- 删除的是当前选中模板时，自动切换到基础卡片
+- 不可删除的模板调用此方法时静默忽略
+- 通过重新赋值 `state` 触发 UI 更新
+
+#### 2.7.3 设置弹窗 — 删除按钮
+
+- 将"选择模板"下拉框和删除按钮放在同一行（Row）
+- 仅当 `currentTemplate.isDeletable` 时显示删除按钮
+- 点击删除按钮弹出二次确认对话框
+- 删除成功后 Toast 提示
+
+**验证（需用户手动操作）:**
+```bash
+flutter run -d macos
+```
+1. 先导入一个模板 → 选中它 → 下拉框右侧出现红色删除按钮
+2. 选择"基础卡片" → 删除按钮不显示
+3. 选中导入的模板 → 点击删除按钮 → 弹出确认对话框
+4. 点击"取消" → 模板保留
+5. 再次点击删除 → 确认删除 → 模板从列表消失，自动切换到"基础卡片"，Toast 提示"模板已删除"
+6. 关闭应用 → 重新打开 → 已删除的模板不再出现在列表中
+7. `flutter analyze` 无报错
+
+---
+
 ### Task 3: 内置模板自动导入（首次运行）
 
 **目标:** 首次运行应用时，自动将内置 `vocabulary_card_model.html` 导入 Anki。
