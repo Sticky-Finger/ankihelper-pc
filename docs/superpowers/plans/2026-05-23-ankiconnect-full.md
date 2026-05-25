@@ -410,52 +410,101 @@ flutter run -d macos
 
 ---
 
-### Task 3: 内置模板自动导入（首次运行）⚠️ 最后执行
+### Task 3: 内置模板自动加载（启动时纯本地）⚠️ 最后执行
 
-**目标:** 首次运行应用时，自动将内置 `vocabulary_card_model.html` 导入 Anki。
+**目标:** 启动时从 assets 加载内置模板（纯本地，不碰 Anki）。添加卡片时由 `ensureModelFields` 延迟注册到 Anki，与手动导入模板的流程一致。
+
+**设计原则:** 内置模板的加载方式与手动导入模板对齐：
+- 手动导入：`File().readAsString()` → `parseHtml()` → 构造 `CardTemplateModel`（best-effort 注册 Anki）
+- 内置模板：`rootBundle.loadString()` → `parseHtml()` → 构造 `CardTemplateModel`（不注册 Anki，延迟到加卡片）
 
 **新增文件:**
-- `assets/template01/vocabulary_card_model.json`
+- `assets/template01/vocabulary_card_model.json` — 内置模板配置（name + fieldMapping）
 
 **修改文件:**
-- `lib/providers/template_provider.dart` — 启动时检测并自动导入内置模板
-- `pubspec.yaml` — 确认 assets 包含 `.json`
+- `lib/providers/template_provider.dart` — `build()` 中异步加载 assets 模板
+- `lib/services/template_manager.dart` — 复用现有 `parseHtml()`，不需要新方法
+
+**无需修改:** `pubspec.yaml`（`assets/template01/` 已涵盖所有文件）
 
 **实现内容:**
 
 #### 3.1 创建内置模板配置文件
 
 `assets/template01/vocabulary_card_model.json`：
+
+格式与 `CardTemplateModel.fieldMapping` 的内存格式一致（`{模板字段名: 数据源key}`），读取后直接赋值，无需翻转。
+
 ```json
 {
   "name": "词汇卡片",
   "fieldMapping": {
-    "word": "单词",
-    "phonetic": "音标",
-    "meaning": "释义",
-    "example": "例句",
-    "exampleTranslation": "例句翻译"
+    "单词": "word",
+    "音标": "phonetic",
+    "释义": "meaning",
+    "例句": "example",
+    "例句翻译": "exampleTranslation"
   }
 }
 ```
 
-#### 3.2 TemplateProvider 启动自动导入
+注意：
+- "发音"和"url"字段不在 `_knownFieldNames` 中，无对应数据源，不在 JSON 中定义映射 → 默认映射为空，用户可在设置中手动配置
+- 与手动导入的 `_buildDefaultMapping` 行为一致（未知字段不映射）
 
-- `build()` 时：检查 Anki 中是否已存在"词汇卡片"模型
-  - 已存在 → 跳过，从 Anki 获取字段列表构建 CardTemplateModel
-  - 不存在 → 从 assets 加载 HTML + JSON → 调用 `createModel` 注册
-- 内置模板添加到列表中（用户导入的模板仍排第一）
+#### 3.2 TemplateProvider 启动时加载内置模板
+
+`TemplateNotifier.build()` 扩展逻辑（已有 `_loadSelectedTemplateId` 的 fire-and-forget 模式）：
+
+```
+build()
+  ├─ 添加基础卡片
+  ├─ _loadBuiltinTemplate()     ← 新增：异步加载内置模板
+  ├─ _loadSelectedTemplateId()  ← 已有
+  └─ return 基础卡片（默认）
+```
+
+`_loadBuiltinTemplate()` 流程：
+
+```
+1. 检查 _templates 中是否已有 builtin_ 前缀的模板 → 有则跳过（防止重复加载）
+2. rootBundle.loadString('assets/template01/vocabulary_card_model.html')
+   → TemplateManager.parseHtml() → fields / frontHtml / backHtml / css
+3. rootBundle.loadString('assets/template01/vocabulary_card_model.json')
+   → json.decode() → name / fieldMapping
+4. 构造 CardTemplateModel(
+     id: 'builtin_vocabulary_card_model',
+     name: '词汇卡片',
+     fields: 解析结果.fields,
+     fieldMapping: JSON 中的 mapping,
+     frontHtml / backHtml / css: 解析结果,
+   )
+5. _templates.add(template)
+6. 如果未选中任何模板 → state = template（首次启动默认选中内置模板）
+   否则 → state = state（触发 UI 刷新）
+7. 异常捕获：加载失败静默忽略（不阻塞启动）
+```
+
+**不注册到 Anki：** 与已有的 `inline ` 不同，`_loadBuiltinTemplate` 只做纯本地操作。注册 Anki 延迟到 `ensureModelFields`（add-card 时）。
+
+#### 3.3 模板列表中模板的优先级
+
+当前模板列表顺序（从 `TemplateNotifier` 的 `presetTemplates` 返回 `_templates`）：
+
+1. 基础卡片（`id='basic'`，始终第一个添加）
+2. 内置模板（`id='builtin_vocabulary_card_model'`，启动后异步加载）
+3. 用户导入的模板（手动插入列表第一位）
 
 **验证（需用户手动操作）:**
 ```bash
-# 先在 Anki 中手动删除"词汇卡片"模型（如果存在）
 flutter run -d macos
 ```
-1. 启动应用 → 设置 → 下拉列表出现"词汇卡片"和"基础卡片"
-2. 选择"词汇卡片" → 字段映射区正确显示所有映射
-3. 添加卡片 → Anki 中确认使用"词汇卡片"模板
-4. 关闭应用 → 重新打开 → Anki 中不重复创建"词汇卡片"模型
-5. `flutter analyze` 无报错
+1. 首次启动 → 设置 → 下拉列表出现"词汇卡片"和"基础卡片"（无 Anki 连接也正常显示）
+2. 选择"词汇卡片" → 字段映射区正确显示所有映射（单词/音标/释义/例句/例句翻译）
+3. 选中单词 → 添加卡片 → Anki 中自动创建"词汇卡片"模型，卡片内容正确
+4. 关闭应用 → 重新打开 → 下拉列表仍然显示"词汇卡片"，Anki 中不重复创建
+5. 若 Anki 中已存在同名但不同字段的"词汇卡片"模型 → 添加卡片时自动创建"词汇卡片-1"
+6. `flutter analyze` 无报错
 
 ---
 
