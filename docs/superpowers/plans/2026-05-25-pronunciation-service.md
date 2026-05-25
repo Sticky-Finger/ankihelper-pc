@@ -18,7 +18,7 @@
 
 ## Tasks
 
-### Task 1: 添加 audioplayers 依赖
+### Task 1: 添加 audioplayers 依赖 ✅
 
 **修改文件:**
 - `pubspec.yaml`
@@ -35,7 +35,7 @@ flutter pub get && flutter analyze
 
 ---
 
-### Task 2: 创建 PronunciationService（固定英音/美音）
+### Task 2: 创建 PronunciationService（固定英音/美音） ✅
 
 **创建文件:**
 - `lib/services/pronunciation_service.dart`
@@ -54,7 +54,7 @@ flutter analyze lib/services/pronunciation_service.dart
 
 ---
 
-### Task 3: 创建 PronunciationProvider
+### Task 3: 创建 PronunciationProvider ✅
 
 **创建文件:**
 - `lib/providers/pronunciation_provider.dart`
@@ -73,7 +73,7 @@ flutter analyze lib/providers/pronunciation_provider.dart
 
 ---
 
-### Task 4: CardEntryModel 增加 pronunciationUrl 字段
+### Task 4: CardEntryModel 增加 pronunciationUrl 字段 ✅
 
 **修改文件:**
 - `lib/models/card_entry_model.dart`
@@ -90,7 +90,7 @@ flutter analyze lib/models/card_entry_model.dart
 
 ---
 
-### Task 5: WordSelectionNotifier 自动注入发音 URL
+### Task 5: WordSelectionNotifier 自动注入发音 URL ✅
 
 **修改文件:**
 - `lib/providers/word_selection_provider.dart`
@@ -107,7 +107,7 @@ flutter analyze lib/providers/word_selection_provider.dart
 
 ---
 
-### Task 6: 模板字段映射支持「发音」字段
+### Task 6: 模板字段映射支持「发音」字段 ✅
 
 **修改文件:**
 - `lib/services/template_manager.dart`
@@ -123,7 +123,7 @@ flutter analyze lib/services/template_manager.dart
 
 ---
 
-### Task 7: WordBlocksSection 添加发音按钮 + 发音源下拉
+### Task 7: WordBlocksSection 添加发音按钮 + 发音源下拉 ✅
 
 **修改文件:**
 - `lib/widgets/word_blocks_section.dart`
@@ -152,7 +152,32 @@ flutter analyze lib/widgets/word_blocks_section.dart
 
 ---
 
-### Task 8: 端到端验证（发音流程走通）
+### Task 8: 字段映射编辑器添加「发音」数据源选项
+
+**修改文件:**
+- `lib/widgets/field_mapping_editor.dart`
+
+**实现内容:**
+- 在 `kDataSources` 列表中添加 `'发音'` 选项
+- 在 `_internalToDisplay` 方法中添加 `case 'pronunciationUrl': return '发音'`
+- 在 `_displayToInternal` 方法中添加 `case '发音': return 'pronunciationUrl'`
+
+**验证:**
+```bash
+flutter analyze lib/widgets/field_mapping_editor.dart
+```
+无报错。
+
+**手工测试：**
+1. 启动应用，打开设置弹窗
+2. 在字段映射区域，点击任意模板字段的下拉选择器
+3. 确认下拉选项中出现「发音」
+4. 选择「发音」后，确认映射正确保存
+5. 选中单词 → 预览 → 确认发音字段自动填充了发音 URL
+
+---
+
+### Task 9: 端到端验证（发音流程走通）
 
 - [ ] **步骤 1：运行完整分析**
 
@@ -180,12 +205,12 @@ flutter test
 - [ ] **步骤 4：提交代码**
 
 ```
-feat(pronunciation): 添加发音服务 - 支持有道英音/美音 URL 自动填充与试听
+feat(pronunciation): 字段映射编辑器添加发音数据源选项
 ```
 
 ---
 
-### Task 9: 发音源增删管理
+### Task 10: 发音源增删管理
 
 **修改文件:**
 - `lib/services/pronunciation_service.dart`
