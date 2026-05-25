@@ -4,7 +4,9 @@ import 'dart:collection';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/card_entry_model.dart';
 import '../models/word_token_model.dart';
+import '../services/pronunciation_service.dart';
 import 'clipboard_provider.dart';
+import 'pronunciation_provider.dart';
 import 'translation_provider.dart';
 
 /// 单词选中状态
@@ -201,11 +203,16 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
   /// 构建 currentEntry
   CardEntryModel _buildEntry(
       String selectedText, String clipboard, String translation) {
+    final source = ref.read(pronunciationProvider);
+    final pronunciationUrl = selectedText.isNotEmpty
+        ? PronunciationService.getUrl(selectedText, source)
+        : '';
     return CardEntryModel(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       word: selectedText,
       example: _buildExample(selectedText, clipboard),
       exampleTranslation: translation,
+      pronunciationUrl: pronunciationUrl,
     );
   }
 }

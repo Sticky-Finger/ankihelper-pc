@@ -7,6 +7,7 @@ class CardEntryModel {
   final String meaning;
   final String example;
   final String exampleTranslation;
+  final String pronunciationUrl;
 
   const CardEntryModel({
     required this.id,
@@ -16,6 +17,7 @@ class CardEntryModel {
     this.meaning = '',
     this.example = '',
     this.exampleTranslation = '',
+    this.pronunciationUrl = '',
   });
 
   /// 是否为占位空条目
@@ -28,5 +30,6 @@ class CardEntryModel {
     'meaning': meaning,
     'example': example,
     'exampleTranslation': exampleTranslation,
+    'pronunciationUrl': pronunciationUrl,
   };
 }

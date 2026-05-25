@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/word_token_model.dart';
 import '../providers/clipboard_provider.dart';
+import '../providers/pronunciation_provider.dart';
 import '../providers/word_selection_provider.dart';
+import '../services/pronunciation_service.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
 import 'word_token.dart';
@@ -149,8 +151,76 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
               ],
             ),
           ),
+          const SizedBox(height: FluentTokens.spaceSNudge),
+          // ====== 发音控制行 ======
+          _PronunciationControls(),
         ],
       ),
+    );
+  }
+}
+
+/// 发音控制组件：播放按钮 + 发音源下拉
+class _PronunciationControls extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = ref.watch(fluentTokensProvider);
+    final selection = ref.watch(wordSelectionProvider);
+    final currentSource = ref.watch(pronunciationProvider);
+
+    return Row(
+      children: [
+        // 播放发音按钮
+        SizedBox(
+          width: 32,
+          height: 32,
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            icon: Icon(Icons.volume_up, size: 18, color: tokens.fg2),
+            onPressed: () async {
+              final word = selection.selectedText;
+              final source = ref.read(pronunciationProvider);
+              await PronunciationPlayer.play(word, source);
+            },
+            tooltip: '播放发音',
+          ),
+        ),
+        const SizedBox(width: FluentTokens.spaceS),
+        // 发音源下拉
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: tokens.bgInput,
+            border: Border.all(
+              color: tokens.stroke3,
+              width: FluentTokens.strokeWidthThin,
+            ),
+            borderRadius: BorderRadius.circular(FluentTokens.radiusSm),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<PronunciationSource>(
+              value: currentSource,
+              isDense: true,
+              style: TextStyle(
+                fontFamily: FluentTokens.fontFamilyBase,
+                fontSize: FluentTokens.fontSize200,
+                color: tokens.fg2,
+              ),
+              items: PronunciationSource.values.map((source) {
+                return DropdownMenuItem(
+                  value: source,
+                  child: Text(source.label),
+                );
+              }).toList(),
+              onChanged: (source) {
+                if (source != null) {
+                  ref.read(pronunciationProvider.notifier).setSource(source);
+                }
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
