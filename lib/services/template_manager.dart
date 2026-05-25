@@ -250,6 +250,8 @@ class TemplateManager {
     'example': 'example',
     'exampleTranslation': 'exampleTranslation',
     '例句翻译': 'exampleTranslation',
+    '发音': 'pronunciationUrl',
+    'pronunciationUrl': 'pronunciationUrl',
   };
 
   /// 构建默认字段映射（尝试识别中文/英文字段名，未识别字段默认为空）
@@ -270,7 +272,7 @@ class TemplateManager {
           mapping[field] = knownKey;
         }
       } else {
-        // 未知字段（如 'url'、'发音'）不加入默认映射
+        // 未知字段（如 'url'）不加入默认映射
         // 用户在 buildFields 中会得到空字符串
       }
     }

@@ -5,6 +5,7 @@
     "音标": "phonetic",
     "释义": "meaning",
     "例句": "example",
-    "例句翻译": "exampleTranslation"
+    "例句翻译": "exampleTranslation",
+    "发音": "pronunciationUrl"
   }
 }
