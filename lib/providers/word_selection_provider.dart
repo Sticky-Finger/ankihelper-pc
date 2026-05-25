@@ -205,7 +205,7 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
       String selectedText, String clipboard, String translation) {
     final source = ref.read(pronunciationProvider);
     final pronunciationUrl = selectedText.isNotEmpty
-        ? PronunciationService.getUrl(selectedText, source)
+        ? '[sound:${PronunciationService.getUrl(selectedText, source)}]'
         : '';
     return CardEntryModel(
       id: DateTime.now().microsecondsSinceEpoch.toString(),

@@ -177,7 +177,7 @@ flutter analyze lib/widgets/field_mapping_editor.dart
 
 ---
 
-### Task 8.5: 修复发音 URL 格式 — 包装为 [sound:] 格式
+### Task 8.5: 修复发音 URL 格式 — 包装为 [sound:] 格式 ✅
 
 **问题:** 发音 URL（如 `https://dict.youdao.com/dictvoice?audio=a&type=0`）在 Anki 中不会被解析为音频播放元素，需要放在 `[sound:URL]` 格式中才能正常播放。
 
