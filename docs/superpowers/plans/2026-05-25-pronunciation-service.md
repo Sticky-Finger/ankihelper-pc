@@ -177,6 +177,31 @@ flutter analyze lib/widgets/field_mapping_editor.dart
 
 ---
 
+### Task 8.5: 修复发音 URL 格式 — 包装为 [sound:] 格式
+
+**问题:** 发音 URL（如 `https://dict.youdao.com/dictvoice?audio=a&type=0`）在 Anki 中不会被解析为音频播放元素，需要放在 `[sound:URL]` 格式中才能正常播放。
+
+**修改文件:**
+- `lib/providers/word_selection_provider.dart`
+
+**实现内容:**
+- 保持 `PronunciationService.getUrl()` 返回纯 URL（用于应用内播放）
+- 在 `WordSelectionNotifier._buildEntry()` 中，将 pronunciationUrl 包装为 `[sound:$url]` 格式后再传入 `CardEntryModel`
+- 修改位置：`_buildEntry()` 方法中生成 `pronunciationUrl` 的地方
+
+**验证:**
+```bash
+flutter analyze lib/providers/word_selection_provider.dart
+```
+无报错。
+
+**手工测试：**
+1. 启动应用，选中一个单词
+2. 点击「预览」，确认「发音」字段值格式为 `[sound:https://dict.youdao.com/dictvoice?audio=...]`
+3. 点击「添加到 Anki」，在 Anki 中查看卡片，确认发音按钮可点击播放
+
+---
+
 ### Task 9: 端到端验证（发音流程走通）
 
 - [ ] **步骤 1：运行完整分析**
