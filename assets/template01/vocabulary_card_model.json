@@ -1,0 +1,10 @@
+{
+  "name": "词汇卡片",
+  "fieldMapping": {
+    "单词": "word",
+    "音标": "phonetic",
+    "释义": "meaning",
+    "例句": "example",
+    "例句翻译": "exampleTranslation"
+  }
+}

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,9 +19,46 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
   CardTemplateModel build() {
     // 基础卡片始终在列表中
     _templates.add(CardTemplateModel.basic);
-    // 从持久化存储恢复选中的模板
-    _loadSelectedTemplateId();
+    // 异步初始化：先加载内置模板，再恢复上次选中的模板
+    _initializeTemplates();
     return CardTemplateModel.basic;
+  }
+
+  /// 异步初始化模板列表（确保加载顺序：内置模板 → 恢复选中）
+  Future<void> _initializeTemplates() async {
+    await _loadBuiltinTemplate();
+    await _loadSelectedTemplateId();
+  }
+
+  /// 从 assets 加载内置模板（纯本地，不碰 Anki）
+  Future<void> _loadBuiltinTemplate() async {
+    if (_templates.any((t) => t.id.startsWith('builtin_'))) return;
+
+    try {
+      final htmlContent = await rootBundle
+          .loadString('assets/template01/vocabulary_card_model.html');
+      final parsed = TemplateManager.parseHtml(htmlContent);
+
+      final jsonContent = await rootBundle
+          .loadString('assets/template01/vocabulary_card_model.json');
+      final config = json.decode(jsonContent) as Map<String, dynamic>;
+
+      final template = CardTemplateModel(
+        id: 'builtin_vocabulary_card_model',
+        name: config['name'] as String,
+        fields: parsed.fields,
+        fieldMapping: (config['fieldMapping'] as Map<String, dynamic>)
+            .map((k, v) => MapEntry(k, v as String)),
+        frontHtml: parsed.frontTemplate,
+        backHtml: parsed.backTemplate,
+        css: parsed.css,
+      );
+
+      _templates.add(template);
+      state = template;
+    } catch (_) {
+      // 加载失败静默忽略，不阻塞启动
+    }
   }
 
   /// 从持久化存储加载选中的模板 ID

@@ -6,7 +6,7 @@
 
 **架构:** 模板的所有细节（字段、CSS、正反面 HTML）从 `.html` 文件解析。字段映射独立存储：导入时默认映射（首字段→单词，其余→空），用户在设置弹窗中通过 Select 选择器配置，配置随模板持久化。
 
-**执行顺序:** Task 1/2/2.7/4/5/6 已完成。Task 2.8（模板系统修复）已完成。Task 7/8（选中驱动结果列表）已完成。最后执行 Task 3（内置模板自动导入）。
+**执行顺序:** Task 1/2/2.7/4/5/6 已完成。Task 2.8（模板系统修复）已完成。Task 7/8（选中驱动结果列表）已完成。Task 3（内置模板自动加载）已完成。
 
 **当前进度:**
 - Task 2.8: ✅ 全部完成（1~8）
@@ -15,6 +15,7 @@
 - Task 7.3: ✅ 清理 isPlaceholder 冗余，添加按钮 word 为空时 disabled
 - FluentButton: ✅ 新增 disabled 样式（onPressed==null 时灰色、无 hover）
 - Task 8: ✅ 数据源切换、预览弹窗动态字段、添加流程均已实现
+- Task 3: ✅ 内置模板自动加载（纯本地 + 延迟注册）
 
 **技术栈:** Flutter, Riverpod, AnkiConnect JSON-RPC, SharedPreferences
 
@@ -410,7 +411,7 @@ flutter run -d macos
 
 ---
 
-### Task 3: 内置模板自动加载（启动时纯本地）⚠️ 最后执行
+### Task 3: 内置模板自动加载（启动时纯本地）✅
 
 **目标:** 启动时从 assets 加载内置模板（纯本地，不碰 Anki）。添加卡片时由 `ensureModelFields` 延迟注册到 Anki，与手动导入模板的流程一致。
 
