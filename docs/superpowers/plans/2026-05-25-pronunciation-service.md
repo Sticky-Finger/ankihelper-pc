@@ -294,6 +294,33 @@ flutter analyze lib/widgets/word_blocks_section.dart
 
 ---
 
+### Task 10.2: 发音源管理弹窗优化 — 禁止重名 + 名称/URL 可复制 ✅
+
+**问题:**
+1. 当前允许添加重名的自定义发音源，导致下拉选择时分不清
+2. 列表中的名称和 URL 无法复制，想添加类似配置时需要手打
+
+**修改文件:**
+- `lib/widgets/word_blocks_section.dart`
+
+**实现内容:**
+- **禁止重名**：在 `_addCustomSource()` 方法中添加重名检查，包括内置源和已有的自定义源，如果名称已存在，在输入框下方显示错误提示，不允许添加
+- **名称/URL 可复制**：将列表中的 `Text(source.name)` 和 `Text(source.urlTemplate)` 改为 `SelectableText`，允许用户选中复制
+
+**验证:**
+```bash
+flutter analyze lib/widgets/word_blocks_section.dart
+```
+无报错。
+
+**手工测试：**
+1. 打开发音源管理弹窗，尝试添加名称为「有道英音」的自定义源 → 确认提示「该名称已存在」
+2. 添加一个自定义源后，再次添加同名源 → 确认提示「该名称已存在」
+3. 在列表中选中名称和 URL 文本 → 确认可以复制
+4. 复制一个 URL，修改后添加为新的自定义源 → 确认添加成功
+
+---
+
 ## 实现偏差记录
 
 | 项目 | 原计划 | 实际实现 | 原因 |

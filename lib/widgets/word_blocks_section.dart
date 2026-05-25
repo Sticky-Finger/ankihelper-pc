@@ -316,8 +316,8 @@ class _PronunciationManagerDialogState
                 itemBuilder: (context, index) {
                   final source = allSources[index];
                   return ListTile(
-                    title: Text(source.name),
-                    subtitle: Text(
+                    title: SelectableText(source.name),
+                    subtitle: SelectableText(
                       source.urlTemplate,
                       style: const TextStyle(fontSize: 12),
                     ),
@@ -357,6 +357,12 @@ class _PronunciationManagerDialogState
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return '请输入名称';
+                      }
+                      // 检查名称是否已存在（包括内置源和自定义源）
+                      final name = value.trim();
+                      final allSources = ref.read(pronunciationProvider).allSources;
+                      if (allSources.any((s) => s.name == name)) {
+                        return '该名称已存在';
                       }
                       return null;
                     },
