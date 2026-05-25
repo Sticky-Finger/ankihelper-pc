@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/word_token_model.dart';
 import '../providers/clipboard_provider.dart';
 import '../providers/pronunciation_provider.dart';
+import '../providers/toast_provider.dart';
 import '../providers/word_selection_provider.dart';
 import '../services/pronunciation_service.dart';
 import '../theme/fluent_tokens.dart';
@@ -160,13 +161,14 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
   }
 }
 
-/// 发音控制组件：播放按钮 + 发音源下拉
+/// 发音控制组件：播放按钮 + 发音源下拉 + 管理按钮
 class _PronunciationControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = ref.watch(fluentTokensProvider);
     final selection = ref.watch(wordSelectionProvider);
-    final currentSource = ref.watch(pronunciationProvider);
+    final pronunciationState = ref.watch(pronunciationProvider);
+    final currentSource = pronunciationState.selectedSource;
 
     return Row(
       children: [
@@ -179,8 +181,12 @@ class _PronunciationControls extends ConsumerWidget {
             icon: Icon(Icons.volume_up, size: 18, color: tokens.fg2),
             onPressed: () async {
               final word = selection.selectedText;
-              final source = ref.read(pronunciationProvider);
-              await PronunciationPlayer.play(word, source);
+              final source = ref.read(pronunciationProvider).selectedSource;
+              try {
+                await PronunciationPlayer.play(word, source);
+              } catch (e) {
+                ref.read(toastProvider.notifier).show('发音播放失败，请检查 URL 是否可访问');
+              }
             },
             tooltip: '播放发音',
           ),
@@ -206,10 +212,10 @@ class _PronunciationControls extends ConsumerWidget {
                 fontSize: FluentTokens.fontSize200,
                 color: tokens.fg2,
               ),
-              items: PronunciationSource.values.map((source) {
+              items: pronunciationState.allSources.map((source) {
                 return DropdownMenuItem(
                   value: source,
-                  child: Text(source.label),
+                  child: Text(source.name),
                 );
               }).toList(),
               onChanged: (source) {
@@ -219,6 +225,178 @@ class _PronunciationControls extends ConsumerWidget {
               },
             ),
           ),
+        ),
+        const SizedBox(width: FluentTokens.spaceS),
+        // 管理按钮
+        SizedBox(
+          width: 32,
+          height: 32,
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            icon: Icon(Icons.settings, size: 18, color: tokens.fg2),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => const _PronunciationManagerDialog(),
+              );
+            },
+            tooltip: '管理发音源',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 发音源管理弹窗
+class _PronunciationManagerDialog extends ConsumerStatefulWidget {
+  const _PronunciationManagerDialog();
+
+  @override
+  ConsumerState<_PronunciationManagerDialog> createState() =>
+      _PronunciationManagerDialogState();
+}
+
+class _PronunciationManagerDialogState
+    extends ConsumerState<_PronunciationManagerDialog> {
+  final _nameController = TextEditingController();
+  final _urlController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _urlController.dispose();
+    super.dispose();
+  }
+
+  void _addCustomSource() {
+    if (_formKey.currentState!.validate()) {
+      final name = _nameController.text.trim();
+      final urlTemplate = _urlController.text.trim();
+
+      // 生成唯一 ID
+      final id = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+
+      final newSource = PronunciationSource(
+        id: id,
+        name: name,
+        urlTemplate: urlTemplate,
+        isBuiltin: false,
+      );
+
+      ref.read(pronunciationProvider.notifier).addCustomSource(newSource);
+
+      // 清空输入框
+      _nameController.clear();
+      _urlController.clear();
+
+      // 关闭对话框
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pronunciationState = ref.watch(pronunciationProvider);
+    final allSources = pronunciationState.allSources;
+
+    return AlertDialog(
+      title: const Text('管理发音源'),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 发音源列表
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: allSources.length,
+                itemBuilder: (context, index) {
+                  final source = allSources[index];
+                  return ListTile(
+                    title: Text(source.name),
+                    subtitle: Text(
+                      source.urlTemplate,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    trailing: source.isBuiltin
+                        ? const Chip(label: Text('内置'))
+                        : IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              ref
+                                  .read(pronunciationProvider.notifier)
+                                  .removeCustomSource(source.id);
+                            },
+                          ),
+                  );
+                },
+              ),
+            ),
+            const Divider(),
+            // 添加自定义发音源表单
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '添加自定义发音源',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: '名称',
+                      hintText: '例如：Google 美音',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return '请输入名称';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _urlController,
+                    decoration: const InputDecoration(
+                      labelText: 'URL 模板',
+                      hintText: 'https://example.com/audio/{word}.mp3',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return '请输入 URL 模板';
+                      }
+                      if (!value.contains('{word}')) {
+                        return 'URL 模板必须包含 {word} 占位符';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: _addCustomSource,
+                      child: const Text('添加'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('关闭'),
         ),
       ],
     );

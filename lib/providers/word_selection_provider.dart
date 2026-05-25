@@ -203,7 +203,7 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
   /// 构建 currentEntry
   CardEntryModel _buildEntry(
       String selectedText, String clipboard, String translation) {
-    final source = ref.read(pronunciationProvider);
+    final source = ref.read(pronunciationProvider).selectedSource;
     final pronunciationUrl = selectedText.isNotEmpty
         ? '[sound:${PronunciationService.getUrl(selectedText, source)}]'
         : '';

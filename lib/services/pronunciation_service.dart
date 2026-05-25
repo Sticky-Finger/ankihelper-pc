@@ -1,32 +1,63 @@
 import 'package:audioplayers/audioplayers.dart';
 
-/// 发音源枚举
-enum PronunciationSource {
-  youdaoBrE,
-  youdaoAmE,
-}
+/// 发音源数据模型
+class PronunciationSource {
+  final String id;
+  final String name;
+  final String urlTemplate;
+  final bool isBuiltin;
 
-/// 发音源元数据
-extension PronunciationSourceMeta on PronunciationSource {
-  String get label {
-    switch (this) {
-      case PronunciationSource.youdaoBrE:
-        return '有道英音';
-      case PronunciationSource.youdaoAmE:
-        return '有道美音';
-    }
+  const PronunciationSource({
+    required this.id,
+    required this.name,
+    required this.urlTemplate,
+    this.isBuiltin = false,
+  });
+
+  /// 从 JSON 反序列化
+  factory PronunciationSource.fromJson(Map<String, dynamic> json) {
+    return PronunciationSource(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      urlTemplate: json['urlTemplate'] as String,
+      isBuiltin: json['isBuiltin'] as bool? ?? false,
+    );
   }
 
-  /// 发音 URL 模板，{word} 为占位符
-  String get urlTemplate {
-    switch (this) {
-      case PronunciationSource.youdaoBrE:
-        return 'https://dict.youdao.com/dictvoice?audio={word}&type=0';
-      case PronunciationSource.youdaoAmE:
-        return 'https://dict.youdao.com/dictvoice?audio={word}&type=1';
-    }
-  }
+  /// 序列化为 JSON
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'urlTemplate': urlTemplate,
+        'isBuiltin': isBuiltin,
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PronunciationSource &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
+
+/// 内置发音源列表
+const List<PronunciationSource> builtinPronunciationSources = [
+  PronunciationSource(
+    id: 'youdao_br',
+    name: '有道英音',
+    urlTemplate: 'https://dict.youdao.com/dictvoice?audio={word}&type=0',
+    isBuiltin: true,
+  ),
+  PronunciationSource(
+    id: 'youdao_am',
+    name: '有道美音',
+    urlTemplate: 'https://dict.youdao.com/dictvoice?audio={word}&type=1',
+    isBuiltin: true,
+  ),
+];
 
 /// 发音服务：提供 URL 拼装功能
 class PronunciationService {

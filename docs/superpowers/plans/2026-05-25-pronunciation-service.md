@@ -202,7 +202,7 @@ flutter analyze lib/providers/word_selection_provider.dart
 
 ---
 
-### Task 9: 端到端验证（发音流程走通）
+### Task 9: 端到端验证（发音流程走通） ✅
 
 - [ ] **步骤 1：运行完整分析**
 
@@ -235,7 +235,7 @@ feat(pronunciation): 字段映射编辑器添加发音数据源选项
 
 ---
 
-### Task 10: 发音源增删管理
+### Task 10: 发音源增删管理 ✅
 
 **修改文件:**
 - `lib/services/pronunciation_service.dart`
@@ -265,6 +265,32 @@ flutter analyze
 5. 删除自定义的「Google 美音」，确认下拉中已移除
 6. 确认有道英音/有道美音不可删除（删除按钮灰色或隐藏）
 7. 关闭应用重新打开，确认自定义发音源仍然存在
+
+---
+
+### Task 10.1: 发音播放失败时显示 Toast 错误提示 ✅
+
+**问题:** 当自定义发音源的 URL 无效或不可访问时（如 HTTP 协议被 ATS 阻止），播放失败会抛出异常，但没有用户友好的错误提示。
+
+**修改文件:**
+- `lib/widgets/word_blocks_section.dart`
+
+**实现内容:**
+- 在播放按钮的 `onPressed` 回调中添加 try-catch
+- 捕获播放异常时，使用 Toast 组件显示错误信息：`发音播放失败，请检查 URL 是否可访问`
+- 允许添加任何 URL（包括 HTTP 或错误的 URL），只在播放失败时报错
+
+**验证:**
+```bash
+flutter analyze lib/widgets/word_blocks_section.dart
+```
+无报错。
+
+**手工测试：**
+1. 打开发音源管理弹窗，添加一个 HTTP 协议的自定义发音源（如 `http://dict.youdao.com/dictvoice?audio={word}&type=2`）
+2. 选中该发音源，点击播放按钮
+3. 确认显示 Toast 提示：`发音播放失败，请检查 URL 是否可访问`
+4. 切换回有道美音，确认播放正常
 
 ---
 
