@@ -538,3 +538,24 @@ flutter run -d macos
 | 结果列表数据源 | cardDataProvider（硬编码 example） | wordSelectionProvider.currentEntry | 用户选中词后结果列表无响 |
 | 剪贴板锁定功能 | 未规划 | isLocked + toggleLock + UI 锁按钮 | 用户反馈翻译复制时会覆盖原文 |
 | 多词高亮 | 整个选中词组用 <b> 包裹 | 每个单词单独用 <b> 包裹 | 非连续选中词时整体替换不匹配 |
+
+---
+
+## 发现的 Bug
+
+### Bug 1: 例句高亮位置错误
+
+**问题描述:** `_buildExample` 使用 `replaceFirst(word, '<b>$word</b>')` 逐词高亮，但 `replaceFirst` 做的是**子串匹配**，会匹配到单词在句中的任意出现位置，而非只高亮选中的那个位置。
+
+**复现步骤:**
+1. 剪贴板原文：`You can now copy the contents of any repository directly from the Hub to a Bucket using the new "Copy to Bucket" button on repository pages.`
+2. 选中单词块：`Copy to`（"Copy to Bucket" 中的两个词）
+3. 预览例句渲染为：`...reposi<b>to</b>ry...<b>to</b> a Bucket...<b>Copy</b> to Bucket...`
+4. 预期应为：`...new "<b>Copy</b> <b>to</b> Bucket"...`
+
+**根因:** `replaceFirst("to", "<b>to</b>")` 匹配到了 `reposi**to**ry` 中的 `to` 子串。
+
+**修复方案:**
+1. `WordTokenModel` 新增 `originalStart` 字段，记录单词在原文中的起始位置
+2. `tokenize()` 中计算并传入 `originalStart`
+3. `_buildExample()` 改用**位置替换**：从原文末尾向前遍历选中词，按 `originalStart` 精确插入 `<b>` 标签

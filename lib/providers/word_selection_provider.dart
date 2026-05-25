@@ -156,19 +156,46 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     );
   }
 
-  /// 构建 example 字段：每个选中的单词单独用 <b> 包裹
+  /// 构建 example 字段：按选中位置精确高亮
   String _buildExample(String selectedText, String clipboard) {
     if (clipboard.isEmpty) return '';
-    if (selectedText.isEmpty) return clipboard;
+    if (state.selectedIndices.isEmpty) return clipboard;
 
-    // 按空格分割选中词组，逐个单词单独高亮
-    final words = selectedText.split(' ');
-    String result = clipboard;
-    for (final word in words) {
-      if (word.isEmpty) continue;
-      result = result.replaceFirst(word, '<b>$word</b>');
+    final tokens = state.tokens;
+    if (tokens.isEmpty) return clipboard;
+
+    final sortedIndices = SplayTreeSet<int>.from(state.selectedIndices);
+    final result = StringBuffer();
+    int clipPos = 0;
+
+    for (final token in tokens) {
+      // 从剪贴板中找到这个 token 的实时位置（从上次结束位置开始查找）
+      final tokenStart = clipboard.indexOf(token.text, clipPos);
+      if (tokenStart == -1) {
+        // 找不到则放弃高亮，返回原始文本
+        return clipboard;
+      }
+
+      // 写入 token 前的文本（空白字符等）
+      if (tokenStart > clipPos) {
+        result.write(clipboard.substring(clipPos, tokenStart));
+      }
+
+      if (sortedIndices.contains(token.index) && !token.isPunctuation) {
+        result.write('<b>${token.text}</b>');
+      } else {
+        result.write(token.text);
+      }
+
+      clipPos = tokenStart + token.text.length;
     }
-    return result;
+
+    // 写入最后一个 token 后的剩余文本
+    if (clipPos < clipboard.length) {
+      result.write(clipboard.substring(clipPos));
+    }
+
+    return result.toString();
   }
 
   /// 构建 currentEntry
