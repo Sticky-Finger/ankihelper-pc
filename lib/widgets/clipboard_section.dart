@@ -63,6 +63,7 @@ class _ClipboardSectionState extends ConsumerState<ClipboardSection> {
   }
 
   void _onOriginalTap() {
+    if (ref.read(clipboardProvider).isLocked) return; // 锁定状态不可编辑
     if (!_isEditing) {
       _isEditing = true;
       ref.read(clipboardProvider.notifier).setEditing(true);
@@ -143,16 +144,31 @@ class _ClipboardSectionState extends ConsumerState<ClipboardSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ====== 标题 ======
-          Text(
-            '剪贴板原文',
-            style: TextStyle(
-              fontFamily: FluentTokens.fontFamilyBase,
-              fontSize: FluentTokens.fontSize200,
-              fontWeight: FluentTokens.fontWeightMedium,
-              color: tokens.fg3,
-              letterSpacing: 0.04,
-            ),
+          // ====== 标题 + 锁定按钮 ======
+          Row(
+            children: [
+              Text(
+                '剪贴板原文',
+                style: TextStyle(
+                  fontFamily: FluentTokens.fontFamilyBase,
+                  fontSize: FluentTokens.fontSize200,
+                  fontWeight: FluentTokens.fontWeightMedium,
+                  color: tokens.fg3,
+                  letterSpacing: 0.04,
+                ),
+              ),
+              const SizedBox(width: FluentTokens.spaceS),
+              GestureDetector(
+                onTap: () => ref.read(clipboardProvider.notifier).toggleLock(),
+                child: Icon(
+                  clipboardState.isLocked ? Icons.lock : Icons.lock_open,
+                  size: 14,
+                  color: clipboardState.isLocked
+                      ? Colors.orange
+                      : tokens.fg4,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: FluentTokens.spaceM),
           // ====== 原文可编辑框 ======

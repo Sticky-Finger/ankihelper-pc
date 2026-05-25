@@ -1,6 +1,8 @@
 PODS:
   - clipboard_watcher (0.0.1):
     - FlutterMacOS
+  - file_picker (0.0.1):
+    - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - shared_preferences_foundation (0.0.1):
     - Flutter
@@ -8,12 +10,15 @@ PODS:
 
 DEPENDENCIES:
   - clipboard_watcher (from `Flutter/ephemeral/.symlinks/plugins/clipboard_watcher/macos`)
+  - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
   clipboard_watcher:
     :path: Flutter/ephemeral/.symlinks/plugins/clipboard_watcher/macos
+  file_picker:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   shared_preferences_foundation:
@@ -21,6 +26,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   clipboard_watcher: e9c9d88b3aea4889fe80025037e690e73600b160
+  file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
 

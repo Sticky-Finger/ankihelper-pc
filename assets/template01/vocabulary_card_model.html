@@ -1,0 +1,165 @@
+<div class="section">
+  <div id="front" class="items">
+    <span>{{单词}}</span>
+  </div>
+  <hr>
+  <div id="phonetic" class="items">
+    <span>{{音标}} {{发音}}</span>
+  </div>
+</div>
+
+{{#例句}}
+<div class='section'>
+  <div id="sentence" class="items">
+    {{例句}}
+  </div>
+</div>
+{{/例句}}
+
+@@@
+
+
+{{FrontSide}}
+<!-- back section -->
+{{#释义}}
+<div class="section">
+  <div id="def" class="items">{{释义}}</div>
+</div>
+{{/释义}}
+
+{{#例句翻译}}
+<div class="section">
+  <div id="note" class="items">{{例句翻译}}</div>
+</div>
+{{/例句翻译}}
+
+
+@@@
+
+/* --- 日间模式 样式（完全不变） --- */
+.card {
+    font-family: serif;
+    font-size: 20px;
+    text-align: left;
+    color: #101010;
+    background-color: rgb(203, 213, 223);
+}
+
+.section {
+    border: 1px solid;
+    border-color: #e5e6e9 #dfe0e4 #d0d1d5;
+    border-radius: 3px;
+    background-color: #f8f8f8;
+    position: relative;
+    margin: 5px 0;
+}
+
+.items {
+    margin: 0 12px;
+    padding: 8px 0;
+}
+
+hr {
+    border: 0;
+    margin: 3px 13px;
+    border-top: 1px solid #e5e5e5;
+}
+
+#front, #back {
+    line-height: 1.5em;
+}
+
+#front {
+    font-size: 36px;
+    color: #000;
+    text-align: left;
+}
+
+#front span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#front img {
+    width: 36px;
+    height: 36px;
+    top: 6px;
+    position: relative;
+    margin-left: 10px;
+}
+
+#back {
+    font-size: 16px;
+    color: #222;
+    text-align: left;
+}
+
+/* 注意保持原样拼写：hightlight */
+.hightlight {
+    font-size: 12px;
+    border-radius: 4px;
+    color: #fff;
+    padding: 0 3px;
+    margin-right: 5px;
+}
+
+#phonetic {
+    font-size: 14px;
+}
+
+#sentence b {
+    font-weight: normal;
+    border-radius: 3px;
+    color: #fff;
+    background-color: #888;
+    padding: 0 3px;
+}
+
+
+/* ========== 暗色模式样式（改用 .nightMode 类） ========== */
+/* 当 Anki 处于深色模式时，会自动为卡片容器加上 .nightMode 类 */
+/* 这些样式会在该状态下覆盖日间样式 */
+
+.nightMode .card {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.nightMode .section {
+    border-color: #3a3a3a #333333 #2a2a2a;
+    background-color: #262626;
+}
+
+.nightMode #front {
+    color: #f0f0f0;
+}
+
+.nightMode #back {
+    color: #d0d0d0;
+}
+
+.nightMode hr {
+    border-top: 1px solid #444444;
+}
+
+.nightMode #sentence b {
+    background-color: #4a4a4a;
+    color: #ffffff;
+}
+
+.nightMode .hightlight {
+    background-color: #444444;
+    color: #ffffff;
+}
+
+
+@@@
+
+
+单词
+音标
+发音
+例句
+释义
+例句翻译
+url

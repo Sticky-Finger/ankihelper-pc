@@ -4,40 +4,70 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
 
-/// 卡片预览数据
-class PreviewCardData {
-  final String front;
-  final String phonetic;
-  final String back;
-  final String example;
-
-  const PreviewCardData({
-    required this.front,
-    this.phonetic = '',
-    required this.back,
-    this.example = '',
-  });
-}
-
-/// 展示卡片预览弹窗
-Future<bool?> showPreviewModal(
+/// 展示卡片预览弹窗（动态字段）
+///
+/// [fields] - 模板字段名列表，按此顺序渲染输入框
+/// [initialValues] — 字段名 → 预填充值（可选）
+/// 返回字段名到用户输入值的映射，取消返回 null
+Future<Map<String, String>?> showPreviewModal(
   BuildContext context, {
-  required PreviewCardData data,
+  required List<String> fields,
+  Map<String, String> initialValues = const {},
 }) {
-  return showDialog<bool>(
+  return showDialog<Map<String, String>>(
     context: context,
     barrierDismissible: true,
-    builder: (ctx) => _PreviewModal(data: data),
+    builder: (ctx) => _PreviewModal(
+      fields: fields,
+      initialValues: initialValues,
+    ),
   );
 }
 
-class _PreviewModal extends ConsumerWidget {
-  final PreviewCardData data;
+class _PreviewModal extends ConsumerStatefulWidget {
+  final List<String> fields;
+  final Map<String, String> initialValues;
 
-  const _PreviewModal({required this.data});
+  const _PreviewModal({
+    required this.fields,
+    required this.initialValues,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PreviewModal> createState() => _PreviewModalState();
+}
+
+class _PreviewModalState extends ConsumerState<_PreviewModal> {
+  late final List<TextEditingController> _controllers;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = widget.fields.map((field) {
+      return TextEditingController(
+        text: widget.initialValues[field] ?? '',
+      );
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _confirm() {
+    final result = <String, String>{};
+    for (int i = 0; i < widget.fields.length; i++) {
+      result[widget.fields[i]] = _controllers[i].text.trim();
+    }
+    Navigator.of(context).pop(result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tokens = ref.watch(fluentTokensProvider);
 
     return Dialog(
@@ -85,15 +115,14 @@ class _PreviewModal extends ConsumerWidget {
                     ),
                   ),
                   const Spacer(),
-                  // 关闭按钮
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: () => Navigator.of(context).pop(null),
                     child: _CloseIcon(color: tokens.fg2),
                   ),
                 ],
               ),
             ),
-            // ====== 内容体 ======
+            // ====== 内容体：动态字段 ======
             Flexible(
               child: Padding(
                 padding: const EdgeInsets.all(FluentTokens.spaceXl),
@@ -101,30 +130,15 @@ class _PreviewModal extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Field(
-                        label: '正面 (单词)',
-                        value: data.front,
-                        tokens: tokens,
-                      ),
-                      const SizedBox(height: FluentTokens.spaceL),
-                      _Field(
-                        label: '音标',
-                        value: data.phonetic.isNotEmpty ? data.phonetic : '—',
-                        isMono: true,
-                        tokens: tokens,
-                      ),
-                      const SizedBox(height: FluentTokens.spaceL),
-                      _Field(
-                        label: '背面 (释义)',
-                        value: data.back.isNotEmpty ? data.back : '—',
-                        tokens: tokens,
-                      ),
-                      const SizedBox(height: FluentTokens.spaceL),
-                      _Field(
-                        label: '例句',
-                        value: data.example.isNotEmpty ? data.example : '—',
-                        tokens: tokens,
-                      ),
+                      for (int i = 0; i < widget.fields.length; i++) ...[
+                        if (i > 0)
+                          const SizedBox(height: FluentTokens.spaceL),
+                        _EditableField(
+                          label: widget.fields[i],
+                          controller: _controllers[i],
+                          tokens: tokens,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -148,7 +162,7 @@ class _PreviewModal extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(false),
+                    onTap: () => Navigator.of(context).pop(null),
                     child: Container(
                       height: 32,
                       padding: const EdgeInsets.symmetric(
@@ -177,7 +191,7 @@ class _PreviewModal extends ConsumerWidget {
                   ),
                   const SizedBox(width: FluentTokens.spaceS),
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(true),
+                    onTap: _confirm,
                     child: Container(
                       height: 32,
                       padding: const EdgeInsets.symmetric(
@@ -214,17 +228,15 @@ class _PreviewModal extends ConsumerWidget {
   }
 }
 
-/// 弹窗字段组件
-class _Field extends StatelessWidget {
+/// 弹窗可编辑字段组件
+class _EditableField extends StatelessWidget {
   final String label;
-  final String value;
-  final bool isMono;
+  final TextEditingController controller;
   final FluentTokens tokens;
 
-  const _Field({
+  const _EditableField({
     required this.label,
-    required this.value,
-    this.isMono = false,
+    required this.controller,
     required this.tokens,
   });
 
@@ -258,14 +270,20 @@ class _Field extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(FluentTokens.radiusMd),
           ),
-          child: Text(
-            value,
+          child: TextField(
+            controller: controller,
             style: TextStyle(
-              fontFamily:
-                  isMono ? FluentTokens.fontFamilyMono : FluentTokens.fontFamilyBase,
-              fontSize: isMono ? FluentTokens.fontSize300 : FluentTokens.fontSize400,
-              color: isMono ? tokens.fg2 : tokens.fg1,
+              fontFamily: FluentTokens.fontFamilyBase,
+              fontSize: FluentTokens.fontSize400,
+              color: tokens.fg1,
             ),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            maxLines: null,
+            textInputAction: TextInputAction.newline,
           ),
         ),
       ],

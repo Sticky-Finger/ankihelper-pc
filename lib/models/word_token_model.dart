@@ -7,10 +7,14 @@ class WordTokenModel {
   final int index;
   final WordTokenType type;
 
+  /// 在原始文本中的起始位置（用于精确高亮）
+  final int originalStart;
+
   const WordTokenModel({
     required this.text,
     required this.index,
     this.type = WordTokenType.word,
+    this.originalStart = 0,
   });
 
   bool get isPunctuation => type == WordTokenType.punctuation;
@@ -25,10 +29,14 @@ List<WordTokenModel> tokenize(String text) {
   final tokens = <WordTokenModel>[];
   final segments = text.split(RegExp(r'(\s+)'));
   int index = 0;
+  int globalPos = 0;
 
   for (final segment in segments) {
     final cleaned = segment.trim();
-    if (cleaned.isEmpty) continue;
+    if (cleaned.isEmpty) {
+      globalPos += segment.length;
+      continue;
+    }
 
     // 检查整个 segment 是否全是标点
     if (RegExp(r'^[^\w\s]+$').hasMatch(cleaned)) {
@@ -36,7 +44,9 @@ List<WordTokenModel> tokenize(String text) {
         text: cleaned,
         index: index++,
         type: WordTokenType.punctuation,
+        originalStart: globalPos,
       ));
+      globalPos += segment.length;
       continue;
     }
 
@@ -50,6 +60,7 @@ List<WordTokenModel> tokenize(String text) {
           tokens.add(WordTokenModel(
             text: cleaned.substring(start, i),
             index: index++,
+            originalStart: globalPos + start,
           ));
         }
         // 标点本身
@@ -57,6 +68,7 @@ List<WordTokenModel> tokenize(String text) {
           text: char,
           index: index++,
           type: WordTokenType.punctuation,
+          originalStart: globalPos + i,
         ));
         start = i + 1;
       }
@@ -66,8 +78,11 @@ List<WordTokenModel> tokenize(String text) {
       tokens.add(WordTokenModel(
         text: cleaned.substring(start),
         index: index++,
+        originalStart: globalPos + start,
       ));
     }
+
+    globalPos += segment.length;
   }
 
   return tokens;

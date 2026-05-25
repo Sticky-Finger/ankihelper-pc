@@ -6,6 +6,7 @@ class CardEntryModel {
   final String pos;
   final String meaning;
   final String example;
+  final String exampleTranslation;
 
   const CardEntryModel({
     required this.id,
@@ -14,8 +15,18 @@ class CardEntryModel {
     this.pos = '',
     this.meaning = '',
     this.example = '',
+    this.exampleTranslation = '',
   });
 
   /// 是否为占位空条目
   bool get isEmpty => word.isEmpty;
+
+  /// 转换为 Map，用于动态字段映射
+  Map<String, String> toMap() => {
+    'word': word,
+    'phonetic': phonetic,
+    'meaning': meaning,
+    'example': example,
+    'exampleTranslation': exampleTranslation,
+  };
 }
