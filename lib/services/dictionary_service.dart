@@ -40,6 +40,7 @@ class DictionaryService {
   }
 
   /// 调用有道词典 API（使用 POST + form-urlencoded）
+  /// 文档：https://ai.youdao.com/DOCSIRMA/html/dictionary/api/ydcd/index.html
   Future<DictionaryResult> _queryYoudao(String word) async {
     const apiUrl = 'https://openapi.youdao.com/v2/dict';
 
@@ -49,8 +50,8 @@ class DictionaryService {
 
     final body = {
       'q': word,
-      'from': 'en',
-      'to': 'zh-CHS',
+      'langType': 'auto',
+      'dicts': 'ec',
       'appKey': config.appId,
       'salt': salt,
       'sign': sign,

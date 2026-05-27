@@ -8,7 +8,6 @@ import '../providers/anki_connect_provider.dart';
 import '../providers/toast_provider.dart';
 import '../providers/deck_provider.dart';
 import '../providers/template_provider.dart';
-import '../providers/dictionary_provider.dart';
 import '../providers/word_selection_provider.dart';
 import '../services/template_manager.dart';
 import '../theme/fluent_tokens.dart';
@@ -150,23 +149,9 @@ class ResultsList extends ConsumerWidget {
     return widgets;
   }
 
-  /// 手动触发词典查询
+  /// 手动触发词典查询（已冻结：有道词典 API 费用过高）
   Future<void> _manualSearch(WidgetRef ref) async {
-    final selectedText = ref.read(wordSelectionProvider).selectedText;
-    if (kDebugMode) {
-      debugPrint('[ManualSearch] 选中文本: "$selectedText"');
-    }
-    if (selectedText.isEmpty) {
-      ref.read(toastProvider.notifier).show('请先选择一个单词');
-      return;
-    }
-
-    await ref.read(dictionaryProvider.notifier).query(selectedText);
-
-    final result = ref.read(dictionaryProvider);
-    if (result.hasError) {
-      ref.read(toastProvider.notifier).show(result.result.errorMessage);
-    }
+    ref.read(toastProvider.notifier).show('暂无词典服务');
   }
 
   /// 添加笔记到 Anki

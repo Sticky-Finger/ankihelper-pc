@@ -52,7 +52,7 @@ class DictionaryResult {
                   ? commaIndex
                   : bracketIndex);
       final codeStr = endIndex == -1 ? afterColon : afterColon.substring(0, endIndex);
-      return int.tryParse(codeStr.trim());
+      return int.tryParse(codeStr.trim().replaceAll('"', ''));
     } catch (_) {
       return null;
     }
@@ -72,7 +72,7 @@ class DictionaryResult {
       case 108:
         return '应用ID无效';
       case 110:
-        return '请求超过频率限制';
+        return '应用未开通词典服务，请在有道智云控制台开启「词典服务」';
       case 111:
         return '未知错误';
       case 202:

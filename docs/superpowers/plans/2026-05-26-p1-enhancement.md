@@ -1,5 +1,8 @@
 # P1功能（体验增强）实现计划
 
+> **[已冻结]** 有道词典 API 包年费用 30 万人民币，云端词典查询功能已冻结。
+> 代码保留但功能不可用。搜索按钮显示"暂无词典服务"提示。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **目标:** 实现 P1功能（体验增强），包括移除冗余的"手动输入"按钮，以及添加有道词典查询 API 支持自动填充音标和释义字段
@@ -169,14 +172,6 @@ flutter run --debug
 ```
 点击放大镜按钮重新触发词典查询。
 
-**已知问题（待修复）:**
-
-API 已成功返回响应 `{"errorCode":"102", ...}`，但 `DictionaryResult._parseErrorCode()` 手动解析 JSON 时未处理带引号的字符串值（如 `"102"`），导致 `int.tryParse('"102"')` 返回 `null`，错误信息显示"未知错误码：null"。
-
-- **原因：** errorCode 是 JSON 字符串（`"102"`），手动字符串解析会包含引号
-- **影响：** 所有非数字类型的 errorCode 都无法正确解析
-- **修复方向：** 改用 `json.decode()` 解析响应，或 strip 引号后解析
-
 ---
 
 ### Task 8: 端到端测试与验证
@@ -229,4 +224,15 @@ API 已成功返回响应 `{"errorCode":"102", ...}`，但 `DictionaryResult._pa
 |------|--------|----------|------|
 | DictionaryResult 模型 | 包含 phonetic、meaning 字段 | 仅包含 rawResponse、errorMessage | 两阶段实现策略：先获取响应，再解析字段 |
 | 字段解析逻辑 | Task 2 中实现 | 独立为 Task 9 | 基于实际返回数据结构实现 |
-| errorCode 解析 | 期望 API 返回数字格式 | API 实际返回字符串格式 `"102"` | 手动 JSON 解析未处理引号，`int.tryParse` 返回 null |
+| errorCode 解析 | 期望 API 返回数字格式 | API 实际返回字符串格式 `"102"` | 手动 JSON 解析未处理引号，`int.tryParse` 返回 null（已在 `codeStr.trim()` 后添加 `.replaceAll('"', '')` 修复） |
+| 有道词典 API | 接入有道词典 API | 有道词典接口包年 30 万（30w CNY），成本过高 | 需要寻找替代方案，或改为纯本地词典模式 |
+
+---
+
+## 阻断说明
+
+**有道词典 API 不可用**：有道词典接口包年售卖，每年 30 万人民币，费用过高，不适用于个人/小团队场景。建议调整方向：
+
+1. **替代方案 A**：接入免费词典 API（如 Free Dictionary API: https://dictionaryapi.dev/）
+2. **替代方案 B**：使用本地词典文件（原 P2 计划），提前实现本地词典查询
+3. **替代方案 C**：放弃云端词典查询，仅保留手动输入模式
