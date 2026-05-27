@@ -5,20 +5,17 @@ import '../theme/fluent_tokens.dart';
 import '../theme/theme_provider.dart';
 import 'about_dialog.dart';
 import 'fluent_buttons.dart';
-import 'manual_input_dialog.dart';
 import 'settings_dialog.dart';
 
 /// 标题栏 — 左侧图标+标题+版本号，右侧操作按钮组
 class TitleBar extends ConsumerWidget {
   final VoidCallback? onSettings;
   final VoidCallback? onAbout;
-  final VoidCallback? onManualInput;
 
   const TitleBar({
     super.key,
     this.onSettings,
     this.onAbout,
-    this.onManualInput,
   });
 
   @override
@@ -82,11 +79,6 @@ class TitleBar extends ConsumerWidget {
             label: '关于',
             isSmall: true,
             onPressed: onAbout ?? () => showAboutDialog_(context),
-          ),
-          FluentButton.subtle(
-            label: '手动输入',
-            isSmall: true,
-            onPressed: onManualInput ?? () => showManualInputDialog(context),
           ),
         ],
       ),

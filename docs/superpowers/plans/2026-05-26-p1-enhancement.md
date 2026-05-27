@@ -30,7 +30,7 @@ lib/
 
 ## Tasks
 
-### Task 1: 移除"手动输入"按钮及关联代码
+### Task 1: 移除"手动输入"按钮及关联代码 ✅
 
 **修改文件:**
 - `lib/widgets/title_bar.dart` — 删除手动输入按钮、`onManualInput` 参数及 `manual_input_dialog.dart` 导入
@@ -39,8 +39,8 @@ lib/
 - `lib/widgets/manual_input_dialog.dart`
 
 **实现内容:**
-- 删除 `manual_input_dialog.dart` 文件（61 行）
-- 修改 `title_bar.dart`：移除 `import 'manual_input_dialog.dart'`、`onManualInput` 参数、手动输入按钮
+- [x] 删除 `manual_input_dialog.dart` 文件（61 行）
+- [x] 修改 `title_bar.dart`：移除 `import 'manual_input_dialog.dart'`、`onManualInput` 参数、手动输入按钮
 
 **验证:**
 ```bash
