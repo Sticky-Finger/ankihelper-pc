@@ -78,6 +78,21 @@ class ResultsList extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: FluentTokens.spaceXs),
+                IconButton(
+                  icon: const Icon(Icons.search, size: 18),
+                  onPressed: () => _manualSearch(ref),
+                  tooltip: '手动搜索词典',
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 28,
+                    minHeight: 28,
+                  ),
+                  style: IconButton.styleFrom(
+                    foregroundColor: tokens.fg3,
+                  ),
+                ),
               ],
             ),
           ],
@@ -132,6 +147,11 @@ class ResultsList extends ConsumerWidget {
     );
 
     return widgets;
+  }
+
+  /// 手动触发词典查询（已冻结：有道词典 API 费用过高）
+  Future<void> _manualSearch(WidgetRef ref) async {
+    ref.read(toastProvider.notifier).show('暂无词典服务');
   }
 
   /// 添加笔记到 Anki

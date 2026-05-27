@@ -1,5 +1,8 @@
 # P1功能（体验增强）实现计划
 
+> **[已冻结]** 有道词典 API 包年费用 30 万人民币，云端词典查询功能已冻结。
+> 代码保留但功能不可用。搜索按钮显示"暂无词典服务"提示。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **目标:** 实现 P1功能（体验增强），包括移除冗余的"手动输入"按钮，以及添加有道词典查询 API 支持自动填充音标和释义字段
@@ -30,7 +33,7 @@ lib/
 
 ## Tasks
 
-### Task 1: 移除"手动输入"按钮及关联代码
+### Task 1: 移除"手动输入"按钮及关联代码 ✅
 
 **修改文件:**
 - `lib/widgets/title_bar.dart` — 删除手动输入按钮、`onManualInput` 参数及 `manual_input_dialog.dart` 导入
@@ -39,8 +42,8 @@ lib/
 - `lib/widgets/manual_input_dialog.dart`
 
 **实现内容:**
-- 删除 `manual_input_dialog.dart` 文件（61 行）
-- 修改 `title_bar.dart`：移除 `import 'manual_input_dialog.dart'`、`onManualInput` 参数、手动输入按钮
+- [x] 删除 `manual_input_dialog.dart` 文件（61 行）
+- [x] 修改 `title_bar.dart`：移除 `import 'manual_input_dialog.dart'`、`onManualInput` 参数、手动输入按钮
 
 **验证:**
 ```bash
@@ -50,7 +53,7 @@ flutter run --debug
 
 ---
 
-### Task 2: 创建词典查询结果模型
+### Task 2: 创建词典查询结果模型 ✅
 
 **创建文件:**
 - `lib/models/dictionary_result_model.dart`
@@ -70,7 +73,7 @@ flutter analyze
 
 ---
 
-### Task 3: 创建有道词典 API 服务
+### Task 3: 创建有道词典 API 服务 ✅
 
 **创建文件:**
 - `lib/services/dictionary_service.dart`
@@ -91,19 +94,19 @@ flutter analyze
 
 ---
 
-### Task 4: 创建词典查询 Provider
+### Task 4: 创建词典查询 Provider ✅
 
 **创建文件:**
 - `lib/providers/dictionary_provider.dart`
 
 **实现内容:**
-- `DictionaryState` 状态类，包含 `result`、`isLoading`、`hasError`
-- `DictionaryNotifier` 状态管理类：
+- [x] `DictionaryState` 状态类，包含 `result`、`isLoading`、`hasError`
+- [x] `DictionaryNotifier` 状态管理类：
   - `updateConfig(TranslationConfig)` 更新 API 配置
   - `query(String word)` 异步查询单词
   - `clear()` 清空结果
-- `dictionaryProvider` — 对应的 `StateNotifierProvider`
-- `dictionaryConfigProvider` — 监听翻译配置变化，自动更新词典服务
+- [x] `dictionaryProvider` — 对应的 `NotifierProvider`
+- [x] `dictionaryConfigProvider` — 监听翻译配置变化，自动更新词典服务
 
 **验证:**
 ```bash
@@ -113,16 +116,16 @@ flutter analyze
 
 ---
 
-### Task 5: 集成词典查询到 WordSelectionNotifier
+### Task 5: 集成词典查询到 WordSelectionNotifier ✅
 
 **修改文件:**
 - `lib/providers/word_selection_provider.dart`
 
 **实现内容:**
-- 导入 `dictionary_provider.dart` 和 `dictionary_result_model.dart`
-- 修改 `_buildEntry()` 方法：暂不填充 `phonetic` 和 `meaning`，保留空值
-- 修改 `_debouncedRecompute()` 方法：在防抖回调中触发词典查询
-- 添加查询错误处理：当 `hasError` 时通过 `toastProvider` 显示错误信息
+- [x] 导入 `dictionary_provider.dart` 和 `toast_provider.dart`
+- [x] 修改 `_buildEntry()` 方法：暂不填充 `phonetic` 和 `meaning`，保留空值
+- [x] 修改 `_debouncedRecompute()` 方法：在防抖回调中触发词典查询
+- [x] 添加查询错误处理：当 `hasError` 时通过 `toastProvider` 显示错误信息
 
 **验证:**
 ```bash
@@ -132,7 +135,7 @@ flutter analyze
 
 ---
 
-### Task 6: 添加词典 API 配置说明到设置面板
+### Task 6: 添加词典 API 配置说明到设置面板 ✅
 
 **修改文件:**
 - `lib/widgets/settings_dialog.dart`
@@ -221,3 +224,15 @@ flutter run --debug
 |------|--------|----------|------|
 | DictionaryResult 模型 | 包含 phonetic、meaning 字段 | 仅包含 rawResponse、errorMessage | 两阶段实现策略：先获取响应，再解析字段 |
 | 字段解析逻辑 | Task 2 中实现 | 独立为 Task 9 | 基于实际返回数据结构实现 |
+| errorCode 解析 | 期望 API 返回数字格式 | API 实际返回字符串格式 `"102"` | 手动 JSON 解析未处理引号，`int.tryParse` 返回 null（已在 `codeStr.trim()` 后添加 `.replaceAll('"', '')` 修复） |
+| 有道词典 API | 接入有道词典 API | 有道词典接口包年 30 万（30w CNY），成本过高 | 需要寻找替代方案，或改为纯本地词典模式 |
+
+---
+
+## 阻断说明
+
+**有道词典 API 不可用**：有道词典接口包年售卖，每年 30 万人民币，费用过高，不适用于个人/小团队场景。建议调整方向：
+
+1. **替代方案 A**：接入免费词典 API（如 Free Dictionary API: https://dictionaryapi.dev/）
+2. **替代方案 B**：使用本地词典文件（原 P2 计划），提前实现本地词典查询
+3. **替代方案 C**：放弃云端词典查询，仅保留手动输入模式

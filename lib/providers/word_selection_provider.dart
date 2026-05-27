@@ -6,6 +6,7 @@ import '../models/card_entry_model.dart';
 import '../models/word_token_model.dart';
 import '../services/pronunciation_service.dart';
 import 'clipboard_provider.dart';
+import 'dictionary_provider.dart'; // 冻结保留：_triggerDictionaryQuery
 import 'pronunciation_provider.dart';
 import 'translation_provider.dart';
 
@@ -139,7 +140,9 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
   /// selectedText 变化后 300ms 防抖重算 currentEntry
   void _debouncedRecompute() {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), _recomputeEntry);
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _recomputeEntry();
+    });
   }
 
   /// 立即重算 currentEntry（剪贴板/翻译变化时调用）
@@ -156,6 +159,15 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
       lastClickedIndex: state.lastClickedIndex,
       currentEntry: entry,
     );
+  }
+
+  /// 触发词典查询（仅在选中非空文本时）
+  // ignore: unused_element — 冻结保留，待后续启用
+  void _triggerDictionaryQuery() {
+    final selectedText = state.selectedText;
+    if (selectedText.isNotEmpty) {
+      ref.read(dictionaryProvider.notifier).query(selectedText);
+    }
   }
 
   /// 构建 example 字段：按选中位置精确高亮
