@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # 强制使用 Node 24，消除弃用警告
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -18,24 +18,30 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS arm64 — 原生构建
+          # macOS arm64
           - os: macos-latest
             flutter-arch: arm64
             artifact-name: ankihelper-macos-arm64
-            zip-path: build/macos/Build/Products/Release
-          # macOS x86_64 — arm64 runner + Rosetta 2 交叉编译
+            # 改成上传 .dmg 文件，名称可以自定
+            artifact-path: ankihelper-macos-arm64.dmg
+            build-flavor: macos-arm64
+          # macOS x86_64
           - os: macos-latest
             flutter-arch: x64
             artifact-name: ankihelper-macos-x64
-            zip-path: build/macos/Build/Products/Release
+            artifact-path: ankihelper-macos-x64.dmg
+            build-flavor: macos-x64
           - os: windows-latest
             flutter-arch: x64
             artifact-name: ankihelper-windows-x64
-            zip-path: build/windows/x64/runner/Release
+            # Windows 继续上传构建文件夹（或你后面也可以打包成 zip 等）
+            artifact-path: build/windows/x64/runner/Release
+            build-flavor: windows
           - os: ubuntu-22.04
             flutter-arch: x64
             artifact-name: ankihelper-linux-x64
-            zip-path: build/linux/x64/release/bundle
+            artifact-path: build/linux/x64/release/bundle
+            build-flavor: linux
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
@@ -90,24 +96,57 @@ jobs:
         run: flutter test
 
       - name: 构建应用 (macOS arm64)
-        if: matrix.flutter-arch == 'arm64' && runner.os == 'macOS'
+        if: matrix.build-flavor == 'macos-arm64'
         run: flutter build macos --release
 
       - name: 构建应用 (macOS x86_64 — Rosetta)
-        if: matrix.flutter-arch == 'x64' && runner.os == 'macOS'
+        if: matrix.build-flavor == 'macos-x64'
         run: arch -x86_64 flutter build macos --release
 
       - name: 构建应用 (Windows)
-        if: runner.os == 'Windows'
+        if: matrix.build-flavor == 'windows'
         run: flutter build windows --release
 
       - name: 构建应用 (Linux)
-        if: runner.os == 'Linux'
+        if: matrix.build-flavor == 'linux'
         run: flutter build linux --release
 
+      # ========= 新增：将 .app 打包为 .dmg =========
+      - name: 打包 macOS DMG (arm64)
+        if: matrix.build-flavor == 'macos-arm64'
+        run: |
+          # 自动获取 Release 目录中的 .app 名称
+          APP_NAME=$(ls build/macos/Build/Products/Release | grep '\.app$' | head -n 1 | sed 's/\.app$//')
+          echo "Found app: ${APP_NAME}.app"
+          SOURCE_APP="build/macos/Build/Products/Release/${APP_NAME}.app"
+          DMG_NAME="${{ matrix.artifact-path }}"
+          mkdir -p dmg_temp
+          cp -R "$SOURCE_APP" dmg_temp/
+          hdiutil create -volname "${APP_NAME}" \
+            -srcfolder dmg_temp \
+            -ov -format UDZO \
+            "$DMG_NAME"
+          echo "✅ DMG created: $DMG_NAME"
+
+      - name: 打包 macOS DMG (x64)
+        if: matrix.build-flavor == 'macos-x64'
+        run: |
+          APP_NAME=$(ls build/macos/Build/Products/Release | grep '\.app$' | head -n 1 | sed 's/\.app$//')
+          echo "Found app: ${APP_NAME}.app"
+          SOURCE_APP="build/macos/Build/Products/Release/${APP_NAME}.app"
+          DMG_NAME="${{ matrix.artifact-path }}"
+          mkdir -p dmg_temp
+          cp -R "$SOURCE_APP" dmg_temp/
+          hdiutil create -volname "${APP_NAME}" \
+            -srcfolder dmg_temp \
+            -ov -format UDZO \
+            "$DMG_NAME"
+          echo "✅ DMG created: $DMG_NAME"
+
+      # ========= 上传产物（现在 macOS 上传的是 .dmg） =========
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.zip-path }}
+          path: ${{ matrix.artifact-path }}
           if-no-files-found: error
