@@ -132,7 +132,7 @@ flutter analyze
 
 ---
 
-### Task 6: 添加词典 API 配置说明到设置面板
+### Task 6: 添加词典 API 配置说明到设置面板 ✅
 
 **修改文件:**
 - `lib/widgets/settings_dialog.dart`
@@ -168,6 +168,14 @@ flutter run --debug
 flutter run --debug
 ```
 点击放大镜按钮重新触发词典查询。
+
+**已知问题（待修复）:**
+
+API 已成功返回响应 `{"errorCode":"102", ...}`，但 `DictionaryResult._parseErrorCode()` 手动解析 JSON 时未处理带引号的字符串值（如 `"102"`），导致 `int.tryParse('"102"')` 返回 `null`，错误信息显示"未知错误码：null"。
+
+- **原因：** errorCode 是 JSON 字符串（`"102"`），手动字符串解析会包含引号
+- **影响：** 所有非数字类型的 errorCode 都无法正确解析
+- **修复方向：** 改用 `json.decode()` 解析响应，或 strip 引号后解析
 
 ---
 
@@ -221,3 +229,4 @@ flutter run --debug
 |------|--------|----------|------|
 | DictionaryResult 模型 | 包含 phonetic、meaning 字段 | 仅包含 rawResponse、errorMessage | 两阶段实现策略：先获取响应，再解析字段 |
 | 字段解析逻辑 | Task 2 中实现 | 独立为 Task 9 | 基于实际返回数据结构实现 |
+| errorCode 解析 | 期望 API 返回数字格式 | API 实际返回字符串格式 `"102"` | 手动 JSON 解析未处理引号，`int.tryParse` 返回 null |

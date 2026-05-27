@@ -430,6 +430,46 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
                 color: Colors.blue,
               ),
             ),
+            const SizedBox(height: 16),
+            // ====== 词典查询服务说明 ======
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '词典查询服务',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '· 使用有道智云词典 API（与翻译服务共享凭证）\n'
+                          '· 查询超时时间：5 秒',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         ),

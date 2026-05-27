@@ -39,7 +39,7 @@ class DictionaryService {
     }
   }
 
-  /// 调用有道词典 API
+  /// 调用有道词典 API（使用 POST + form-urlencoded）
   Future<DictionaryResult> _queryYoudao(String word) async {
     const apiUrl = 'https://openapi.youdao.com/v2/dict';
 
@@ -47,7 +47,7 @@ class DictionaryService {
     final curtime = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final sign = _generateSign(word, salt, curtime);
 
-    final uri = Uri.parse(apiUrl).replace(queryParameters: {
+    final body = {
       'q': word,
       'from': 'en',
       'to': 'zh-CHS',
@@ -56,10 +56,12 @@ class DictionaryService {
       'sign': sign,
       'signType': 'v3',
       'curtime': curtime,
-    });
+    };
 
     try {
-      final response = await http.get(uri).timeout(timeout);
+      final response = await http
+          .post(Uri.parse(apiUrl), body: body)
+          .timeout(timeout);
       if (response.statusCode != 200) {
         return DictionaryResult(
           errorMessage: '词典 API 请求失败 (HTTP ${response.statusCode})',
