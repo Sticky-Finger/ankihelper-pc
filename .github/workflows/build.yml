@@ -22,7 +22,6 @@ jobs:
           - os: macos-latest
             flutter-arch: arm64
             artifact-name: ankihelper-macos-arm64
-            # 改成上传 .dmg 文件，名称可以自定
             artifact-path: ankihelper-macos-arm64.dmg
             build-flavor: macos-arm64
           # macOS x86_64
@@ -34,7 +33,6 @@ jobs:
           - os: windows-latest
             flutter-arch: x64
             artifact-name: ankihelper-windows-x64
-            # Windows 继续上传构建文件夹（或你后面也可以打包成 zip 等）
             artifact-path: build/windows/x64/runner/Release
             build-flavor: windows
           - os: ubuntu-22.04
@@ -114,55 +112,51 @@ jobs:
         if: matrix.build-flavor == 'linux'
         run: flutter build linux --release
 
-      # ========= 新增：将 .app 打包为 .dmg =========
-
-      - name: 构建应用 (macOS arm64)
-        if: matrix.build-flavor == 'macos-arm64'
-        run: flutter build macos --release
-
-      - name: 构建应用 (macOS x86_64 — Rosetta)
-        if: matrix.build-flavor == 'macos-x64'
-        run: arch -x86_64 flutter build macos --release
-
-      # 新增：安装 create-dmg
       - name: 安装 create-dmg (macOS)
         if: startsWith(matrix.build-flavor, 'macos')
         run: brew install create-dmg
 
-      # 替换原来的 hdiutil 打包步骤
+      # ========= 将 .app 打包为 .dmg =========
       - name: 打包 macOS DMG (arm64)
         if: matrix.build-flavor == 'macos-arm64'
         run: |
-          APP_NAME=$(ls build/macos/Build/Products/Release | grep '\.app$' | head -n 1 | sed 's/\.app$//')
+          # 清理 .app 以外的多余文件（如 .dSYM 等）
+          cd build/macos/Build/Products/Release
+          find . -mindepth 1 -maxdepth 1 -not -name '*.app' -exec rm -rf {} +
+
+          APP_NAME=$(ls | grep '\.app$' | head -n 1 | sed 's/\.app$//')
           create-dmg \
             --volname "${APP_NAME}" \
-            --volicon "build/macos/Build/Products/Release/${APP_NAME}.app/Contents/Resources/AppIcon.icns" \
+            --volicon "${APP_NAME}.app/Contents/Resources/AppIcon.icns" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
             --icon "${APP_NAME}.app" 150 190 \
             --hide-extension "${APP_NAME}.app" \
             --app-drop-link 450 190 \
-            "${{ matrix.artifact-path }}" \
-            "build/macos/Build/Products/Release"
+            "${{ github.workspace }}/${{ matrix.artifact-path }}" \
+            .
 
       - name: 打包 macOS DMG (x64)
         if: matrix.build-flavor == 'macos-x64'
         run: |
-          APP_NAME=$(ls build/macos/Build/Products/Release | grep '\.app$' | head -n 1 | sed 's/\.app$//')
+          # 清理 .app 以外的多余文件（如 .dSYM 等）
+          cd build/macos/Build/Products/Release
+          find . -mindepth 1 -maxdepth 1 -not -name '*.app' -exec rm -rf {} +
+
+          APP_NAME=$(ls | grep '\.app$' | head -n 1 | sed 's/\.app$//')
           create-dmg \
             --volname "${APP_NAME}" \
-            --volicon "build/macos/Build/Products/Release/${APP_NAME}.app/Contents/Resources/AppIcon.icns" \
+            --volicon "${APP_NAME}.app/Contents/Resources/AppIcon.icns" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
             --icon "${APP_NAME}.app" 150 190 \
             --hide-extension "${APP_NAME}.app" \
             --app-drop-link 450 190 \
-            "${{ matrix.artifact-path }}" \
-            "build/macos/Build/Products/Release"
+            "${{ github.workspace }}/${{ matrix.artifact-path }}" \
+            .
 
-      # ========= 上传产物（现在 macOS 上传的是 .dmg） =========
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
