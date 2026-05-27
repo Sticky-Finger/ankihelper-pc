@@ -6,7 +6,9 @@ import '../models/card_entry_model.dart';
 import '../models/word_token_model.dart';
 import '../services/pronunciation_service.dart';
 import 'clipboard_provider.dart';
+import 'dictionary_provider.dart';
 import 'pronunciation_provider.dart';
+import 'toast_provider.dart';
 import 'translation_provider.dart';
 
 /// 单词选中状态
@@ -69,6 +71,12 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     ref.listen(translationProvider, (prev, next) {
       if (prev?.translatedText != next.translatedText) {
         _recomputeEntry();
+      }
+    });
+    // 监听词典查询错误 → 显示 Toast
+    ref.listen(dictionaryProvider, (prev, next) {
+      if (next.hasError && prev?.hasError != true) {
+        ref.read(toastProvider.notifier).show(next.result.errorMessage);
       }
     });
     ref.onDispose(() => _debounceTimer?.cancel());
@@ -136,10 +144,13 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     _debouncedRecompute();
   }
 
-  /// selectedText 变化后 300ms 防抖重算 currentEntry
+  /// selectedText 变化后 300ms 防抖重算 currentEntry 并触发词典查询
   void _debouncedRecompute() {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), _recomputeEntry);
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _recomputeEntry();
+      _triggerDictionaryQuery();
+    });
   }
 
   /// 立即重算 currentEntry（剪贴板/翻译变化时调用）
@@ -156,6 +167,14 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
       lastClickedIndex: state.lastClickedIndex,
       currentEntry: entry,
     );
+  }
+
+  /// 触发词典查询（仅在选中非空文本时）
+  void _triggerDictionaryQuery() {
+    final selectedText = state.selectedText;
+    if (selectedText.isNotEmpty) {
+      ref.read(dictionaryProvider.notifier).query(selectedText);
+    }
   }
 
   /// 构建 example 字段：按选中位置精确高亮

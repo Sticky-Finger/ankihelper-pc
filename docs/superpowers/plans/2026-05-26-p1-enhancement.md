@@ -50,7 +50,7 @@ flutter run --debug
 
 ---
 
-### Task 2: 创建词典查询结果模型
+### Task 2: 创建词典查询结果模型 ✅
 
 **创建文件:**
 - `lib/models/dictionary_result_model.dart`
@@ -70,7 +70,7 @@ flutter analyze
 
 ---
 
-### Task 3: 创建有道词典 API 服务
+### Task 3: 创建有道词典 API 服务 ✅
 
 **创建文件:**
 - `lib/services/dictionary_service.dart`
@@ -91,19 +91,19 @@ flutter analyze
 
 ---
 
-### Task 4: 创建词典查询 Provider
+### Task 4: 创建词典查询 Provider ✅
 
 **创建文件:**
 - `lib/providers/dictionary_provider.dart`
 
 **实现内容:**
-- `DictionaryState` 状态类，包含 `result`、`isLoading`、`hasError`
-- `DictionaryNotifier` 状态管理类：
+- [x] `DictionaryState` 状态类，包含 `result`、`isLoading`、`hasError`
+- [x] `DictionaryNotifier` 状态管理类：
   - `updateConfig(TranslationConfig)` 更新 API 配置
   - `query(String word)` 异步查询单词
   - `clear()` 清空结果
-- `dictionaryProvider` — 对应的 `StateNotifierProvider`
-- `dictionaryConfigProvider` — 监听翻译配置变化，自动更新词典服务
+- [x] `dictionaryProvider` — 对应的 `NotifierProvider`
+- [x] `dictionaryConfigProvider` — 监听翻译配置变化，自动更新词典服务
 
 **验证:**
 ```bash
@@ -113,16 +113,16 @@ flutter analyze
 
 ---
 
-### Task 5: 集成词典查询到 WordSelectionNotifier
+### Task 5: 集成词典查询到 WordSelectionNotifier ✅
 
 **修改文件:**
 - `lib/providers/word_selection_provider.dart`
 
 **实现内容:**
-- 导入 `dictionary_provider.dart` 和 `dictionary_result_model.dart`
-- 修改 `_buildEntry()` 方法：暂不填充 `phonetic` 和 `meaning`，保留空值
-- 修改 `_debouncedRecompute()` 方法：在防抖回调中触发词典查询
-- 添加查询错误处理：当 `hasError` 时通过 `toastProvider` 显示错误信息
+- [x] 导入 `dictionary_provider.dart` 和 `toast_provider.dart`
+- [x] 修改 `_buildEntry()` 方法：暂不填充 `phonetic` 和 `meaning`，保留空值
+- [x] 修改 `_debouncedRecompute()` 方法：在防抖回调中触发词典查询
+- [x] 添加查询错误处理：当 `hasError` 时通过 `toastProvider` 显示错误信息
 
 **验证:**
 ```bash
