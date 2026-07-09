@@ -77,3 +77,9 @@ graph TD
 ```
 
 > UI 设计原型位于 `docs/anki-word-helper.html`，可直接在浏览器中打开预览。
+
+---
+
+## 详见
+
+- [Windows 运行指南](RUNNING_ON_WINDOWS.md) — Windows 环境安装与运行步骤详解
