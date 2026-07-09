@@ -22,3 +22,4 @@ chat-logs/**/.git
 build/
 .dart_tool/
 *.iml
+.flutter-plugins-dependencies
