@@ -1,11 +1,11 @@
 {
-  "name": "词汇卡片",
+  "name": "划词助手Antimoon模板",
   "fieldMapping": {
     "单词": "word",
     "音标": "phonetic",
     "释义": "meaning",
     "例句": "example",
-    "例句翻译": "exampleTranslation",
+    "笔记": "exampleTranslation",
     "发音": "pronunciationUrl"
   }
 }

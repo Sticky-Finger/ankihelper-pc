@@ -1,0 +1,1225 @@
+╭─── Claude Code v2.1.74 ──────────────────────────────────────────────────────╮
+│                                               │ Tips for getting started     │
+│                 Welcome back!                 │ Run /init to create a CLAUD… │
+│                                               │ ──────────────────────────── │
+│                    ▐▛███▜▌                    │ Recent activity              │
+│                   ▝▜█████▛▘                   │ No recent activity           │
+│                     ▘▘ ▝▝                     │                              │
+│                                               │                              │
+│   deepseek-v4-flash[1m] · API Usage Billing   │                              │
+│          D:\DOCS\Codes\ankihelper-pc          │                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+❯ /model deepseek-v4-flash[1m]                                                  
+  ⎿  Set model to deepseek-v4-flash[1m]
+
+❯ @docs\superpowers\plans\2026-05-23-ankiconnect-full.md                        
+你参考一下这个我做代码实现之前写的计划文档。我想了解一下关于我这个应用在使用模  
+板时的逻逻辑。我想了解的这一块的逻辑详细包括:第一，当添加anki卡片时，如果anki没 
+有相应的模板,我这个应用会怎么做;第二，如果我手动导入模板。然后再去添加它又会怎  
+么做;第三，如果我的anki本身已经存在了之前使用过的模板，但是这个模板它不一定和我 
+这边这个应用的模板一模一样，它又会怎样判断？                                    
+  ⎿  Read docs\superpowers\plans\2026-05-23-ankiconnect-full.md (562 lines)
+
+● 我来读一下相关代码，基于实际实现给你讲清楚这块逻辑，而不是只依赖计划文档。
+
+● Read 3 files (ctrl+o to expand)
+
+● 再看一下添加卡片时的调用方 results_list.dart 和模板模型定义。
+
+● Read 2 files (ctrl+o to expand)
+
+● 读完代码了。所有场景最后都汇到同一个入口 TemplateManager.ensureModelFields()（
+  lib/services/template_manager.dart:155），添加卡片时（results_list.dart:171 /
+  :246）都会先调它。我先讲统一流程，再逐个回答你的三个问题。
+
+  统一流程：添加卡片前做了什么
+
+  _addNoteToAnki 的调用链（results_list.dart:158）：
+
+  读取当前模板 → ensureModelFields() 校验/注册 Anki 模型
+               → buildFields() 按字段映射填值
+               → addNote() 添加
+
+  ensureModelFields（template_manager.dart:155）只关心一件事：「当前模板」在 
+  Anki 里对应哪个模型名，它有 4 个分支：
+
+  1. 模板 id == 'basic'        → 直接用 Anki 内置名 "Basic"，不检查字段（:160）
+  2. Anki 里没有这个名称        → 用模板自带的 HTML 自动 createModel（:167）
+  3. Anki 里有同名且字段匹配    → 直接用这个模型（:178）
+  4. Anki 里有同名但字段不匹配  → 自动改名创建「原名-N」，返回
+  wasRenamed（:183）
+
+  第一个问题：Anki 没有这个模板，会怎样？
+
+  自动注册，不用你手动建。 走分支 2（:167-174）：
+
+  - getModelNames() 里没有 template.name → 调
+  _registerToAnki（:224），用模板自身存储的 frontHtml / backHtml / css / fields
+  调 createModel 建模型，然后用这个模型名 addNote。
+  - 注意：创建用的 HTML 是模板对象里存的，不是重新读 assets 或文件。
+
+  第二个问题：手动导入模板后再添加，会怎样？
+
+  分两个阶段：
+
+  导入时（best-effort，:98-106）：
+  - importFromFile 解析 HTML 后会尝试 _registerToAnki 注册，但包在 try-catch
+  里——Anki 没打开就静默跳过，不阻塞导入。模板照常存入本地并设为当前选中。
+  - 所以导入时是否成功注册了 Anki 模型，不确定。
+
+  添加时（兜底）：
+  - 走同一个 ensureModelFields。
+    - 如果导入时注册成功且字段没变 → 分支 3，直接用。
+    - 如果导入时 Anki 没开、或模型被删了 → 分支 2，现在补注册。
+  - 结论：真正保证 Anki 里有模型的是「添加卡片」这个动作，导入本身不保证。
+
+  第三个问题：Anki 已有同名模板，但和本地不完全一样？
+
+  这是重点，判断规则在 _fieldListsMatch（:213-221）：
+
+  比较两个字段列表：先长度相等，再各自排序后逐项相等（忽略顺序）
+
+  注意两点：
+
+  1. 只比对字段名，不比对 HTML / CSS。 所以哪怕 Anki 里那个模板的正反面 HTML
+  跟你本地完全不同，只要字段集合一致（个数 + 内容，顺序无所谓），就认为匹配 →
+  分支 3，直接用 Anki 的模型添加。卡片按 Anki 里现有的 HTML 渲染，本地的 HTML
+  被忽略。
+  2. 字段不一致时自动改名（:183-199）：递增找
+  原名-1、原名-2…直到名字可用，用新名字 + 本地 HTML 建模型。然后
+  results_list.dart:177-185 检测到 wasRenamed 会：
+    - 调 updateTemplateName
+  把本地模板名改成新名字并持久化（下次就直接命中新名，不再改名）；
+    - Toast 提示「模板名称已改为 xxx」。
+
+  举例说明分支 3 和 4 的差异：
+
+  ┌─────────────────┬──────────────┬───────────────────────────────────────┐
+  │      Anki       │   本地模板   │                 结果                  │
+  │  里的同名模型   │              │                                       │
+  ├─────────────────┼──────────────┼───────────────────────────────────────┤
+  │ 字段 [单词,     │ 字段 [释义,  │ 匹配（排序后相同），直接用 Anki 的    │
+  │ 音标, 释义]     │ 单词, 音标]  │                                       │
+  ├─────────────────┼──────────────┼───────────────────────────────────────┤
+  │ 字段 [单词,     │ 字段 [单词,  │ 不匹配（个数不同），改名建「模板名-1  │
+  │ 释义]           │ 音标, 释义]  │ 」                                    │
+  ├─────────────────┼──────────────┼───────────────────────────────────────┤
+  │ 字段 [Word, Mea │ 字段 [单词,  │                                       │
+  │ ning]（英文）   │ 释义]（中文  │ 不匹配（内容不同），改名建新模型      │
+  │                 │ ）           │                                       │
+  └─────────────────┴──────────────┴───────────────────────────────────────┘
+
+  一个值得注意的边界情况
+
+  basic 模板（:160-162）完全不校验，直接返回 'Basic'。如果 Anki 里恰好没有名为
+  Basic 的内置模型，addNote 会直接失败——正常 Anki
+  都有这个模型，一般不会触发，但这是它和其他模板行为不一致的地方。
+
+  需要我把这些逻辑画成流程图，或者针对某个分支再展开吗？
+
+✻ Crunched for 31s
+
+❯ 我记得我这里面有一个逻辑是:如果anki这个软件里面，已有的模板占用了我当前软件模 
+板的默认名称，但是它的字段又不匹配。我这边再添加卡片时就会自动添加一个新的卡片  
+模板，但是会在原来默认卡片名称的基础上给新添加的模板的名称添加编号，对吧？现在  
+有一个新的问题,就是我这个软件，它怎么知道我当前添加卡片时需要用那一个模板名称的 
+模板?我在我这个应用的设置里面没有看到具体名称的模板,默认选择的模板在选项中是‘词 
+汇模板’，实际使用的模板名称应该不是这个吧                                       
+
+● 好问题，这正好戳中「显示名」和「Anki
+  模型名」到底是同一个还是两个。我先确认两个文件再给你准确答案。
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● 再确认一处：改名后的名称到底有没有持久化，重启后会不会恢复原名。
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● 确认完了，两个关键点都查到了。分两部分回答你。
+
+  第一部分：改名逻辑——你的理解完全正确
+
+  当 Anki 里有同名但字段不匹配的模型时，ensureModelFields（template_manager.dart
+  :183-199）会：
+
+  递增找可用名：「词汇卡片-1」「词汇卡片-2」…直到不冲突
+  → 用本地模板的 HTML 建新模型
+  → 返回 renamedFrom = "词汇卡片"
+  → results_list.dart:177-185 调 updateTemplateName 把本地模板名字改成新名
+  → Toast 提示「模板名称已改为 xxx」
+
+  第二部分：应用怎么知道用哪个模板名？——就用下拉框显示的那个
+
+  关键点：应用只有一个「当前模板」（templateProvider.state），不存在"在多个名称
+  里查找"的逻辑。实际模型名就是 template.name
+  这个字段本身，而下拉框显示的文字也是它（settings_dialog.dart:183 直接渲染
+  template.name）。两者是同一个字符串。
+
+  所以：
+
+  ┌────────────┬──────────────────────────────────────────────┐
+  │ 下拉框显示 │          实际添加时用的 Anki 模型名          │
+  ├────────────┼──────────────────────────────────────────────┤
+  │ 词汇卡片   │ 「词汇卡片」（同一字符串）                   │
+  ├────────────┼──────────────────────────────────────────────┤
+  │ 词汇卡片-1 │ 「词汇卡片-1」（改名后下拉框也同步显示这个） │
+  ├────────────┼──────────────────────────────────────────────┤
+  │ 基础卡片   │ 「Basic」 ← 唯一的例外                       │
+  └────────────┴──────────────────────────────────────────────┘
+
+  唯一显示名 ≠ 模型名的情况是「基础卡片」：template_manager.dart:160-162
+  对它硬编码返回 'Basic'（Anki 内置模型名），不查字段。如果你看到的是「基础卡片
+  」而疑惑"实际名字应该不是这个吧"——那你猜对了，它实际用的是
+  Basic。但「词汇卡片」不是这种情况，它显示什么就用什么。
+
+  顺带确认：配置里内置模板的名字实际是 
+  「词汇卡片」（vocabulary_card_model.json:2），不是"词汇模板"，可能是记混了。
+
+  一个你可能没意识到的坑：改名在重启后不生效
+
+  updateTemplateName 只改内存里的 name，持久化只存了选中的模板 
+  ID（template_provider.dart:115），没存改过的名字。
+
+  而内置模板每次启动都是从 assets + JSON
+  重新构造的（template_provider.dart:46-55，name: config['name'] →
+  又变回「词汇卡片」）。
+
+  所以如果 Anki 里那个字段不匹配的「词汇卡片」一直在：
+
+  会话内第1次添加 → 建「词汇卡片-1」，内存名改成「词汇卡片-1」
+  重启应用        → 内置模板又变回「词汇卡片」（因为从配置重新读）
+  会话内再添加    → 「词汇卡片-1」已被占用 → 建「词汇卡片-2」！
+
+  每次重启都会让后缀继续递增，除非 Anki 里那个同名不匹配的模型被删掉或改对字段。
+  这是当前实现的一个缺口——改名结果没有真正持久化。
+
+  顺带发现：导入的模板重启后其实不会重新加载
+
+  importTemplate 会把路径写进
+  _importedTemplatesKey（template_provider.dart:118-122），但启动时的
+  _initializeTemplates（:28-31）只加载内置模板 + 恢复选中 
+  ID，没有读回导入的路径。也就是说计划文档里写的"下次启动自动加载导入模板"实际上
+  没实现——导入的模板只在当前会话有效。
+
+  这两个都是和模板持久化相关的真实缺口，需要我按规范走 writing-plans + 计划 Task
+   的方式去修吗？还是你先想自己确认一下 Anki 那边的模型情况？
+
+✻ Sautéed for 1m 15s
+
+❯ 我导入模板试了下，重启当前软件的客户端，的确之前添加的模板不见了。是什么原因  
+导致的？还有我想把当前默认选中模板‘词汇卡片’改名成‘划词助手Antimoon模板’，并且  
+将模板中的字段‘例句翻译’改名成‘笔记’                                            
+
+● 先说第一个问题的原因——这个我已经在代码里确认过了，现在把 HTML
+  模板也看一下，确认字段改名的改动范围。
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● 我已经把相关代码和模板文件都看完了，原因已经完全清楚。在写计划前先读一下字段映
+  射编辑器，确认改名的波及范围。
+
+● Read 1 file (ctrl+o to expand)
+
+● 现在原因和改动范围都完全清楚了。先给你讲原因，再问两个决定改动范围的问题。
+
+  为什么重启后导入的模板不见了
+
+  根因在 template_provider.dart 的启动流程：
+
+  - 启动时 _initializeTemplates()（template_provider.dart:28-31）只做了两件事：
+  加载内置模板 + 恢复选中的模板 ID。
+  - importTemplate()（template_provider.dart:118-122）虽然把模板路径写进了
+  _importedTemplatesKey（SharedPreferences），但代码里没有任何地方在启动时把它读
+  回来重新加载。
+  - 所以导入的模板只存在于当前会话的内存列表 _templates
+  里，一重启就没了。路径存了，但从来没人用。这也是我之前在 grep
+  时确认到的：_importedTemplatesKey 只在写入和删除时出现，没有任何读取逻辑。
+
+  另外还有一个连带问题：导入模板的 id 是 imported_${时间戳}（template_manager.da
+  rt:92），每次重启用同一个路径重导会生成新 id，导致该模板保存的字段映射（存在
+  field_mapping_$id）也对不上。
+
+  改名涉及的改动点（已全部核实）
+
+  ┌──────────────────────────────┬─────────┬────────────────────────────────┐
+  │             文件             │  位置   │              改动              │
+  ├──────────────────────────────┼─────────┼────────────────────────────────┤
+  │ assets/template01/vocabulary │ :2      │ "name": "词汇卡片" →           │
+  │ _card_model.json             │         │ "划词助手Antimoon模板"         │
+  ├──────────────────────────────┼─────────┼────────────────────────────────┤
+  │                              │         │ "例句翻译":                    │
+  │ 同上                         │ :8      │ "exampleTranslation" → "笔记": │
+  │                              │         │  ...                           │
+  ├──────────────────────────────┼─────────┼────────────────────────────────┤
+  │ assets/template01/vocabulary │ :30/:32 │ 正反面占位符 {{例句翻译}} →    │
+  │ _card_model.html             │ /:34    │ {{笔记}}（含 {{#}}/{{/}} 块）  │
+  ├──────────────────────────────┼─────────┼────────────────────────────────┤
+  │ 同上                         │ :164    │ 字段名列表 例句翻译 → 笔记     │
+  ├──────────────────────────────┼─────────┼────────────────────────────────┤
+  │ lib/services/template_manage │         │ _knownFieldNames 增加 '笔记':  │
+  │ r.dart                       │ :242    │ 'exampleTranslation'（兼容重新 │
+  │                              │         │ 导入时识别），保留 '例句翻译'  │
+  └──────────────────────────────┴─────────┴────────────────────────────────┘
+
+  注意：field_mapping_editor.dart
+  里的「例句翻译」是数据源（翻译结果），不是模板字段，见下面的问题。
+
+  在写计划前有两个决定需要你拍板。
+
+● User answered Claude's questions:
+  ⎿  · 导入模板重启后消失的问题，这次要不要一并修复？（你刚才已经实际踩到了） → 
+     一并修复（推荐）
+     · 设置弹窗字段映射编辑器里的数据源「例句翻译」（表示翻译结果，是数据来源名
+     ，不是模板字段），要不要也改成「笔记」？ → 保持不变（推荐）
+
+● 两个决定都收到：一并修复导入丢失、数据源标签保持「例句翻译」。我来写计划文件。
+
+● Updated plan
+  ⎿  /plan to preview
+
+● 计划已写好，请审阅。
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ 内置模板改名 + 修复导入模板重启丢失                                     │
+     │                                                                         │
+     │ Context（背景）                                                         │
+     │                                                                         │
+     │ 用户实际使用中发现两个问题：                                            │
+     │                                                                         │
+     │ 1. 导入的模板重启后消失：lib/providers/template_provider.dart 的启动流程│
+     │  _initializeTemplates()（:28-31）只加载内置模板 + 恢复选中模板          │
+     │ ID，从不读回 imported_template_paths                                    │
+     │ 里持久化的路径。导入的模板只存在于当前会话的内存列表 _templates         │
+     │ 中，一重启就没了。且导入模板的 id                                       │
+     │ 用时间戳生成（template_manager.dart:92），即使重导同一个文件，id        │
+     │ 也不稳定，导致该模板保存的字段映射（field_mapping_$id）跨重启对不上。   │
+     │ 2. 内置模板需要改名：把默认模板「词汇卡片」改名成「划词助手Antimoon模板 │
+     │ 」，并把模板字段「例句翻译」改名成「笔记」。字段映射编辑器里的数据源「例│
+     │ 句翻译」（表示翻译结果，是数据来源名）保持不变。                        │
+     │                                                                         │
+     │ 期望结果：内置模板以新名称/新字段展示并注册到                           │
+     │ Anki；导入的模板重启后能恢复，且名称与字段映射不丢。                    │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Task 1: 内置模板改名 — 划词助手Antimoon模板 / 字段「笔记」              │
+     │                                                                         │
+     │ 1.1 assets/template01/vocabulary_card_model.json                        │
+     │                                                                         │
+     │ - :2 "name": "词汇卡片" → "name": "划词助手Antimoon模板"                │
+     │ - :8 "例句翻译": "exampleTranslation" → "笔记": "exampleTranslation"    │
+     │                                                                         │
+     │ 1.2 assets/template01/vocabulary_card_model.html                        │
+     │                                                                         │
+     │ - :30 {{#例句翻译}} → {{#笔记}}                                         │
+     │ - :32 {{例句翻译}} → {{笔记}}                                           │
+     │ - :34 {{/例句翻译}} → {{/笔记}}                                         │
+     │ - :164 字段名列表 例句翻译 → 笔记                                       │
+     │                                                                         │
+     │ 1.3 lib/services/template_manager.dart — _knownFieldNames（:242-255）   │
+     │                                                                         │
+     │ - 新增 '笔记': 'exampleTranslation'（重新导入该 HTML                    │
+     │ 时默认映射能识别新字段名）                                              │
+     │ - 保留 '例句翻译'（兼容旧模板）                                         │
+     │                                                                         │
+     │ 注意：内置模板 id 不变（builtin_vocabulary_card_model），名称/字段每次启│
+     │ 动从配置读取，所以需重启应用才生效。若 Anki 中已存在旧「词汇卡片」模型，│
+     │ 它将成为孤儿模型不再被使用，新卡片走「划词助手Antimoon模板」。          │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Task 2: 修复导入模板重启丢失                                            │
+     │                                                                         │
+     │ 2.1 lib/services/template_manager.dart — importFromFile（:76）          │
+     │                                                                         │
+     │ - 新增可选参数 String? templateId                                       │
+     │ - :92 改为 final id = templateId ??                                     │
+     │ 'imported_${DateTime.now().millisecondsSinceEpoch}';                    │
+     │ - 使导入模板能用持久化的 id 重建（保证 field_mapping_$id 跨重启匹配）   │
+     │                                                                         │
+     │ 2.2 lib/providers/template_provider.dart                                │
+     │                                                                         │
+     │ - :14 常量值 'imported_template_paths' → 'imported_templates'（新 JSON  │
+     │ 格式；旧的 StringList 数据成为孤儿，无害）                              │
+     │ - importTemplate（:93-125）：路径存储从 StringList 改为 JSON 结构       │
+     │ [{path, id, name}]，导入成功后写入 {path: filePath, id: template.id,    │
+     │ name: template.name}（dart:convert 已导入）                             │
+     │ - _initializeTemplates（:28-31）：在 _loadBuiltinTemplate() 后新增 await│
+     │  _loadImportedTemplates();                                              │
+     │ - 新增 _loadImportedTemplates()：                                       │
+     │ 1. 读取 JSON 列表 [{path, id, name}]                                    │
+     │ 2. 每条调用 TemplateManager.importFromFile(path, name: name, id: id)    │
+     │ 3. 若 loadFieldMappingAsync(id) 非空 → 覆盖模板的 fieldMapping          │
+     │ 4. _templates.insert(0, template)（不设置 state，选中恢复交给           │
+     │ _loadSelectedTemplateId）                                               │
+     │ 5. 单条失败静默跳过，不阻塞启动                                         │
+     │ - removeTemplate（:154-184）：删除逻辑从「按文件名匹配路径」改为「按 id │
+     │ 从 JSON 列表移除」                                                      │
+     │                                                                         │
+     │ ---                                                                     │
+     │ 验证                                                                    │
+     │                                                                         │
+     │ 1. flutter analyze 无报错                                               │
+     │ 2. 重启应用 → 设置 → 模板下拉显示「划词助手Antimoon模板」，字段映射显示 │
+     │ 笔记 ← 例句翻译（数据源标签不变）                                       │
+     │ 3. 选中单词 → 添加卡片 → Anki                                           │
+     │ 自动创建「划词助手Antimoon模板」模型，字段含「笔记」，卡片渲染正确      │
+     │ 4. 导入一个 HTML 模板 → 重启应用 → 该模板仍在列表中，名称与字段映射保持 │
+     │ 5. 删除已导入模板 → 重启 → 不再出现                                     │
+     │ 6. flutter run -d windows 手动走通上述流程                              │
+     │                                                                         │
+     │                                                                         │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+❯ @WORKFLOW.md 当前项目的开发工作流是按照这个文件上面的流程来的。我现在想在to   
+do和PRD上添加对应的代办事项,是我不太清楚应该写成什么样子，我们讨论一下。        
+  ⎿  Read WORKFLOW.md (20 lines)
+
+● 好，我们先不急着实现，先把 TODO 和 PRD
+  的条目格式对齐。我先读一下现有两个文档的结构。
+
+● Read 2 files (ctrl+o to expand)
+
+● 两个文档的结构我都看完了。先给你总结一下现有格式规律，再给出我建议的写法，最后
+  有两个取舍点需要你定。
+
+  现有格式规律
+
+  - TODO.md：按优先级分大区（### P0 / ## 待规划 📋 / ### P1 功能（体验增强） /
+  ### P2 功能（未来考虑）），功能名用 - [x] **加粗标题**，细节用缩进的子项 - 
+  [x]，完成的大区标题后加 ✅。
+  - PRD.md：同样按 P0/P1/P2 分区，功能条目 - [x] **名称**：一句话描述，P0
+  的「AnkiConnect 完整功能」目前全 ✅。
+  - 关键点：P0 是"全量必须完成"，当前全部 ✅；P1 只有已冻结/已移除项；P2
+  是未来项。
+
+  这两个任务（导入恢复 + 模板改名）都属于体验增强/修复，不是 P0
+  核心需求，所以放进 P1 功能（体验增强） 最合适，不会让已完成的全 ✅ P0
+  区块出现未勾选项。
+
+  拟新增内容（两种粒度可选）
+
+  TODO.md（插在 P1 区末尾，TODO.md:201 之后）：
+
+  - [ ] **导入模板重启自动恢复**
+      - [ ] 启动时从持久化路径重新加载已导入的模板（_loadImportedTemplates）
+      - [ ] 导入模板 id 改为持久化的稳定值，字段映射跨重启保持
+  - [ ] **内置模板改名**
+      - [ ] 默认模板「词汇卡片」→「划词助手Antimoon模板」
+      - [ ] 模板字段「例句翻译」→「笔记」（数据源标签「例句翻译」保持不变）
+
+  PRD.md（插在 P1 区末尾，PRD.md:188 之后）：
+
+  - [ ] **导入模板重启自动恢复**：已导入的 HTML
+  模板在重启应用后自动恢复，字段映射保持
+  - [ ] **内置模板内容更新**：默认内置模板更名为「划词助手Antimoon模板」，字段「
+  例句翻译」更名为「笔记」
+
+  另外 PRD 第 6.2 节有一处旧字段引用要同步（PRD.md:283）：单词、音标、发音、例句
+  、释义、例句翻译、url → 把「例句翻译」改成「笔记」。
+
+  有两点想跟你确认。
+
+● User answered Claude's questions:
+  ⎿  · 两个新条目放哪个分区？ → 我想新加一个完全新的标题段落名,比如就叫做‘bug修
+     复和功能改进’。因为当前的这个要做的改动并不在主线开发任务里面。
+     · 除了 TODO + PRD，要不要把其他引用旧名称的文档也一起改？ → 
+     一并更新其他文档
+
+● 明白了——新开一个独立分区「Bug修复和功能改进」，和其他主线功能区分开；同时其他
+  文档也一并更新。我先读 README 和 Introduce，把要改的具体位置也摸清楚。
+
+● Read 2 files (ctrl+o to expand)
+
+● 文档位置都摸清了。结论：Introduce.md 里是字段列表（明确要改），README.md
+  里「例句翻译」是翻译功能/内容的描述（不是字段名，改了反而失真，建议保留——这点
+  在计划里我会标注，你可以否决）。我把完整计划更新进计划文件。
+
+● Updated plan
+  ⎿  /plan to preview
+
+● 计划已更新，包含文档条目、内置模板改名、导入模板修复三个 Task，请审阅。
+
+● User approved Claude's plan
+  ⎿  Plan saved to: C:\Users\wpw\.claude\plans\proud-hugging-rainbow.md · /plan 
+     to edit
+     内置模板改名 + 修复导入模板重启丢失（含文档条目）
+
+     Context（背景）
+
+     用户实际使用中发现两个问题：
+
+     1. 导入的模板重启后消失：lib/providers/template_provider.dart 的启动流程
+     _initializeTemplates()（:28-31）只加载内置模板 + 恢复选中模板 ID，从不读回
+     imported_template_paths
+     里持久化的路径。导入的模板只存在于当前会话的内存列表 _templates
+     中，一重启就没了。且导入模板的 id
+     用时间戳生成（template_manager.dart:92），重导同一文件 id
+     也不稳定，字段映射跨重启对不上。
+     2. 内置模板需要改名：默认模板「词汇卡片」→「划词助手Antimoon模板」，字段「
+     例句翻译」→「笔记」。字段映射编辑器里的数据源「例句翻译」（表示翻译结果，是
+     数据来源名）保持不变。
+
+     按 WORKFLOW.md，这些改动不属于主线 P0/P1/P2 功能，需在 TODO.md / PRD.md
+     新增独立分区「Bug修复和功能改进」跟踪，并同步更新引用旧名称的文档。
+
+     ---
+     Task 1: 文档条目 — 新增「Bug修复和功能改进」分区 + 同步文档
+
+     1.1 docs/TODO.md — 文末（### P2 功能（未来考虑） 之后）新增顶级分区
+
+     ## Bug修复和功能改进
+
+     - [ ] **导入模板重启自动恢复**
+         - [ ] 启动时从持久化路径重新加载已导入的模板（_loadImportedTemplates）
+         - [ ] 导入模板 id 改为持久化的稳定值，字段映射跨重启保持
+     - [ ] **内置模板改名**
+         - [ ] 默认模板「词汇卡片」→「划词助手Antimoon模板」
+         - [ ] 模板字段「例句翻译」→「笔记」（数据源标签「例句翻译」保持不变）
+
+     1.2 docs/PRD.md
+
+     - 在 ## 3. 功能清单 内、### P2功能（未来考虑） 之后新增 ### 
+     Bug修复和功能改进：
+
+     ### Bug修复和功能改进
+
+     - [ ] **导入模板重启自动恢复**：已导入的 HTML
+     模板在重启应用后自动恢复，字段映射保持
+     - [ ] **内置模板内容更新**：默认内置模板更名为「划词助手Antimoon模板」，字
+     段「例句翻译」更名为「笔记」
+
+     - 更新 :283 字段列表：…例句、释义、例句翻译、url → …例句、释义、笔记、url
+
+     1.3 assets/template01/Introduce.md
+
+     - :5、:6 的字段列表 例句翻译 → 笔记
+
+     1.4 README.md — 不改
+
+     - README
+     中「例句翻译」（:17、:25）指的是翻译内容/功能（"例句及例句翻译""获取例句翻
+     译"），不是模板字段名，保持原文更准确。若你要求全量替换，可再改成「笔记」。
+
+     ---
+     Task 2: 内置模板改名
+
+     2.1 assets/template01/vocabulary_card_model.json
+
+     - :2 "name": "词汇卡片" → "name": "划词助手Antimoon模板"
+     - :8 "例句翻译": "exampleTranslation" → "笔记": "exampleTranslation"
+
+     2.2 assets/template01/vocabulary_card_model.html
+
+     - :30 {{#例句翻译}} → {{#笔记}}
+     - :32 {{例句翻译}} → {{笔记}}
+     - :34 {{/例句翻译}} → {{/笔记}}
+     - :164 字段名列表 例句翻译 → 笔记
+
+     2.3 lib/services/template_manager.dart — _knownFieldNames（:242-255）
+
+     - 新增 '笔记': 'exampleTranslation'（重新导入该 HTML
+     时默认映射能识别新字段名）
+     - 保留 '例句翻译'（兼容旧模板）
+
+     注意：内置模板 id 不变（builtin_vocabulary_card_model），名称/字段每次启动
+     从配置读取，需重启应用才生效。若 Anki 中已存在旧「词汇卡片」模型，它将成为
+     孤儿模型不再被使用，新卡片走「划词助手Antimoon模板」。
+
+     ---
+     Task 3: 修复导入模板重启丢失
+
+     3.1 lib/services/template_manager.dart — importFromFile（:76）
+
+     - 新增可选参数 String? templateId
+     - :92 改为 final id = templateId ?? 
+     'imported_${DateTime.now().millisecondsSinceEpoch}';
+     - 使导入模板能用持久化的 id 重建（保证 field_mapping_$id 跨重启匹配）
+
+     3.2 lib/providers/template_provider.dart
+
+     - :14 常量值 'imported_template_paths' → 'imported_templates'（新 JSON
+     格式；旧的 StringList 数据成为孤儿，无害）
+     - importTemplate（:93-125）：路径存储从 StringList 改为 JSON 结构 [{path, 
+     id, name}]，导入成功后写入 {path: filePath, id: template.id, name: 
+     template.name}
+     - _initializeTemplates（:28-31）：在 _loadBuiltinTemplate() 后新增 await 
+     _loadImportedTemplates();
+     - 新增 _loadImportedTemplates()：
+     1. 读取 JSON 列表 [{path, id, name}]
+     2. 每条调用 TemplateManager.importFromFile(path, name: name, id: id)
+     3. 若 loadFieldMappingAsync(id) 非空 → 覆盖模板的 fieldMapping
+     4. _templates.insert(0, template)（不设置 state，选中恢复交给
+     _loadSelectedTemplateId）
+     5. 单条失败静默跳过，不阻塞启动
+     - removeTemplate（:154-184）：删除逻辑从「按文件名匹配路径」改为「按 id 从
+     JSON 列表移除」
+
+     ---
+     验证
+
+     1. flutter analyze 无报错
+     2. 重启应用 → 设置 → 模板下拉显示「划词助手Antimoon模板」，字段映射显示
+     笔记 ← 例句翻译（数据源标签不变）
+     3. 选中单词 → 添加卡片 → Anki
+     自动创建「划词助手Antimoon模板」模型，字段含「笔记」，卡片渲染正确
+     4. 导入一个 HTML 模板 → 重启应用 → 该模板仍在列表中，名称与字段映射保持
+     5. 删除已导入模板 → 重启 → 不再出现
+     6. flutter run -d windows 手动走通上述流程
+
+● 计划已批准。按项目规范，先用 executing-plans 技能来执行这个计划。
+
+● Skill(superpowers:executing-plans)
+  ⎿  Successfully loaded skill
+
+● 我正在使用 executing-plans 技能来执行这个计划。
+
+  计划评审：三个 Task
+  边界清晰、改动点都已核实，无阻塞性问题。先建任务清单和分支。
+
+  按项目 CLAUDE.md 规范：不使用 worktree，从 master 建 bugfix 分支，实现后
+  --ff-only 合回并删除。
+
+● Bash(git status && git branch --show-current)
+  ⎿  On branch master
+     Your branch is up to date with 'origin/master'.
+     … +2 lines (ctrl+o to expand)
+
+● Bash(git checkout -b bugfix/imported-template-restore)
+  ⎿  Switched to a new branch 'bugfix/imported-template-restore'
+
+● 分支 bugfix/imported-template-restore 已创建。开始 Task 1（文档条目）。
+
+● Update(docs\TODO.md)
+  ⎿  Added 9 lines
+      214      - [ ] 多本词典导入并自动建立索引                          
+      215      - [ ] 用户在设置中选择当前启用的词典                      
+      216      - [ ] 本地查询优先级低于云端词典（作为备选方案）          
+      217 +                                                              
+      218 +## Bug修复和功能改进                                          
+      219 +                                                              
+      220 +- [ ] **导入模板重启自动恢复**                                
+      221 +    - [ ] 启动时从持久化路径重新加载已导入的模板（_loadImport 
+          +edTemplates）                                                 
+      222 +    - [ ] 导入模板 id 改为持久化的稳定值，字段映射跨重启保持  
+      223 +- [ ] **内置模板改名**                                        
+      224 +    - [ ] 默认模板「词汇卡片」→「划词助手Antimoon模板」       
+      225 +    - [ ] 模板字段「例句翻译」→「笔记」（数据源标签「例句翻译 
+          +」保持不变）                                                  
+
+● Update(docs\PRD.md)
+  ⎿  Added 5 lines
+      202      - [ ] 用户在设置中选择当前启用的词典                      
+      203      - [ ] 本地查询优先级低于云端词典（作为备选方案）          
+      204                                                                
+      205 +### Bug修复和功能改进                                         
+      206 +                                                              
+      207 +- [ ] **导入模板重启自动恢复**：已导入的 HTML                 
+          +模板在重启应用后自动恢复，字段映射保持                        
+      208 +- [ ] **内置模板内容更新**：默认内置模板更名为「划词助手Antim 
+          +oon模板」，字段「例句翻译」更名为「笔记」                     
+      209 +                                                              
+      210  ## 4. 用户界面布局                                            
+      211                                                                
+      212  ```                                                           
+
+● Update(docs\PRD.md)
+  ⎿  Added 1 line, removed 1 line
+      285                                                                
+      286  ### 6.2 字段映射                                              
+      287                                                                
+      288 -用户导入的模板包含自己的字段名列表（例如                      
+          -`vocabulary_card_model.html`                                  
+          -的模板字段为：单词、音标、发音、例句、释义、例句翻译          
+          -、url）。通过**字段映射**配置，将 UI                          
+          -数据源映射到模板字段，用于添加卡片时预填充初始值。            
+      288 +用户导入的模板包含自己的字段名列表（例如                      
+          +`vocabulary_card_model.html`                                  
+          +的模板字段为：单词、音标、发音、例句、释义、笔记              
+          +、url）。通过**字段映射**配置，将 UI                          
+          +数据源映射到模板字段，用于添加卡片时预填充初始值。            
+      289                                                                
+      290  - 导入模板后默认映射：**第一个模板字段 → `单词`，其余模板字段 
+            → `空`**                                                     
+      291  - 用户可在设置弹窗中修改映射：每个模板字段对应一个 Select     
+           选择器（选项：单词、例句、例句翻译、空）                      
+
+● Update(assets\template01\Introduce.md)
+  ⎿  Added 1 line, removed 1 line
+      2                                                                  
+      3  ## 根据这个模板添加出来的卡片效果                               
+      4                                                                  
+      5 -- 卡片编辑时，字段从上到下是——单词、音标、发音、例句、释义、    
+        -例句翻译、url                                                   
+      5 +- 卡片编辑时，字段从上到下是——单词、音标、发音、例句、释义、笔记
+        +、url                                                           
+      6  - 卡片显示时，从上到下从左到右排是这个顺序——单词、音标、发音、  
+         例句、释义、例句翻译。卡片显示时是看不到url字段的               
+      7                                                                  
+      8  ## anki卡片模板文件说明                                         
+
+● Update(assets\template01\Introduce.md)
+  ⎿  Added 1 line, removed 1 line
+      3  ## 根据这个模板添加出来的卡片效果                               
+      4                                                                  
+      5  - 卡片编辑时，字段从上到下是——单词、音标、发音、例句、释义、笔  
+         记、url                                                         
+      6 -- 卡片显示时，从上到下从左到右排是这个顺序——单词、音标、发音、例
+        -句、释义、例句翻译。卡片显示时是看不到url字段的                 
+      6 +- 卡片显示时，从上到下从左到右排是这个顺序——单词、音标、发音、例
+        +句、释义、笔记。卡片显示时是看不到url字段的                     
+      7                                                                  
+      8  ## anki卡片模板文件说明                                         
+      9                                                                  
+
+● Task 1 的文档改动完成。快速核对一下剩余「例句翻译」出现位置是否符合预期。
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● 剩余「例句翻译」出现位置核对无误——都是数据源/翻译功能描述（保留）或 Task 2
+  待改的模板文件。Task 1 完成。
+
+● 开始 Task 2（内置模板改名）。
+
+● Update(assets\template01\vocabulary_card_model.json)
+  ⎿  (No changes)
+
+● Update(assets\template01\vocabulary_card_model.json)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ 我要先手动提交一下当前的文档更改。你给我一个合适的提交信息                    
+
+● 我先看一下当前工作区改了哪些文件，再给一个贴合实际改动的提交信息。
+
+● Bash(git status && echo "---" && git diff --stat)
+  ⎿  On branch bugfix/imported-template-restore
+     Changes to be committed:
+       (use "git restore --staged <file>..." to unstage)
+     … +5 lines (ctrl+o to expand)
+
+● 改动就这三个文件，都是文档/教程类：
+
+  - docs/TODO.md — 新增「Bug修复和功能改进」分区
+  - docs/PRD.md — 新增「Bug修复和功能改进」分区 + 6.2 节字段列表同步
+  - assets/template01/Introduce.md — 字段列表「例句翻译」→「笔记」
+
+  提交信息建议（符合项目 <type>(<scope>): <subject> 规范）：
+
+  docs: 新增「Bug修复和功能改进」分区并同步模板字段名（例句翻译→笔记）
+
+  这些文件已经暂存好了，你直接 git commit 即可。需要我把后续的代码改动（Task
+  2/3）先停在这里等你提交完再继续吗？
+
+❯ 好的，我已经提交了。现在开始做下一步                                          
+
+● 好的，继续 Task 2（内置模板改名）。先确认工作区状态。
+
+● Bash(git status --short && git log --oneline -1)
+  ⎿  5f1e381 docs: 新增「Bug修复和功能改进」分区并同步模板字段名（例句翻译→
+     笔记）
+
+● 提交成功，工作区干净。开始 Task 2 的模板文件改名。
+
+● Update(assets\template01\vocabulary_card_model.json)
+  ⎿  Added 1 line, removed 1 line
+      1  {                                                               
+      2 -  "name": "词汇卡片",                                           
+      2 +  "name": "划词助手Antimoon模板",                               
+      3    "fieldMapping": {                                             
+      4      "单词": "word",                                             
+      5      "音标": "phonetic",                                         
+
+● Update(assets\template01\vocabulary_card_model.json)
+  ⎿  Added 1 line, removed 1 line
+       5      "音标": "phonetic",                                        
+       6      "释义": "meaning",                                         
+       7      "例句": "example",                                         
+       8 -    "例句翻译": "exampleTranslation",                          
+       8 +    "笔记": "exampleTranslation",                              
+       9      "发音": "pronunciationUrl"                                 
+      10    }                                                            
+      11  }                                                              
+
+● JSON 改好了。接着改 HTML 的占位符和字段列表。
+
+● Update(assets\template01\vocabulary_card_model.html)
+  ⎿  Added 3 lines, removed 3 lines
+      27  </div>                                                         
+      28  {{/释义}}                                                      
+      29                                                                 
+      30 -{{#例句翻译}}                                                  
+      30 +{{#笔记}}                                                      
+      31  <div class="section">                                          
+      32 -  <div id="note" class="items">{{例句翻译}}</div>              
+      32 +  <div id="note" class="items">{{笔记}}</div>                  
+      33  </div>                                                         
+      34 -{{/例句翻译}}                                                  
+      34 +{{/笔记}}                                                      
+      35                                                                 
+      36                                                                 
+      37  @@@                                                            
+
+● Update(assets\template01\vocabulary_card_model.html)
+  ⎿  Added 1 line, removed 1 line
+      161  发音                                                          
+      162  例句                                                          
+      163  释义                                                          
+      164 -例句翻译                                                      
+      164 +笔记                                                          
+      165  url                                                           
+
+● 现在给 _knownFieldNames 增加「笔记」的识别，保证重新导入该 HTML
+  时默认映射能认出新字段名。
+
+● Update(lib\services\template_manager.dart)
+  ⎿  Added 1 line
+      250      'example': 'example',                                     
+      251      'exampleTranslation': 'exampleTranslation',               
+      252      '例句翻译': 'exampleTranslation',                         
+      253 +    '笔记': 'exampleTranslation',                             
+      254      '发音': 'pronunciationUrl',                               
+      255      'pronunciationUrl': 'pronunciationUrl',                   
+      256    };                                                          
+
+● Task 2 改动完成，验证一下模板文件一致性。
+
+● Searched for 2 patterns (ctrl+o to expand)
+
+● Task 2 验证通过：模板文件已无「词汇卡片/例句翻译」残留，_knownFieldNames
+  同时保留新旧字段名。
+
+  Task 2 完成，进入 Task 3（修复导入模板重启丢失）。先改 template_manager.dart。
+
+● Update(lib\services\template_manager.dart)
+  ⎿  Added 1 line
+      77      required String filePath,                                  
+      78      required AnkiConnectService service,                       
+      79      String? name,                                              
+      80 +    String? templateId,                                        
+      81      Map<String, String>? fieldMapping,                         
+      82    }) async {                                                   
+      83      final file = File(filePath);                               
+
+● Update(lib\services\template_manager.dart)
+  ⎿  Added 2 lines, removed 2 lines
+      89      final defaultName =                                        
+          fileName.replaceAll(RegExp(r'\.html$'), '');                   
+      90      final templateName = name ?? defaultName;                  
+      91                                                                 
+      92 -    // 生成唯一 ID                                             
+      93 -    final id =                                                 
+         -'imported_${DateTime.now().millisecondsSinceEpoch}';           
+      92 +    // 生成唯一 ID（优先使用传入的稳定                         
+         +id，用于重启后重建模板）                                       
+      93 +    final id = templateId ??                                   
+         +'imported_${DateTime.now().millisecondsSinceEpoch}';           
+      94                                                                 
+      95      // 构建默认字段映射（如果未提供，使用模板字段名作为 key）  
+      96      final mapping = fieldMapping ??                            
+          _buildDefaultMapping(parsed.fields);                           
+
+● 现在改 template_provider.dart。分几处编辑：存储常量、启动加载顺序、导入写入、
+  新增恢复方法、删除逻辑。
+
+● Update(lib\providers\template_provider.dart)
+  ⎿  Added 1 line, removed 1 line
+      11  /// 卡片模板状态管理                                           
+      12  class TemplateNotifier extends Notifier<CardTemplateModel> {   
+      13    static const String _selectedTemplateIdKey =                 
+          'selected_template_id';                                        
+      14 -  static const String _importedTemplatesKey = '                
+         -imported_template_paths';                                      
+      14 +  static const String _importedTemplatesKey = '                
+         +imported_templates';                                           
+      15                                                                 
+      16    final List<CardTemplateModel> _templates = [];               
+      17                                                                 
+
+● Update(lib\providers\template_provider.dart)
+  ⎿  Added 2 lines, removed 1 line
+      24      return CardTemplateModel.basic;                            
+      25    }                                                            
+      26                                                                 
+      27 -  /// 异步初始化模板列表（确保加载顺序：内置模板 → 恢复选中）  
+      27 +  /// 异步初始化模板列表（确保加载顺序：内置模板 → 导入模板 →  
+         +恢复选中）                                                     
+      28    Future<void> _initializeTemplates() async {                  
+      29      await _loadBuiltinTemplate();                              
+      30 +    await _loadImportedTemplates();                            
+      31      await _loadSelectedTemplateId();                           
+      32    }                                                            
+      33                                                                 
+
+● Update(lib\providers\template_provider.dart)
+  ⎿  Added 5 lines, removed 5 lines
+      115      final prefs = await SharedPreferences.getInstance();      
+      116      await prefs.setString(_selectedTemplateIdKey,             
+           template.id);                                                 
+      117                                                                
+      118 -    // 保存导入的文件路径                                     
+      119 -    final paths = prefs.getStringList(_importedTemplatesKey)  
+          -?? [];                                                        
+      120 -    if (!paths.contains(filePath)) {                          
+      121 -      paths.add(filePath);                                    
+      122 -      await prefs.setStringList(_importedTemplatesKey,        
+          -paths);                                                       
+      118 +    // 保存导入记录 {path, id, name}，用于重启后恢复          
+      119 +    final list = _readImportedTemplateEntries(prefs);         
+      120 +    if (!list.any((e) => e['id'] == template.id)) {           
+      121 +      list.add({'path': filePath, 'id': template.id, 'name':  
+          +template.name});                                              
+      122 +      await _writeImportedTemplateEntries(prefs, list);       
+      123      }                                                         
+      124                                                                
+      125      return template;                                          
+
+● 现在插入 _loadImportedTemplates 和读写辅助方法，放在 _loadSelectedTemplateId
+  之后。
+
+● Update(lib\providers\template_provider.dart)
+  ⎿  Added 50 lines
+       77      }                                                         
+       78    }                                                           
+       79                                                                
+       80 +  /// 启动时从持久化存储恢复已导入的模板                      
+       81 +  Future<void> _loadImportedTemplates() async {               
+       82 +    final prefs = await SharedPreferences.getInstance();      
+       83 +    final entries = _readImportedTemplateEntries(prefs);      
+       84 +    for (final entry in entries) {                            
+       85 +      try {                                                   
+       86 +        final service = ref.read(ankiConnectServiceProvider); 
+       87 +        final id = entry['id'] as String?;                    
+       88 +        // 恢复用户保存过的字段映射（覆盖导入时的默认映射）   
+       89 +        final savedMapping =                                  
+       90 +            id == null ? null : await                         
+          +loadFieldMappingAsync(id);                                    
+       91 +        final template = await                                
+          +TemplateManager.importFromFile(                               
+       92 +          filePath: entry['path'] as String,                  
+       93 +          service: service,                                   
+       94 +          name: entry['name'] as String?,                     
+       95 +          templateId: id,                                     
+       96 +          fieldMapping: savedMapping,                         
+       97 +        );                                                    
+       98 +        // 恢复已导入模板；不设置 state，选中交给             
+          +_loadSelectedTemplateId                                       
+       99 +        _templates.insert(0, template);                       
+      100 +      } catch (_) {                                           
+      101 +        // 单条失败静默跳过，不阻塞启动                       
+      102 +      }                                                       
+      103 +    }                                                         
+      104 +  }                                                           
+      105 +                                                              
+      106 +  /// 读取已导入模板记录列表 [{path, id, name}]               
+      107 +  List<Map<String, dynamic>> _readImportedTemplateEntries(    
+      108 +      SharedPreferences prefs) {                              
+      109 +    final raw = prefs.getString(_importedTemplatesKey);       
+      110 +    if (raw == null) return [];                               
+      111 +    try {                                                     
+      112 +      final decoded = json.decode(raw);                       
+      113 +      if (decoded is List) {                                  
+      114 +        return decoded.map((e) => Map<String, dynamic>.from(e 
+          + as Map)).toList();                                           
+      115 +      }                                                       
+      116 +    } catch (_) {                                             
+      117 +      // 解析失败视为无记录                                   
+      118 +    }                                                         
+      119 +    return [];                                                
+      120 +  }                                                           
+      121 +                                                              
+      122 +  /// 写入已导入模板记录列表                                  
+      123 +  Future<void> _writeImportedTemplateEntries(                 
+      124 +    SharedPreferences prefs,                                  
+      125 +    List<Map<String, dynamic>> list,                          
+      126 +  ) async {                                                   
+      127 +    await prefs.setString(_importedTemplatesKey,              
+          +json.encode(list));                                           
+      128 +  }                                                           
+      129 +                                                              
+      130    /// 切换模板并持久化                                        
+      131    Future<void> selectTemplate(String id) async {              
+      132      final template =                                          
+           _templates.cast<CardTemplateModel?>().firstWhere(             
+
+● Update(lib\providers\template_provider.dart)
+  ⎿  Added 4 lines, removed 8 lines
+      222      // 持久化                                                 
+      223      final prefs = await SharedPreferences.getInstance();      
+      224      await prefs.setString(_selectedTemplateIdKey, state.id);  
+      225 -    final paths = prefs.getStringList(_importedTemplatesKey)  
+          -?? [];                                                        
+      226 -    paths.removeWhere((path) {                                
+      227 -      final fileName =                                        
+      228 -          path.split(RegExp(r'[/\\]')).last.replaceAll(RegExp 
+          -(r'\.html$'), '');                                            
+      229 -      return fileName == template.name ||                     
+      230 -          template.name.startsWith('$fileName-');             
+      231 -    });                                                       
+      232 -    await prefs.setStringList(_importedTemplatesKey, paths);  
+      225 +    // 按 id 从导入记录中移除                                 
+      226 +    final list = _readImportedTemplateEntries(prefs);         
+      227 +    list.removeWhere((e) => e['id'] == templateId);           
+      228 +    await _writeImportedTemplateEntries(prefs, list);         
+      229      // 删除已保存的字段映射                                   
+      230      await prefs.remove('field_mapping_$templateId');          
+      231    }                                                           
+
+● Task 3 代码改完。先通读一遍 template_provider.dart 确认逻辑连贯，再跑 flutter 
+  analyze。
+
+● Read 1 file (ctrl+o to expand)
+
+● 逻辑连贯。发现一处过时注释（build()
+  里还写着"先加载内置模板，再恢复选中"，没提导入模板），顺手修正。
+
+● Update(lib\providers\template_provider.dart)
+  ⎿  Added 1 line, removed 1 line
+      19    CardTemplateModel build() {                                  
+      20      // 基础卡片始终在列表中                                    
+      21      _templates.add(CardTemplateModel.basic);                   
+      22 -    // 异步初始化：先加载内置模板，再恢复上次选中的模板        
+      22 +    // 异步初始化：加载内置模板与导入模板，再恢复上次选中的模板
+      23      _initializeTemplates();                                    
+      24      return CardTemplateModel.basic;                            
+      25    }                                                            
+
+● Bash(flutter analyze 2>&1 | tail -30)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ 这个运行编译和测试，我自己手动来。你告诉我应该运行什么样的命令，怎样操作。    
+
+● 好，编译和手动验证由你来跑。我先看一下项目的 Windows
+  运行指南，确保给你的命令和项目实际情况一致。
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● 有一个 test/widget_test.dart，先看一眼它测的是什么，避免给你无效命令。
+
+● Read 1 file (ctrl+o to expand)
+
+● 最后确认一遍没有遗漏旧 key 的引用，然后给你完整的操作说明。
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● 所有代码改动完成，lib 下已无旧 key 引用。下面是完整的操作说明。
+
+  一、静态检查
+
+  在项目根目录打开终端（PowerShell / cmd 均可）：
+
+  cd D:\DOCS\Codes\ankihelper-pc
+  flutter analyze
+
+  预期结果：没有 error（如果有 warning/info 也可忽略）。这条主要验证我改的
+  template_manager.dart 和 template_provider.dart 语法、类型、引用是否正确。
+
+  二、启动应用
+
+  flutter run -d windows
+
+  注意：内置模板名称/字段是启动时从配置文件读取的，所以一定要重新启动（冷启动）
+  ，不要用热重载。验证"导入模板重启恢复"时，也要先完全关闭应用窗口再重新 flutter
+   run——因为恢复逻辑只在启动时执行。
+
+  三、手动验证清单
+
+  1. 模板改名生效
+  - 打开「设置」→ 卡片模板下拉列表 → 应显示
+  「划词助手Antimoon模板」（不再是「词汇卡片」）。
+  - 字段映射区应显示：单词←单词、音标←发音、释义←例句、例句←例句、笔记←例句翻译
+  （数据源标签仍是「例句翻译」，符合预期）、url←空。
+
+  2. 添加卡片
+  - 复制一句英文 → 选中一个单词 → 结果列表点「添加卡片」。
+  - Anki 中会自动新建名为 「划词助手Antimoon模板」 的笔记类型，字段列表含
+  「笔记」，卡片背面能正常渲染翻译内容。
+
+  3. 导入模板重启恢复（本次修复的核心）
+  - 设置 → 「导入模板」→ 选一个 .html 模板 → 导入成功。
+  - 完全关闭应用 → 重新 flutter run -d windows →
+  设置里该模板应仍在列表中，名称和字段映射保持（不会再消失）。
+
+  4. 删除模板持久化
+  - 删除刚导入的模板 → 重启应用 → 它不再出现。
+
+  四、两个已知行为，提前说明
+
+  1. 旧「词汇卡片」模型不删除：如果 Anki
+  里之前已经建过「词汇卡片」笔记类型，改名后它不会被删除或改名，只是不再被本应用
+  使用，成为孤儿模型。新卡片全部走「划词助手Antimoon模板」。这是预期行为。
+  2. 旧导入记录不迁移：之前用旧 key（imported_template_paths）存的导入记录不会被
+  读取（那批数据本来也从没被自动恢复过），所以不影响；从今以后导入的模板会正确恢
+  复。如果你之前导入过模板想保留，重新导入一次即可。
+
+  五、可选：跑现有测试
+
+  flutter test
+
+  项目里只有一个渲染冒烟测试（test/widget_test.dart），不涉及本次改动，跑不跑都
+  行。
+
+  验证过程中如果 flutter analyze 报了
+  error、或手动验证有任一步不符合预期，把报错信息贴给我。
+
+✻ Baked for 31s
+
+❯ 好的，我手动验证通过了 @docs/TODO.md 中‘## Bug修复和功能改进’里的两个点       
+  ⎿  Read docs\TODO.md (226 lines)
+
+● 手动验证通过，那我把 TODO 和 PRD
+  里对应的条目勾选掉。先读一下当前两个文档的准确内容。
+
+● Read 2 files (ctrl+o to expand)
+
+● Update(docs\TODO.md)
+  ⎿  Added 6 lines, removed 6 lines
+      217                                                                
+      218  ## Bug修复和功能改进                                          
+      219                                                                
+      220 -- [ ] **导入模板重启自动恢复**                                
+      221 -    - [                                                       
+          -] 启动时从持久化路径重新加载已导入的模板（_loadImportedTemplat
+          -es）                                                          
+      222 -    - [ ] 导入模板 id 改为持久化的稳定值，字段映射跨重启保持  
+      223 -- [ ] **内置模板改名**                                        
+      224 -    - [ ] 默认模板「词汇卡片」→「划词助手Antimoon模板」       
+      225 -    - [                                                       
+          -] 模板字段「例句翻译」→「笔记」（数据源标签「例句翻译」保持不 
+          -变）                                                          
+      220 +- [x] **导入模板重启自动恢复**                                
+      221 +    - [x                                                      
+          +] 启动时从持久化路径重新加载已导入的模板（_loadImportedTemplat
+          +es）                                                          
+      222 +    - [x] 导入模板 id 改为持久化的稳定值，字段映射跨重启保持  
+      223 +- [x] **内置模板改名**                                        
+      224 +    - [x] 默认模板「词汇卡片」→「划词助手Antimoon模板」       
+      225 +    - [x                                                      
+          +] 模板字段「例句翻译」→「笔记」（数据源标签「例句翻译」保持不 
+          +变）                                                          
+
+● Update(docs\PRD.md)
+  ⎿  Added 2 lines, removed 2 lines
+      204                                                                
+      205  ### Bug修复和功能改进                                         
+      206                                                                
+      207 -- [ ] **导入模板重启自动恢复**：已导入的 HTML                 
+          -模板在重启应用后自动恢复，字段映射保持                        
+      208 -- [                                                           
+          -] **内置模板内容更新**：默认内置模板更名为「划词助手Antimoon模
+          -板」，字段「例句翻译」更名为「笔记」                          
+      207 +- [x] **导入模板重启自动恢复**：已导入的 HTML                 
+          +模板在重启应用后自动恢复，字段映射保持                        
+      208 +- [x                                                          
+          +] **内置模板内容更新**：默认内置模板更名为「划词助手Antimoon模
+          +板」，字段「例句翻译」更名为「笔记」                          
+      209                                                                
+      210  ## 4. 用户界面布局                                            
+      211                                                                
+
+● 两个文档都已勾选。更新任务状态，然后看看当前分支还有哪些未提交改动。
+
+● Bash(git status --short && echo "---" && git diff --stat)
+  ⎿   M assets/template01/vocabulary_card_model.html
+      M assets/template01/vocabulary_card_model.json
+      M docs/PRD.md
+     … +12 lines (ctrl+o to expand)
+
+● 三个 Task 全部完成且已人工验证通过。按照执行流程，现在进入收尾阶段。
+
+● Skill(superpowers:finishing-a-development-branch)
+  ⎿  Successfully loaded skill
+
+● 我正在使用 finishing-a-development-branch 技能完成收尾。
+
+  验证：按你的要求，编译和测试由你手动执行，你已经确认两个改动点验证通过。项目现
+  有 flutter test 只有一个渲染冒烟测试，不涉及本次改动。
+
+  当前分支 bugfix/imported-template-restore 还有 6 个文件未提交：
+
+   M assets/template01/vocabulary_card_model.html   # 字段占位符 例句翻译→笔记
+   M assets/template01/vocabulary_card_model.json   # name→划词助手Antimoon模板
+   M docs/PRD.md                                    # Bug修复和功能改进 条目勾选
+   M docs/TODO.md                                   # Bug修复和功能改进 条目勾选
+   M lib/providers/template_provider.dart           # _loadImportedTemplates 等
+   M lib/services/template_manager.dart             # importFromFile 新增
+  templateId 参数
+
+  按你之前的习惯，如果你要手动提交，提交信息建议：
+
+  fix(template): 修复导入模板重启丢失，内置模板更名为划词助手Antimoon模板
+
+  实现完成。你想怎么处理这个分支？
+
+  1. 合并回 master（本地，--ff-only）
+  2. 推送并创建 Pull Request
+  3. 先保留分支（之后再处理）
+  4. 放弃这次改动
+
+  选哪个？（注意：选 1/2 前需要先把上面 6
+  个文件提交，你手动提交或我帮你提交都行）
+
+✻ Cogitated for 39s
+
+❯ /context                                                                      
+  ⎿  Context Usage
+     ⛀ ⛀ ⛀ ⛀ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁   deepseek-v4-flash[1m] · 
+     152k/1000k 
+     ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛁ ⛀ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶    okens (15%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶   Estimated usage by category
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶   ⛁ System prompt: 3.3k tokens 
+     (0.3%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶   ⛁ Custom agents: 245 tokens 
+     (0.0%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶   ⛁ Memory files: 1k tokens (0.1%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶   ⛁ Skills: 853 tokens (0.1%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶   ⛁ Messages: 148.1k tokens (14.8%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶   ⛶ Free space: 813k (81.3%)
+     ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛶ ⛝ ⛝ ⛝ ⛝ ⛝ ⛝ ⛝   ⛝ Autocompact buffer: 33k tokens 
+                                                                     (3.3%)
+     MCP tools · /mcp
+     └ mcp__open-design__list_projects: 0 tokens
+     └ mcp__open-design__get_active_context: 0 tokens
+     └ mcp__open-design__get_artifact: 0 tokens
+     └ mcp__open-design__get_project: 0 tokens
+     └ mcp__open-design__get_file: 0 tokens
+     └ mcp__open-design__search_files: 0 tokens
+     └ mcp__open-design__list_files: 0 tokens
+     └ mcp__open-design__create_artifact: 0 tokens
+     └ mcp__open-design__write_file: 0 tokens
+     └ mcp__open-design__delete_file: 0 tokens
+     └ mcp__open-design__delete_project: 0 tokens
+     └ mcp__open-design__create_project: 0 tokens
+     └ mcp__open-design__list_skills: 0 tokens
+     └ mcp__open-design__list_plugins: 0 tokens
+     └ mcp__open-design__start_run: 0 tokens
+     └ mcp__open-design__get_run: 0 tokens
+     └ mcp__open-design__cancel_run: 0 tokens
+     └ mcp__open-design__list_agents: 0 tokens
+
+     Custom agents · /agents
+
+     Plugin
+     └ superpowers:code-reviewer: 245 tokens
+
+     Memory files · /memory
+     └ .claude\CLAUDE.md: 1k tokens
+
+     Skills · /skills
+
+     Plugin
+     └ receiving-code-review: 67 tokens
+     └ verification-before-completion: 67 tokens
+     └ finishing-a-development-branch: 61 tokens
+     └ using-git-worktrees: 59 tokens
+     └ brainstorming: 56 tokens
+     └ using-superpowers: 47 tokens
+     └ dispatching-parallel-agents: 37 tokens
+     └ requesting-code-review: 36 tokens
+     └ executing-plans: 33 tokens
+     └ subagent-driven-development: 31 tokens
+     └ systematic-debugging: 31 tokens
+     └ writing-skills: 31 tokens
+     └ test-driven-development: 29 tokens
+     └ writing-plans: 28 tokens
+     └ superpowers:execute-plan: 22 tokens
+     └ superpowers:brainstorm: 21 tokens
+     └ superpowers:write-plan: 21 tokens

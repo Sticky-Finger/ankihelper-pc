@@ -11,7 +11,7 @@ import 'anki_connect_provider.dart';
 /// 卡片模板状态管理
 class TemplateNotifier extends Notifier<CardTemplateModel> {
   static const String _selectedTemplateIdKey = 'selected_template_id';
-  static const String _importedTemplatesKey = 'imported_template_paths';
+  static const String _importedTemplatesKey = 'imported_templates';
 
   final List<CardTemplateModel> _templates = [];
 
@@ -19,14 +19,15 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
   CardTemplateModel build() {
     // 基础卡片始终在列表中
     _templates.add(CardTemplateModel.basic);
-    // 异步初始化：先加载内置模板，再恢复上次选中的模板
+    // 异步初始化：加载内置模板与导入模板，再恢复上次选中的模板
     _initializeTemplates();
     return CardTemplateModel.basic;
   }
 
-  /// 异步初始化模板列表（确保加载顺序：内置模板 → 恢复选中）
+  /// 异步初始化模板列表（确保加载顺序：内置模板 → 导入模板 → 恢复选中）
   Future<void> _initializeTemplates() async {
     await _loadBuiltinTemplate();
+    await _loadImportedTemplates();
     await _loadSelectedTemplateId();
   }
 
@@ -76,6 +77,56 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
     }
   }
 
+  /// 启动时从持久化存储恢复已导入的模板
+  Future<void> _loadImportedTemplates() async {
+    final prefs = await SharedPreferences.getInstance();
+    final entries = _readImportedTemplateEntries(prefs);
+    for (final entry in entries) {
+      try {
+        final service = ref.read(ankiConnectServiceProvider);
+        final id = entry['id'] as String?;
+        // 恢复用户保存过的字段映射（覆盖导入时的默认映射）
+        final savedMapping =
+            id == null ? null : await loadFieldMappingAsync(id);
+        final template = await TemplateManager.importFromFile(
+          filePath: entry['path'] as String,
+          service: service,
+          name: entry['name'] as String?,
+          templateId: id,
+          fieldMapping: savedMapping,
+        );
+        // 恢复已导入模板；不设置 state，选中交给 _loadSelectedTemplateId
+        _templates.insert(0, template);
+      } catch (_) {
+        // 单条失败静默跳过，不阻塞启动
+      }
+    }
+  }
+
+  /// 读取已导入模板记录列表 [{path, id, name}]
+  List<Map<String, dynamic>> _readImportedTemplateEntries(
+      SharedPreferences prefs) {
+    final raw = prefs.getString(_importedTemplatesKey);
+    if (raw == null) return [];
+    try {
+      final decoded = json.decode(raw);
+      if (decoded is List) {
+        return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      }
+    } catch (_) {
+      // 解析失败视为无记录
+    }
+    return [];
+  }
+
+  /// 写入已导入模板记录列表
+  Future<void> _writeImportedTemplateEntries(
+    SharedPreferences prefs,
+    List<Map<String, dynamic>> list,
+  ) async {
+    await prefs.setString(_importedTemplatesKey, json.encode(list));
+  }
+
   /// 切换模板并持久化
   Future<void> selectTemplate(String id) async {
     final template = _templates.cast<CardTemplateModel?>().firstWhere(
@@ -114,11 +165,11 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_selectedTemplateIdKey, template.id);
 
-    // 保存导入的文件路径
-    final paths = prefs.getStringList(_importedTemplatesKey) ?? [];
-    if (!paths.contains(filePath)) {
-      paths.add(filePath);
-      await prefs.setStringList(_importedTemplatesKey, paths);
+    // 保存导入记录 {path, id, name}，用于重启后恢复
+    final list = _readImportedTemplateEntries(prefs);
+    if (!list.any((e) => e['id'] == template.id)) {
+      list.add({'path': filePath, 'id': template.id, 'name': template.name});
+      await _writeImportedTemplateEntries(prefs, list);
     }
 
     return template;
@@ -171,14 +222,10 @@ class TemplateNotifier extends Notifier<CardTemplateModel> {
     // 持久化
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_selectedTemplateIdKey, state.id);
-    final paths = prefs.getStringList(_importedTemplatesKey) ?? [];
-    paths.removeWhere((path) {
-      final fileName =
-          path.split(RegExp(r'[/\\]')).last.replaceAll(RegExp(r'\.html$'), '');
-      return fileName == template.name ||
-          template.name.startsWith('$fileName-');
-    });
-    await prefs.setStringList(_importedTemplatesKey, paths);
+    // 按 id 从导入记录中移除
+    final list = _readImportedTemplateEntries(prefs);
+    list.removeWhere((e) => e['id'] == templateId);
+    await _writeImportedTemplateEntries(prefs, list);
     // 删除已保存的字段映射
     await prefs.remove('field_mapping_$templateId');
   }
