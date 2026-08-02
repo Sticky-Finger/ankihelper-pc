@@ -77,6 +77,7 @@ class TemplateManager {
     required String filePath,
     required AnkiConnectService service,
     String? name,
+    String? templateId,
     Map<String, String>? fieldMapping,
   }) async {
     final file = File(filePath);
@@ -88,8 +89,8 @@ class TemplateManager {
     final defaultName = fileName.replaceAll(RegExp(r'\.html$'), '');
     final templateName = name ?? defaultName;
 
-    // 生成唯一 ID
-    final id = 'imported_${DateTime.now().millisecondsSinceEpoch}';
+    // 生成唯一 ID（优先使用传入的稳定 id，用于重启后重建模板）
+    final id = templateId ?? 'imported_${DateTime.now().millisecondsSinceEpoch}';
 
     // 构建默认字段映射（如果未提供，使用模板字段名作为 key）
     final mapping = fieldMapping ?? _buildDefaultMapping(parsed.fields);
@@ -250,6 +251,7 @@ class TemplateManager {
     'example': 'example',
     'exampleTranslation': 'exampleTranslation',
     '例句翻译': 'exampleTranslation',
+    '笔记': 'exampleTranslation',
     '发音': 'pronunciationUrl',
     'pronunciationUrl': 'pronunciationUrl',
   };
