@@ -56,6 +56,8 @@ jobs:
 
       - name: 计算产物版本号
         # 在 step 里读输入（job 级 env 读 inputs 不可靠）：打 tag 用 tag 名；手动填了版本号用它；否则 dev
+        # Windows runner 默认 shell 是 pwsh，需显式指定 bash
+        shell: bash
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "APP_VERSION=${{ github.ref_name }}" >> "$GITHUB_ENV"
