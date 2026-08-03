@@ -50,13 +50,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
 
-    env:
-      # 手动发版：用输入的版本号；打 tag：用 tag 名；其余（手动纯构建）：dev
-      APP_VERSION: ${{ github.event_name == 'workflow_dispatch' && (inputs.release_version || 'dev') || github.ref_name }}
-
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
+
+      - name: 计算产物版本号
+        # 在 step 里读输入（job 级 env 读 inputs 不可靠）：打 tag 用 tag 名；手动填了版本号用它；否则 dev
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "APP_VERSION=${{ github.ref_name }}" >> "$GITHUB_ENV"
+          elif [ -n "${{ github.event.inputs.release_version }}" ]; then
+            echo "APP_VERSION=${{ github.event.inputs.release_version }}" >> "$GITHUB_ENV"
+          else
+            echo "APP_VERSION=dev" >> "$GITHUB_ENV"
+          fi
 
       - name: 安装系统依赖 (Linux)
         if: runner.os == 'Linux'
@@ -189,35 +196,42 @@ jobs:
     name: 发布草稿 Release
     needs: build
     runs-on: ubuntu-latest
-    # 打 tag（=决定发版）或手动勾选「创建草稿 Release」时执行；手动纯构建时不执行
-    if: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && inputs.create_draft_release == 'true') }}
+    # job 级 if 只用可靠上下文（github.event_name）；是否发版、版本号在 step 里判断（读 github.event.inputs）
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     permissions:
       contents: write
     steps:
-      # 打 tag 用 tag 名；手动勾选用输入版本号（留空则报错）
-      - name: 计算发布版本号
-        id: version
+      # 打 tag（=决定发版）或手动勾选「创建草稿 Release」才发版；手动纯构建则跳过
+      - name: 计算发版计划
+        id: plan
         run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
+          if [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
             echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          elif [ -z "${{ inputs.release_version }}" ]; then
-            echo "已勾选「创建草稿 Release」但未填写版本号，请填写如 v1.0.1"
-            exit 1
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.create_draft_release }}" = "true" ]; then
+            if [ -z "${{ github.event.inputs.release_version }}" ]; then
+              echo "已勾选「创建草稿 Release」但未填写版本号，请填写如 v1.0.1"
+              exit 1
+            fi
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.event.inputs.release_version }}" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=${{ inputs.release_version }}" >> "$GITHUB_OUTPUT"
+            echo "release=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 下载全部构建产物
+        if: steps.plan.outputs.release == 'true'
         uses: actions/download-artifact@v4
         with:
           path: release-assets
           merge-multiple: true
 
       - name: 创建草稿 Release 并上传产物
+        if: steps.plan.outputs.release == 'true'
         uses: softprops/action-gh-release@v2
         with:
           files: release-assets/*
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: Anki划词助手 ${{ steps.version.outputs.tag }}
+          tag_name: ${{ steps.plan.outputs.tag }}
+          name: Anki划词助手 ${{ steps.plan.outputs.tag }}
           generate_release_notes: true
           draft: true
