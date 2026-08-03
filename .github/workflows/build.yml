@@ -2,6 +2,16 @@ name: 构建发布
 
 on:
   workflow_dispatch:
+    inputs:
+      create_draft_release:
+        description: 构建后是否创建草稿 Release（不勾选 = 只构建，供测试）
+        type: boolean
+        required: false
+        default: false
+      release_version:
+        description: 草稿 Release 版本号（勾选「创建草稿」时填写，如 v1.0.1）
+        type: string
+        required: false
   push:
     tags:
       - 'v*'
@@ -22,27 +32,27 @@ jobs:
           - os: macos-latest
             flutter-arch: arm64
             artifact-name: ankihelper-macos-arm64
-            artifact-path: ankihelper-macos-arm64.dmg
             build-flavor: macos-arm64
           # macOS x86_64
           - os: macos-latest
             flutter-arch: x64
             artifact-name: ankihelper-macos-x64
-            artifact-path: ankihelper-macos-x64.dmg
             build-flavor: macos-x64
           - os: windows-latest
             flutter-arch: x64
             artifact-name: ankihelper-windows-x64
-            artifact-path: build/windows/x64/runner/Release
             build-flavor: windows
           - os: ubuntu-22.04
             flutter-arch: x64
             artifact-name: ankihelper-linux-x64
-            artifact-path: build/linux/x64/release/bundle
             build-flavor: linux
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
+
+    env:
+      # 手动发版：用输入的版本号；打 tag：用 tag 名；其余（手动纯构建）：dev
+      APP_VERSION: ${{ github.event_name == 'workflow_dispatch' && (inputs.release_version || 'dev') || github.ref_name }}
 
     steps:
       - name: 检出代码
@@ -108,9 +118,20 @@ jobs:
         if: matrix.build-flavor == 'windows'
         run: flutter build windows --release
 
+      - name: 打包 Windows 压缩包
+        if: matrix.build-flavor == 'windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "${{ matrix.artifact-name }}-${{ env.APP_VERSION }}.zip" -Force
+
       - name: 构建应用 (Linux)
         if: matrix.build-flavor == 'linux'
         run: flutter build linux --release
+
+      - name: 打包 Linux 压缩包
+        if: matrix.build-flavor == 'linux'
+        run: |
+          tar -czf "${{ matrix.artifact-name }}-${{ env.APP_VERSION }}.tar.gz" -C build/linux/x64/release/bundle .
 
       - name: 安装 create-dmg (macOS)
         if: startsWith(matrix.build-flavor, 'macos')
@@ -134,7 +155,7 @@ jobs:
             --icon "${APP_NAME}.app" 150 190 \
             --hide-extension "${APP_NAME}.app" \
             --app-drop-link 450 190 \
-            "${{ github.workspace }}/${{ matrix.artifact-path }}" \
+            "${{ github.workspace }}/${{ matrix.artifact-name }}-${{ env.APP_VERSION }}.dmg" \
             .
 
       - name: 打包 macOS DMG (x64)
@@ -154,12 +175,49 @@ jobs:
             --icon "${APP_NAME}.app" 150 190 \
             --hide-extension "${APP_NAME}.app" \
             --app-drop-link 450 190 \
-            "${{ github.workspace }}/${{ matrix.artifact-path }}" \
+            "${{ github.workspace }}/${{ matrix.artifact-name }}-${{ env.APP_VERSION }}.dmg" \
             .
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-path }}
+          path: ${{ matrix.artifact-name }}-${{ env.APP_VERSION }}.*
           if-no-files-found: error
+
+  release:
+    name: 发布草稿 Release
+    needs: build
+    runs-on: ubuntu-latest
+    # 打 tag（=决定发版）或手动勾选「创建草稿 Release」时执行；手动纯构建时不执行
+    if: ${{ (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && inputs.create_draft_release == 'true') }}
+    permissions:
+      contents: write
+    steps:
+      # 打 tag 用 tag 名；手动勾选用输入版本号（留空则报错）
+      - name: 计算发布版本号
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          elif [ -z "${{ inputs.release_version }}" ]; then
+            echo "已勾选「创建草稿 Release」但未填写版本号，请填写如 v1.0.1"
+            exit 1
+          else
+            echo "tag=${{ inputs.release_version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 下载全部构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: 创建草稿 Release 并上传产物
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Anki划词助手 ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          draft: true
