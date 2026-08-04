@@ -215,11 +215,70 @@ jobs:
               echo "已勾选「创建草稿 Release」但未填写版本号，请填写如 v1.0.1"
               exit 1
             fi
+            # 手动发版版本号格式校验：vX.Y.Z 或 X.Y.Z
+            if [[ ! "${{ github.event.inputs.release_version }}" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "版本号格式不正确，应为 vX.Y.Z（或 X.Y.Z），例如 v1.0.1"
+              exit 1
+            fi
+            # 兼容手动填写时漏掉 v 前缀：统一补 v，保证 tag、Release 名称、CHANGELOG 段落匹配一致
+            VERSION="${{ github.event.inputs.release_version }}"
+            [[ "$VERSION" =~ ^v ]] || VERSION="v$VERSION"
             echo "release=true" >> "$GITHUB_OUTPUT"
-            echo "tag=${{ github.event.inputs.release_version }}" >> "$GITHUB_OUTPUT"
+            echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
           else
             echo "release=false" >> "$GITHUB_OUTPUT"
           fi
+
+      # release job 默认无工作区，读取 CHANGELOG.md 前必须先检出代码
+      - name: 检出代码（读取 CHANGELOG 用）
+        if: steps.plan.outputs.release == 'true'
+        uses: actions/checkout@v4
+
+      # 从仓库 docs/CHANGELOG.md 提取当前版本段落，作为 Release notes 写入文件
+      - name: 提取发版说明
+        if: steps.plan.outputs.release == 'true'
+        env:
+          # 该 tag 已由「计算发版计划」统一规范为 v 前缀
+          RELEASE_TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+
+          tag = os.environ["RELEASE_TAG"].strip()
+          norm = tag if tag.startswith("v") else "v" + tag  # 防御性再补一次 v
+
+          path = "docs/CHANGELOG.md"
+          try:
+              with open(path, encoding="utf-8") as f:
+                  content = f.read()
+          except FileNotFoundError:
+              print(f"错误：仓库中未找到 {path}，请确认该文件已提交后再发版")
+              sys.exit(1)
+
+          # 精确匹配段落标题：要求 "]" 紧跟版本号后，避免 v0.0.1 误匹配到 v0.0.10
+          header = re.compile(r"^## \[" + re.escape(norm) + r"\] - ", re.MULTILINE)
+          m = header.search(content)
+          if not m:
+              print(f"错误：在 {path} 中未找到版本 [{norm}] 对应的段落，请先提交该版本的 changelog 后再发版")
+              sys.exit(1)
+
+          # 跳过标题行本身，正文从标题下一行开始（兼容 CRLF）
+          body_start = content.index("\n", m.end()) + 1
+          region = content[body_start:]
+          # 段落到下一个 "## " 开头的行为止（### 子标题不属于段落边界）
+          end = re.search(r"^## ", region, re.MULTILINE)
+          body = region[: end.start()] if end else region
+
+          # 清理段首/段尾空行，保证末尾单换行
+          body = body.strip() + "\n"
+          if body == "\n":
+              print(f"错误：版本 [{norm}] 的段落内容为空，无法生成发布说明")
+              sys.exit(1)
+
+          with open("release-notes.md", "w", encoding="utf-8") as f:
+              f.write(body)
+          print(f"已提取 [{norm}] 段落的发布说明，共 {len(body)} 字节")
+          PY
 
       - name: 下载全部构建产物
         if: steps.plan.outputs.release == 'true'
@@ -235,5 +294,6 @@ jobs:
           files: release-assets/*
           tag_name: ${{ steps.plan.outputs.tag }}
           name: Anki划词助手 ${{ steps.plan.outputs.tag }}
-          generate_release_notes: true
+          # 改用 CHANGELOG 提取的说明，不再使用 GitHub 自动生成的 release notes
+          body_path: release-notes.md
           draft: true

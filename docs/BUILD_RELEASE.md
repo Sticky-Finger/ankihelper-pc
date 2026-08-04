@@ -13,7 +13,7 @@
 - **核心诉求**：
   - 构建与发版可分开控制；
   - 打 tag 即代表「决定发版」，发版产物必须是**打 tag 那次构建的原文件**（不重复构建）；
-  - Release 以**草稿**形式创建（不公开），由开发者写 changelog 后手动发布，发布后仍可编辑。
+  - Release 以**草稿**形式创建（不公开），草稿描述自动从 `docs/CHANGELOG.md` 提取，开发者可在此基础上补充后发布，发布后仍可编辑。
 
 ## 二、触发矩阵
 
@@ -57,9 +57,9 @@ on:
 ### 3. 发版（release job）
 
 - **发版条件**：`(push 且是 v* tag)` **或** `(手动且勾选了 create_draft_release)`。该判定在 **step 内**通过 `github.event.inputs.*` 完成（`inputs` 在 job 级读取不可靠，故特意放到 step 里读）。
-- **版本号解析**：打 tag 用 tag 名；手动勾选用输入的版本号（留空则明确报错提示）。
-- **流程**：下载本次运行 4 个构建产物 → `softprops/action-gh-release@v2` 创建**草稿** Release → 上传产物。
-- **草稿配置**：`draft: true`（不公开）+ `generate_release_notes: true`（自动生成一版发布说明作底稿）。
+- **版本号解析**：打 tag 用 tag 名；手动勾选用输入的版本号（留空则明确报错提示，格式为 `vX.Y.Z`，漏写 `v` 前缀会自动补齐，保证 tag、Release 名称、CHANGELOG 段落匹配三者一致）。
+- **流程**：检出代码 → 从 `docs/CHANGELOG.md` 按版本段落提取发布说明 → 下载本次运行 4 个构建产物 → `softprops/action-gh-release@v2` 创建**草稿** Release → 上传产物。
+- **草稿配置**：`draft: true`（不公开）+ `body_path: release-notes.md`（从 `docs/CHANGELOG.md` 按版本段落提取的内容作发布说明；找不到对应版本段落会明确报错中止，强制先提交 CHANGELOG 再发版）。
 - **版本号即 tag**：手动发版填的版本号会作为 Release 的 tag；若该 tag 不存在，GitHub 会自动创建它（指向当前分支）。打 tag 发版则直接用 tag 名。
 - **关键保证**：打 tag 的构建与发版在**同一次运行**内，产物是同一份文件，不存在「测试的和发布的不是同一份」的问题。
 
@@ -72,13 +72,14 @@ on:
 
 ### 正式发版
 
+0. 先确保 `docs/CHANGELOG.md` 已提交该版本段落（标题格式 `## [vX.Y.Z] - 描述`），再打 tag；否则流程会在「提取发版说明」一步报错中止。
 1. `git tag v1.0.0 && git push origin v1.0.0`
 2. 自动构建 4 平台并建好**草稿**（不公开），产物已挂上。
 3. 从草稿下载产物到各平台测试。
-4. 测试通过 → 打开 Releases 页面上的草稿，在**描述框**里写/改 changelog（不是写在 Actions 输入栏，也无需本地 `CHANGELOG.md`）→ **Publish**。
+4. 测试通过 → 打开 Releases 页面上的草稿，描述框已自动带上 CHANGELOG 对应段落内容，按需补充/修改后 **Publish**。
 5. 测试不通过 → 删草稿、修 bug、重新打 tag。
 
-> 若不想用 tag 发版，也可手动运行并勾选「创建草稿 Release」+ 填版本号，效果相同；注意该版本号会被 GitHub 自动创建成 tag。
+> 若不想用 tag 发版，也可手动运行并勾选「创建草稿 Release」+ 填版本号，效果相同；版本号建议带 `v` 前缀（如 `v1.0.1`，漏写会自动补齐），注意该版本号会被 GitHub 自动创建成 tag。
 
 ## 五、注意事项
 
