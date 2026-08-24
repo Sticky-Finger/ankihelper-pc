@@ -65,9 +65,9 @@ test/
 - `pubspec.yaml`
 
 **实现内容:**
-- [ ] dependencies 新增：`html: ^0.18.2`、`markdown: ^7.0.0`、`flutter_markdown: ^0.7.0`
-- [ ] 创建 `lib/services/dict/` 目录
-- [ ] 确认 `flutter pub get` 通过、无版本冲突（flutter_markdown 与当前 Flutter SDK 兼容）
+- [x] dependencies 新增：`html: ^0.18.2`、`markdown: ^7.0.0`、`flutter_markdown: ^0.7.0`
+- [x] 创建 `lib/services/dict/` 目录
+- [x] 确认 `flutter pub get` 通过、无版本冲突（flutter_markdown 与当前 Flutter SDK 兼容）
 
 **验证:**
 ```bash
@@ -82,13 +82,13 @@ flutter pub get && flutter analyze
 - `lib/models/dictionary_result_model.dart`（重写）
 
 **实现内容:**
-- [ ] `enum DictionarySource { bing, youdao, ai }`
-- [ ] `class DictSense { final String pos; final String def; }`（词性 + 释义）
-- [ ] `class DictSentence { final String eng; final String chs; }`（双语例句）
-- [ ] `class DictionaryResult`：`source` / `word`（词条原型，即提取文档的 reWord）/ `ukPhonetic` / `usPhonetic` / `senses` / `sentences` / `inflections`（时态变形）/ `aiMarkdown`（AI 路线结果）/ `errorMessage`
-- [ ] 便捷 getter：`isSuccess`、`isAi`、`mergedPhonetic`（`英 [x] 美 [y]` 格式）
-- [ ] `toJson()` / `fromJson()`（供缓存持久化），删除原 `fromYoudaoResponse` 及错误码映射（付费 API 专用）
-- [ ] 新建 `test/models/dictionary_result_test.dart`：序列化往返、isSuccess 判定
+- [x] `enum DictionarySource { bing, youdao, ai }`
+- [x] `class DictSense { final String pos; final String def; }`（词性 + 释义）
+- [x] `class DictSentence { final String eng; final String chs; }`（双语例句）
+- [x] `class DictionaryResult`：`source` / `word`（词条原型，即提取文档的 reWord）/ `ukPhonetic` / `usPhonetic` / `senses` / `sentences` / `inflections`（时态变形）/ `aiMarkdown`（AI 路线结果）/ `errorMessage`
+- [x] 便捷 getter：`isSuccess`、`isAi`、`mergedPhonetic`（`英 [x] 美 [y]` 格式）
+- [x] `toJson()` / `fromJson()`（供缓存持久化），删除原 `fromYoudaoResponse` 及错误码映射（付费 API 专用）
+- [x] 新建 `test/models/dictionary_result_test.dart`：序列化往返、isSuccess 判定
 
 **验证:**
 ```bash
@@ -105,14 +105,14 @@ flutter analyze && flutter test test/models/dictionary_result_test.dart
 - `test/services/dict/bing_dict_parser_test.dart`
 
 **实现内容:**
-- [ ] `fetchBingDict(String word, {Duration timeout})`：GET `https://www.bing.com/dict/search?q={word}&FORM=BDVSP6&cc=cn`，请求头带浏览器级 `User-Agent` 与 `Accept-Language`（提取文档 §5 反爬经验）
-- [ ] `DictionaryResult parseBingDictHtml(String html)` 纯函数，用 `package:html` 的 `parse().querySelector()` 按附录 A 选择器映射表逐条实现：
-    - [ ] 词条 `#headword > h1`（取不到 → 查询失败返回未收录）
-    - [ ] 基本释义 `div.qdef > ul > li` 的 `.pos` / `.def`
-    - [ ] 时态变形 `div.hd_div1>.hd_if>.p1-5`
-    - [ ] 音标与发音 `#bigaud_uk` / `#bigaud_us` 的 `data-mp3link` + 前兄弟元素 `[...]` 文本；为空时 `.hd_pr` / `.hd_prUS` 兜底
-    - [ ] 双语例句 `#sentenceSeg .se_li` 的 `.sen_en` / `.sen_cn`（两者都有值才收录）
-- [ ] 解析器测试：夹具覆盖全部字段断言（word/trs/aus/ecs/sentences/presents）、headword 缺失返回失败、空 HTML 容错
+- [x] `fetchBingDict(String word, {Duration timeout})`：GET `https://www.bing.com/dict/search?q={word}&FORM=BDVSP6&cc=cn`，请求头带浏览器级 `User-Agent` 与 `Accept-Language`（提取文档 §5 反爬经验）
+- [x] `DictionaryResult parseBingDictHtml(String html)` 纯函数，用 `package:html` 的 `parse().querySelector()` 按附录 A 选择器映射表逐条实现：
+    - [x] 词条 `#headword > h1`（取不到 → 查询失败返回未收录）
+    - [x] 基本释义 `div.qdef > ul > li` 的 `.pos` / `.def`
+    - [x] 时态变形 `div.hd_div1>.hd_if>.p1-5`
+    - [x] 音标与发音 `#bigaud_uk` / `#bigaud_us` 的 `data-mp3link` + 前兄弟元素 `[...]` 文本；为空时 `.hd_pr` / `.hd_prUS` 兜底
+    - [x] 双语例句 `#sentenceSeg .se_li` 的 `.sen_en` / `.sen_cn`（两者都有值才收录）
+- [x] 解析器测试：夹具覆盖全部字段断言（word/trs/aus/ecs/sentences/presents）、headword 缺失返回失败、空 HTML 容错
 
 **验证:**
 ```bash
@@ -129,14 +129,14 @@ flutter test test/services/dict/bing_dict_parser_test.dart
 - `test/services/dict/youdao_dict_parser_test.dart`
 
 **实现内容:**
-- [ ] `fetchYoudaoDict(String word, {Duration timeout})`：POST `https://dict.youdao.com/jsonapi_s?doctype=json&jsonversion=4`，body `q={word}&le=en&t=3&client=web&keyfrom=webdict`（form-urlencoded），`accept` / `accept-language` 头照搬提取文档 §2.2
-- [ ] `DictionaryResult parseYoudaoDictJson(Map<String, dynamic> json)` 纯函数，按附录 B 字段路径表提取：
-    - [ ] `ec.word["return-phrase"]` → word（词条原型）
-    - [ ] `ec.word.ukphone` / `ec.word.usphone` → 英/美音标
-    - [ ] `ec.word.trs[]` 的 `{pos, tran}` → senses
-    - [ ] `blng_sents_part["sentence-pair"][]` 的 `{sentence, sentence-translation}` → sentences
-    - [ ] `ec` 节点缺失 → 未收录（返回失败结果）
-- [ ] 解析器测试：夹具全字段断言、`ec` 缺失/空 trs 容错
+- [x] `fetchYoudaoDict(String word, {Duration timeout})`：POST `https://dict.youdao.com/jsonapi_s?doctype=json&jsonversion=4`，body `q={word}&le=en&t=3&client=web&keyfrom=webdict`（form-urlencoded），`accept` / `accept-language` 头照搬提取文档 §2.2
+- [x] `DictionaryResult parseYoudaoDictJson(Map<String, dynamic> json)` 纯函数，按附录 B 字段路径表提取：
+    - [x] `ec.word["return-phrase"]` → word（词条原型）
+    - [x] `ec.word.ukphone` / `ec.word.usphone` → 英/美音标
+    - [x] `ec.word.trs[]` 的 `{pos, tran}` → senses
+    - [x] `blng_sents_part["sentence-pair"][]` 的 `{sentence, sentence-translation}` → sentences
+    - [x] `ec` 节点缺失 → 未收录（返回失败结果）
+- [x] 解析器测试：夹具全字段断言、`ec` 缺失/空 trs 容错
 
 **验证:**
 ```bash
@@ -152,11 +152,11 @@ flutter test test/services/dict/youdao_dict_parser_test.dart
 - `test/services/dict/dict_cache_test.dart`
 
 **实现内容:**
-- [ ] 内存 `Map<String, _CacheEntry>` 一层 + `SharedPreferences` 持久化一层（值 = `DictionaryResult.toJson()` + 时间戳）
-- [ ] 键 = `sha256(source|word|contextSig)` 十六进制摘要；传统词典 `contextSig` 固定空串，AI = 剪贴板原句 SHA-256 前 16 位
-- [ ] TTL 7 天（`3600 * 24 * 7` 秒），读取时过期即视为未命中并清除
-- [ ] `Future<DictionaryResult?> get(String source, String word, String contextSig)` / `Future<void> put(...)` / `Future<void> clearAll()`（供设置面板"清除缓存"）
-- [ ] 惰性加载：首次访问时从 SharedPreferences 恢复内存层；写入节流（防抖批量落盘或直接同步写，量小可接受）
+- [x] 内存 `Map<String, _CacheEntry>` 一层 + `SharedPreferences` 持久化一层（值 = `DictionaryResult.toJson()` + 时间戳）
+- [x] 键 = `sha256(source|word|contextSig)` 十六进制摘要；传统词典 `contextSig` 固定空串，AI = 剪贴板原句 SHA-256 前 16 位
+- [x] TTL 7 天（`3600 * 24 * 7` 秒），读取时过期即视为未命中并清除
+- [x] `Future<DictionaryResult?> get(String source, String word, String contextSig)` / `Future<void> put(...)` / `Future<void> clearAll()`（供设置面板"清除缓存"）
+- [x] 惰性加载：首次访问时从 SharedPreferences 恢复内存层；写入节流（防抖批量落盘或直接同步写，量小可接受）
 
 **验证:**
 ```bash
@@ -172,15 +172,15 @@ flutter test test/services/dict/dict_cache_test.dart
 - `test/services/dict/ai_dict_api_test.dart`
 
 **实现内容:**
-- [ ] `defaultDictPrompt`（系统提示词）与 `defaultDictUserPrompt`（用户提示词模板）**逐字移植**提取文档 §3.3（全文见附录 C），含 `createEnglishDictionaryPrompt` 的中文 labels 参数化
-- [ ] 占位符替换函数：`{{text}}`（查询单词）、`{{context}}`（剪贴板原句）、`{{title}}/{{description}}/{{summary}}` 填空串（纯字符串 replaceAll）
-- [ ] 请求构造（OpenAI 兼容协议）：`POST {baseUrl}/chat/completions`，`Authorization: Bearer {apiKey}`，body `{model, messages: [system, user], stream: true}`（messages 结构见附录 C 末尾示例）
-- [ ] SSE 流式：`http.Client().send()` 获取字节流 → 按 `\n\n` 分帧 → 取 `data: ` 后内容 → `[DONE]` 结束；每帧 `jsonDecode` 后取 `choices[0].delta.content`
-- [ ] `stripMarkdownCodeBlock(String text, {bool startOnly})`：流式期间只剥开头围栏，流结束剥结尾（提取文档 §3.6.2 逻辑）
-- [ ] `onStreamChunk(String markdown)` 回调：每次 delta 累积后全量推送（驱动 UI 渐进渲染）
-- [ ] 流式协议异常自动降级为非流式请求（`stream: false`，取 `choices[0].message.content`），降级记日志不报错
-- [ ] 结果为空 → 抛"词典返回为空"错误；超时 60 秒
-- [ ] 单测：占位符替换、SSE 帧拆分、delta 提取、剥围栏（开头/结尾/startOnly）、空响应
+- [x] `defaultDictPrompt`（系统提示词）与 `defaultDictUserPrompt`（用户提示词模板）**逐字移植**提取文档 §3.3（全文见附录 C），含 `createEnglishDictionaryPrompt` 的中文 labels 参数化
+- [x] 占位符替换函数：`{{text}}`（查询单词）、`{{context}}`（剪贴板原句）、`{{title}}/{{description}}/{{summary}}` 填空串（纯字符串 replaceAll）
+- [x] 请求构造（OpenAI 兼容协议）：`POST {baseUrl}/chat/completions`，`Authorization: Bearer {apiKey}`，body `{model, messages: [system, user], stream: true}`（messages 结构见附录 C 末尾示例）
+- [x] SSE 流式：`http.Client().send()` 获取字节流 → 按 `\n\n` 分帧 → 取 `data: ` 后内容 → `[DONE]` 结束；每帧 `jsonDecode` 后取 `choices[0].delta.content`
+- [x] `stripMarkdownCodeBlock(String text, {bool startOnly})`：流式期间只剥开头围栏，流结束剥结尾（提取文档 §3.6.2 逻辑）
+- [x] `onStreamChunk(String markdown)` 回调：每次 delta 累积后全量推送（驱动 UI 渐进渲染）
+- [x] 流式协议异常自动降级为非流式请求（`stream: false`，取 `choices[0].message.content`），降级记日志不报错
+- [x] 结果为空 → 抛"词典返回为空"错误；超时 60 秒
+- [x] 单测：占位符替换、SSE 帧拆分、delta 提取、剥围栏（开头/结尾/startOnly）、空响应
 
 **验证:**
 ```bash
@@ -195,15 +195,15 @@ flutter test test/services/dict/ai_dict_api_test.dart
 - `lib/services/dictionary_service.dart`（重写）
 
 **实现内容:**
-- [ ] 删除有道付费 API 调用、SHA-256 签名、`TranslationConfig` 耦合（免费接口无需凭证）
-- [ ] 策略表：`DictionarySource → apiFn`（bing/youdao/ai 三项注册，对应提取文档 §2.4 dictHandlers 结构）
-- [ ] `Future<DictionaryResult> query(String word, {required String context, required DictSettings settings, void Function(String)? onStreamChunk})`：
-    - [ ] 先查缓存（Task 5），命中直接返回
-    - [ ] 构建源顺序：设置指定首选源（非"自动"）置顶，其余按 `bing → youdao → ai` 补齐；AI 未配置则从链中剔除
-    - [ ] 依序尝试：某源失败/未收录/超时（传统 8s、AI 60s）→ 静默切换下一源；AI 源透传 `onStreamChunk`
-    - [ ] 全部失败 → 返回带聚合错误信息的失败结果
-    - [ ] 成功后写缓存
-- [ ] `isValidWord(String)` 工具函数（`/^[a-zA-Z-]+$/`）放本文件或独立 utils，供 provider 路由使用
+- [x] 删除有道付费 API 调用、SHA-256 签名、`TranslationConfig` 耦合（免费接口无需凭证）
+- [x] 策略表：`DictionarySource → apiFn`（bing/youdao/ai 三项注册，对应提取文档 §2.4 dictHandlers 结构）
+- [x] `Future<DictionaryResult> query(String word, {required String context, required DictSettings settings, void Function(String)? onStreamChunk})`：
+    - [x] 先查缓存（Task 5），命中直接返回
+    - [x] 构建源顺序：设置指定首选源（非"自动"）置顶，其余按 `bing → youdao → ai` 补齐；AI 未配置则从链中剔除
+    - [x] 依序尝试：某源失败/未收录/超时（传统 8s、AI 60s）→ 静默切换下一源；AI 源透传 `onStreamChunk`
+    - [x] 全部失败 → 返回带聚合错误信息的失败结果
+    - [x] 成功后写缓存
+- [x] `isValidWord(String)` 工具函数（`/^[a-zA-Z-]+$/`）放本文件或独立 utils，供 provider 路由使用
 
 **验证:**
 ```bash
@@ -221,12 +221,12 @@ flutter analyze
 - `lib/widgets/settings_dialog.dart`
 
 **实现内容:**
-- [ ] `DictSettings`：`preferredSource`（自动/必应/有道/AI）+ `AiDictConfig`（`baseUrl` / `apiKey` / `model`），SharedPreferences 持久化（参照现有 TranslationConfig 模式）
-- [ ] 设置面板"词典管理"区（替换"暂无词典 — 功能即将上线"占位）：
-    - [ ] 词典源下拉选择（默认"自动"）
-    - [ ] AI 词典配置表单（baseUrl/apiKey/model，apiKey 密文样式输入框）
-    - [ ] "清除词典缓存"按钮（调 `DictCache.clearAll()` + Toast 反馈）
-- [ ] 删除原"词典查询服务"说明卡片（介绍有道智云共享凭证的付费方案说明，已失效）
+- [x] `DictSettings`：`preferredSource`（自动/必应/有道/AI）+ `AiDictConfig`（`baseUrl` / `apiKey` / `model`），SharedPreferences 持久化（参照现有 TranslationConfig 模式）
+- [x] 设置面板"词典管理"区（替换"暂无词典 — 功能即将上线"占位）：
+    - [x] 词典源下拉选择（默认"自动"）
+    - [x] AI 词典配置表单（baseUrl/apiKey/model，apiKey 密文样式输入框）
+    - [x] "清除词典缓存"按钮（调 `DictCache.clearAll()` + Toast 反馈）
+- [x] 删除原"词典查询服务"说明卡片（介绍有道智云共享凭证的付费方案说明，已失效）
 
 **验证:**
 ```bash
@@ -243,15 +243,15 @@ flutter run --debug
 - `lib/providers/word_selection_provider.dart`
 
 **实现内容:**
-- [ ] `DictionaryState`：`status`（就绪/查询中/AI生成中/完成/未收录/失败 枚举）、`result`、`queriedWord`、`aiMarkdown`（流式增量）；移除 TranslationConfig 依赖，改读 `dictSettingsProvider`
-- [ ] `query(String word)`：从 `clipboardProvider` 读原句作 context，调 `DictionaryService.query`；AI 流式期间 `onStreamChunk` 逐步更新 `aiMarkdown` 并置 `status = aiStreaming`
-- [ ] **竞态守卫**：结果返回时仅当 `queriedWord == wordSelectionProvider.selectedText` 才写入 state 生效（防快速切换选中词串台）
-- [ ] `WordSelectionNotifier`：
-    - [ ] 解冻 `_triggerDictionaryQuery()`（去掉 `unused_element` ignore）：在 `_debouncedRecompute` 300ms 回调末尾调用；`isValidWord(selectedText)` → 走 `dictionaryProvider.query`；词组且 AI 已配置 → 同样走 query（编排器内部路由到 AI）
-    - [ ] `build()` 中 `ref.listen(dictionaryProvider, ...)`（镜像现有 translationProvider 监听模式）：结果变化时重算条目
-    - [ ] state 新增 `senseEntries: List<CardEntryModel>`：每个 `DictSense` 一条（word、phonetic=`mergedPhonetic`、pos、meaning，example 复用 `_buildExample` 高亮逻辑，exampleTranslation/pronunciationUrl 同手动条目）
-    - [ ] AI markdown 写入手动条目（`currentEntry.aiDictMarkdown`）
-- [ ] 查询中状态传递：`dictionaryProvider.isLoading` 时 ResultsList 显示加载动画（Task 10 消费）
+- [x] `DictionaryState`：`status`（就绪/查询中/AI生成中/完成/未收录/失败 枚举）、`result`、`queriedWord`、`aiMarkdown`（流式增量）；移除 TranslationConfig 依赖，改读 `dictSettingsProvider`
+- [x] `query(String word)`：从 `clipboardProvider` 读原句作 context，调 `DictionaryService.query`；AI 流式期间 `onStreamChunk` 逐步更新 `aiMarkdown` 并置 `status = aiStreaming`
+- [x] **竞态守卫**：结果返回时仅当 `queriedWord == wordSelectionProvider.selectedText` 才写入 state 生效（防快速切换选中词串台）
+- [x] `WordSelectionNotifier`：
+    - [x] 解冻 `_triggerDictionaryQuery()`（去掉 `unused_element` ignore）：在 `_debouncedRecompute` 300ms 回调末尾调用；`isValidWord(selectedText)` → 走 `dictionaryProvider.query`；词组且 AI 已配置 → 同样走 query（编排器内部路由到 AI）
+    - [x] `build()` 中 `ref.listen(dictionaryProvider, ...)`（镜像现有 translationProvider 监听模式）：结果变化时重算条目
+    - [x] state 新增 `senseEntries: List<CardEntryModel>`：每个 `DictSense` 一条（word、phonetic=`mergedPhonetic`、pos、meaning，example 复用 `_buildExample` 高亮逻辑，exampleTranslation/pronunciationUrl 同手动条目）
+    - [x] AI markdown 写入手动条目（`currentEntry.aiDictMarkdown`）
+- [x] 查询中状态传递：`dictionaryProvider.isLoading` 时 ResultsList 显示加载动画（Task 10 消费）
 
 **验证:**
 ```bash
@@ -268,12 +268,12 @@ flutter analyze
 - `lib/app.dart`
 
 **实现内容:**
-- [ ] `_buildEntries` 渲染顺序：手动空条目（`currentEntry`，含 AI markdown 数据）→ `senseEntries` 各义项条目（复用 `ResultEntry`，onAdd/onPreview 已按 entry 参数化）
-- [ ] 查询中：条目列表位置展示加载动画（PRD"加载中状态：条目位置展示加载动画"）；失败/未收录：仅空条目 + 底部提示文字更新
-- [ ] AI 结果卡片：`senseEntries` 之后追加 `flutter_markdown` 渲染区块（流式渐进更新）+ "复制 Markdown" 按钮
-- [ ] 词典标签：硬编码"牛津高阶 (本地)"替换为实际命中源（📖 必应词典 / 有道词典 / AI 词典；未查询时显示设置的首选源名）
-- [ ] `_manualSearch` 恢复：读取当前选中词重新触发 `dictionaryProvider.query`，空选中 Toast"请先选择一个单词"
-- [ ] `app.dart` 组装 `dictStatus`：watch dictionaryProvider → 就绪(绿)/查询中(黄)/AI 生成中(黄)/完成 (N条释义)(绿)/未收录(黄)/失败(红)
+- [x] `_buildEntries` 渲染顺序：手动空条目（`currentEntry`，含 AI markdown 数据）→ `senseEntries` 各义项条目（复用 `ResultEntry`，onAdd/onPreview 已按 entry 参数化）
+- [x] 查询中：条目列表位置展示加载动画（PRD"加载中状态：条目位置展示加载动画"）；失败/未收录：仅空条目 + 底部提示文字更新
+- [x] AI 结果卡片：`senseEntries` 之后追加 `flutter_markdown` 渲染区块（流式渐进更新）+ "复制 Markdown" 按钮
+- [x] 词典标签：硬编码"牛津高阶 (本地)"替换为实际命中源（📖 必应词典 / 有道词典 / AI 词典；未查询时显示设置的首选源名）
+- [x] `_manualSearch` 恢复：读取当前选中词重新触发 `dictionaryProvider.query`，空选中 Toast"请先选择一个单词"
+- [x] `app.dart` 组装 `dictStatus`：watch dictionaryProvider → 就绪(绿)/查询中(黄)/AI 生成中(黄)/完成 (N条释义)(绿)/未收录(黄)/失败(红)
 
 **验证:**
 ```bash
@@ -292,10 +292,10 @@ flutter run -d windows
 - `assets/template01/`（默认映射 json，按需）
 
 **实现内容:**
-- [ ] `CardEntryModel` 新增 `aiDictMarkdown` 字段（默认空串），`toMap()` 输出 `markdownToHtml(aiDictMarkdown)` 结果（预览与添加所见即所得）
-- [ ] `field_mapping_editor.dart`：`kDataSources` 增补「音标」「释义」「AI 释义」；`_internalToDisplay` / `_displayToInternal` 增加 `phonetic` / `meaning` / `aiDictMarkdown` 映射
-- [ ] `template_manager.dart` `buildFields`：确认 `aiDictMarkdown` 数据源走 `toMap` 的 HTML 值（转换在模型层完成，此处无需特判则不改）
-- [ ] 核对内置模板 `assets/template01/.json` 默认字段映射：「音标」→ 音标、「释义」→ 释义（不一致则更新并保持向后兼容：旧映射里未知 key 落"空"）
+- [x] `CardEntryModel` 新增 `aiDictMarkdown` 字段（默认空串），`toMap()` 输出 `markdownToHtml(aiDictMarkdown)` 结果（预览与添加所见即所得）
+- [x] `field_mapping_editor.dart`：`kDataSources` 增补「音标」「释义」「AI 释义」；`_internalToDisplay` / `_displayToInternal` 增加 `phonetic` / `meaning` / `aiDictMarkdown` 映射
+- [x] `template_manager.dart` `buildFields`：确认 `aiDictMarkdown` 数据源走 `toMap` 的 HTML 值（转换在模型层完成，此处无需特判则不改）
+- [x] 核对内置模板 `assets/template01/.json` 默认字段映射：「音标」→ 音标、「释义」→ 释义（不一致则更新并保持向后兼容：旧映射里未知 key 落"空"）
 
 **验证:**
 ```bash
@@ -308,14 +308,15 @@ flutter analyze && flutter run -d windows
 ### Task 12: 测试全绿 + 端到端验证 + 文档回写
 
 **实现内容:**
-- [ ] `flutter analyze` 无告警；`flutter test` 全部通过（含既有 `widget_test.dart`）
-- [ ] 手动端到端（`flutter run -d windows`）：
+- [x] `flutter analyze` 无告警；`flutter test` 全部通过（32 项，含既有 `widget_test.dart`）
+- [x] 真实接口连通性验证（`dart run tool/check_dict.dart`）：library 全字段解析成功、asdfzzx 双源未收录
+- [ ] 手动端到端（`flutter run -d windows`，交互式走查留待桌面环境执行）：
     - [ ] 复制英文句子 → 点选单词 → 300ms 自动查询 → 空条目 + 义项条目（音标/词性/释义）→ 预览编辑 → 添加到 Anki 成功
     - [ ] 词典源切换（必应/有道/AI）生效，词典标签随命中源变化
     - [ ] 配置 AI 接口后查询词组 → Markdown 卡片流式渲染 → 「AI 释义」数据源可映射
     - [ ] 断网 → 仅空条目 + 状态栏红点失败提示，手动制卡不受影响
     - [ ] 同词二次查询命中缓存（日志/耗时验证）
-- [ ] 回写进度：`docs/TODO.md` 与 `docs/PRD.md` 中本节任务勾选，填写下方「实现偏差记录」表
+- [x] 回写进度：`docs/TODO.md` 与 `docs/PRD.md` 中本节任务勾选，填写下方「实现偏差记录」表
 
 **验证:**
 ```bash
@@ -328,7 +329,11 @@ flutter analyze && flutter test
 
 | 项目 | 原计划 | 实际实现 | 原因 |
 |------|--------|----------|------|
-| （待实现时填写） | | | |
+| 测试夹具 | 真实 Bing 页面存档 | 按提取文档选择器构造的最小夹具 | 真实页面含大量动态脚本体积过大；改以 `tool/check_dict.dart` 连通性脚本对线上真实页面验证解析器（library/asdfzzx 均符合预期），夹具用于回归测试 |
+| DictSettings 模型位置 | 归入 dict_settings_provider.dart | 独立为 `lib/models/dict_settings_model.dart` | 与仓库 TranslationConfig 的模型/Provider 分层惯例一致 |
+| DictionaryService 构造 | const 构造函数 | 普通构造函数（注入 DictCache） | `DictCache.shared` 为运行时单例，不能作 const 默认值 |
+| 内置模板默认映射 | 核对并按需更新 `assets/template01/.json` | 无需修改 | 检查发现默认映射已含 `音标→phonetic`、`释义→meaning` |
+| 真实接口验证方式 | `flutter run` 手动端到端 | analyze + 32 项单测 + 真实抓取脚本验证 | 编码环境无法交互式驱动桌面 UI；交互式走查留待用户在桌面环境执行（Task 12 剩余未勾选项） |
 
 ---
 
