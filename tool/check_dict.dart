@@ -1,5 +1,6 @@
 // 词典真实接口连通性检查（开发工具，不参与构建）
 // 用法: dart run tool/check_dict.dart [word]
+// ignore_for_file: avoid_print
 import 'package:ankihelper/services/dict/bing_dict_api.dart';
 import 'package:ankihelper/services/dict/youdao_dict_api.dart';
 
