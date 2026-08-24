@@ -3,9 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/dict_settings_model.dart';
 import '../models/translation_config_model.dart';
+import '../providers/dict_settings_provider.dart';
 import '../providers/template_provider.dart';
 import '../providers/translation_provider.dart';
+import '../services/dict/dict_cache.dart';
 import 'field_mapping_editor.dart';
 
 /// 显示设置弹窗
@@ -25,11 +28,24 @@ class _SettingsDialog extends ConsumerStatefulWidget {
 
 class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
   late TranslationConfig _config;
+  late AiDictConfig _aiConfig;
 
   @override
   void initState() {
     super.initState();
     _config = ref.read(translationProvider.notifier).config;
+    _aiConfig = ref.read(dictSettingsProvider).aiConfig;
+  }
+
+  void _onPreferredSourceChanged(DictSourcePreference? value) {
+    if (value != null) {
+      ref.read(dictSettingsProvider.notifier).setPreferredSource(value);
+    }
+  }
+
+  void _onAiConfigChanged(AiDictConfig config) {
+    setState(() => _aiConfig = config);
+    ref.read(dictSettingsProvider.notifier).updateAiConfig(config);
   }
 
   void _onProviderChanged(TranslationProvider? value) {
@@ -148,8 +164,107 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             const SizedBox(height: 8),
-            const Text('（暂无词典 — 功能即将上线）',
-                style: TextStyle(color: Colors.grey)),
+            Text(
+              '词典使用免费网页接口（必应/有道），无需 API Key；'
+              'AI 词典为可选兜底，词组查询需配置。',
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, _) {
+                final dictSettings = ref.watch(dictSettingsProvider);
+
+                return DropdownButtonFormField<DictSourcePreference>(
+                  initialValue: dictSettings.preferredSource,
+                  decoration: const InputDecoration(
+                    labelText: '词典源',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: DictSourcePreference.values
+                      .map((source) => DropdownMenuItem(
+                            value: source,
+                            child: Text(source.label),
+                          ))
+                      .toList(),
+                  onChanged: _onPreferredSourceChanged,
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'AI 词典（OpenAI 兼容接口，可选）',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              initialValue: _aiConfig.baseUrl,
+              decoration: const InputDecoration(
+                labelText: '接口地址（如 https://api.deepseek.com）',
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (value) =>
+                  _onAiConfigChanged(_aiConfig.copyWith(baseUrl: value)),
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              initialValue: _aiConfig.apiKey,
+              decoration: const InputDecoration(
+                labelText: 'API Key',
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+              ),
+              obscureText: true,
+              onChanged: (value) =>
+                  _onAiConfigChanged(_aiConfig.copyWith(apiKey: value)),
+              textInputAction: TextInputAction.next,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              initialValue: _aiConfig.model,
+              decoration: const InputDecoration(
+                labelText: '模型（如 deepseek-chat）',
+                border: OutlineInputBorder(),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (value) =>
+                  _onAiConfigChanged(_aiConfig.copyWith(model: value)),
+              textInputAction: TextInputAction.done,
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await DictCache.shared.clearAll();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('词典缓存已清除')),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                label: const Text('清除词典缓存'),
+              ),
+            ),
             const SizedBox(height: 16),
             // ====== 卡片模板 ======
             const Text(
@@ -431,45 +546,6 @@ class _SettingsDialogState extends ConsumerState<_SettingsDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            // ====== 词典查询服务说明 ======
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.info_outline, size: 18, color: Colors.blue),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '词典查询服务',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '· 使用有道智云词典 API（与翻译服务共享凭证）\n'
-                          '· 查询超时时间：5 秒',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
         ),
