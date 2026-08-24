@@ -1,0 +1,31 @@
+{
+  "ec": {
+    "word": {
+      "return-phrase": "library",
+      "ukphone": "ˈlaɪbrəri",
+      "usphone": "ˈlaɪbreri",
+      "trs": [
+        {
+          "pos": "n.",
+          "tran": "图书馆；藏书室"
+        },
+        {
+          "pos": "n.",
+          "tran": "库，程序库"
+        }
+      ]
+    }
+  },
+  "blng_sents_part": {
+    "sentence-pair": [
+      {
+        "sentence": "The library closes at nine.",
+        "sentence-translation": "图书馆九点关门。"
+      },
+      {
+        "sentence": "a public library",
+        "sentence-translation": "一个公共图书馆"
+      }
+    ]
+  }
+}

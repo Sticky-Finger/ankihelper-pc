@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
 /// UI 数据源选项
-const List<String> kDataSources = ['单词', '例句', '例句翻译', '发音', '空'];
+const List<String> kDataSources = [
+  '单词',
+  '例句',
+  '例句翻译',
+  '发音',
+  '音标',
+  '释义',
+  'AI 释义',
+  '空',
+];
 
 /// 字段映射编辑器 — 为模板的每个字段选择数据源
 ///
@@ -67,6 +76,12 @@ class _FieldMappingEditorState extends State<FieldMappingEditor> {
         return '例句翻译';
       case 'pronunciationUrl':
         return '发音';
+      case 'phonetic':
+        return '音标';
+      case 'meaning':
+        return '释义';
+      case 'aiDictMarkdown':
+        return 'AI 释义';
       default:
         return '空';
     }
@@ -83,6 +98,12 @@ class _FieldMappingEditorState extends State<FieldMappingEditor> {
         return 'exampleTranslation';
       case '发音':
         return 'pronunciationUrl';
+      case '音标':
+        return 'phonetic';
+      case '释义':
+        return 'meaning';
+      case 'AI 释义':
+        return 'aiDictMarkdown';
       default:
         return '';
     }

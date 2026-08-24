@@ -3,10 +3,11 @@ import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/card_entry_model.dart';
+import '../models/dictionary_result_model.dart';
 import '../models/word_token_model.dart';
 import '../services/pronunciation_service.dart';
 import 'clipboard_provider.dart';
-import 'dictionary_provider.dart'; // 冻结保留：_triggerDictionaryQuery
+import 'dictionary_provider.dart';
 import 'pronunciation_provider.dart';
 import 'translation_provider.dart';
 
@@ -17,11 +18,15 @@ class WordSelectionState {
   final int? lastClickedIndex;
   final CardEntryModel? currentEntry;
 
+  /// 词典义项条目（查询成功时与手动空条目并列展示）
+  final List<CardEntryModel> senseEntries;
+
   const WordSelectionState({
     this.tokens = const [],
     this.selectedIndices = const {},
     this.lastClickedIndex,
     this.currentEntry,
+    this.senseEntries = const [],
   });
 
   /// 当前选中的文本（跳过标点）
@@ -37,7 +42,7 @@ class WordSelectionState {
     return words.join(' ');
   }
 
-  /// currentEntry 不通过 copyWith 传递，由 Notifier 直接赋值
+  /// currentEntry / senseEntries 不通过 copyWith 传递，由 Notifier 直接赋值
 
   WordSelectionState copyWith({
     List<WordTokenModel>? tokens,
@@ -51,6 +56,7 @@ class WordSelectionState {
         lastClickedIndex:
             clearLastClicked ? null : (lastClickedIndex ?? this.lastClickedIndex),
         currentEntry: currentEntry,
+        senseEntries: senseEntries,
       );
 }
 
@@ -71,6 +77,10 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
       if (prev?.translatedText != next.translatedText) {
         _recomputeEntry();
       }
+    });
+    // 监听词典结果 → 重算条目（义项条目 + AI 释义，含流式增量）
+    ref.listen(dictionaryProvider, (prev, next) {
+      _recomputeEntry();
     });
     ref.onDispose(() => _debounceTimer?.cancel());
     return const WordSelectionState();
@@ -137,37 +147,66 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     _debouncedRecompute();
   }
 
-  /// selectedText 变化后 300ms 防抖重算 currentEntry
+  /// selectedText 变化后 300ms 防抖重算 currentEntry 并触发词典查询
   void _debouncedRecompute() {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       _recomputeEntry();
+      _triggerDictionaryQuery();
     });
   }
 
-  /// 立即重算 currentEntry（剪贴板/翻译变化时调用）
+  /// 立即重算 currentEntry（剪贴板/翻译/词典结果变化时调用）
   void _recomputeEntry() {
     _debounceTimer?.cancel();
     final selectedText = state.selectedText;
     final clipboard = ref.read(clipboardProvider).originalText;
     final translation = ref.read(translationProvider).translatedText;
-    final entry = _buildEntry(selectedText, clipboard, translation);
+    final dictState = ref.read(dictionaryProvider);
+
+    // 竞态守卫：词典结果只对当前选中词生效
+    var senseEntries = const <CardEntryModel>[];
+    var aiMarkdown = '';
+    if (selectedText.isNotEmpty && dictState.queriedWord == selectedText) {
+      if (dictState.status == DictQueryStatus.done) {
+        final result = dictState.result;
+        if (result != null && !result.isAi) {
+          senseEntries = result.senses
+              .where((sense) => sense.def.isNotEmpty)
+              .map((sense) => _buildSenseEntry(
+                    selectedText,
+                    clipboard,
+                    translation,
+                    result,
+                    sense,
+                  ))
+              .toList();
+        }
+        aiMarkdown = dictState.aiMarkdown;
+      } else if (dictState.status == DictQueryStatus.aiStreaming) {
+        aiMarkdown = dictState.aiMarkdown;
+      }
+    }
+
+    final entry = _buildEntry(selectedText, clipboard, translation, aiMarkdown);
     // 直接构造新 state，保留 currentEntry
     state = WordSelectionState(
       tokens: state.tokens,
       selectedIndices: state.selectedIndices,
       lastClickedIndex: state.lastClickedIndex,
       currentEntry: entry,
+      senseEntries: senseEntries,
     );
   }
 
-  /// 触发词典查询（仅在选中非空文本时）
-  // ignore: unused_element — 冻结保留，待后续启用
+  /// 触发词典查询（选中非空文本时；词组由服务内部路由到 AI 词典）
   void _triggerDictionaryQuery() {
     final selectedText = state.selectedText;
-    if (selectedText.isNotEmpty) {
-      ref.read(dictionaryProvider.notifier).query(selectedText);
+    if (selectedText.isEmpty) {
+      ref.read(dictionaryProvider.notifier).clear();
+      return;
     }
+    ref.read(dictionaryProvider.notifier).query(selectedText);
   }
 
   /// 构建 example 字段：按选中位置精确高亮
@@ -212,19 +251,47 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     return result.toString();
   }
 
-  /// 构建 currentEntry
-  CardEntryModel _buildEntry(
-      String selectedText, String clipboard, String translation) {
+  /// 构建发音字段（Anki [sound:] 格式）
+  String _buildPronunciationUrl(String selectedText) {
+    if (selectedText.isEmpty) return '';
     final source = ref.read(pronunciationProvider).selectedSource;
-    final pronunciationUrl = selectedText.isNotEmpty
-        ? '[sound:${PronunciationService.getUrl(selectedText, source)}]'
-        : '';
+    return '[sound:${PronunciationService.getUrl(selectedText, source)}]';
+  }
+
+  /// 构建 currentEntry（手动空条目，AI 释义附加于此供字段映射）
+  CardEntryModel _buildEntry(
+    String selectedText,
+    String clipboard,
+    String translation,
+    String aiMarkdown,
+  ) {
     return CardEntryModel(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       word: selectedText,
       example: _buildExample(selectedText, clipboard),
       exampleTranslation: translation,
-      pronunciationUrl: pronunciationUrl,
+      pronunciationUrl: _buildPronunciationUrl(selectedText),
+      aiDictMarkdown: aiMarkdown,
+    );
+  }
+
+  /// 构建词典义项条目（word 用选中词形，例句复用剪贴板原文 + <b> 高亮）
+  CardEntryModel _buildSenseEntry(
+    String selectedText,
+    String clipboard,
+    String translation,
+    DictionaryResult result,
+    DictSense sense,
+  ) {
+    return CardEntryModel(
+      id: 'sense_${result.word}_${sense.pos}_${sense.def.hashCode}',
+      word: selectedText,
+      phonetic: result.mergedPhonetic,
+      pos: sense.pos,
+      meaning: sense.def,
+      example: _buildExample(selectedText, clipboard),
+      exampleTranslation: translation,
+      pronunciationUrl: _buildPronunciationUrl(selectedText),
     );
   }
 }

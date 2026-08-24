@@ -26,7 +26,7 @@ class StatusBar extends ConsumerWidget {
     super.key,
     this.appStatus = const StatusItem(label: '就绪'),
     this.ankiStatus = const StatusItem(label: 'AnkiConnect: 已连接'),
-    this.dictStatus = const StatusItem(label: '词典查询: 完成 (0条释义)'),
+    this.dictStatus = const StatusItem(label: '词典查询: 就绪'),
     this.onAnkiStatusTap,
   });
 

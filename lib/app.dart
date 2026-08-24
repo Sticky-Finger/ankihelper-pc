@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'providers/anki_connect_provider.dart';
+import 'providers/dictionary_provider.dart';
 import 'theme/fluent_tokens.dart';
 import 'theme/theme_provider.dart';
 import 'widgets/clipboard_section.dart';
@@ -45,6 +46,7 @@ class MainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = ref.watch(fluentTokensProvider);
     final ankiStatus = ref.watch(ankiConnectionStatusProvider);
+    final dictState = ref.watch(dictionaryProvider);
 
     // 根据连接状态构建 StatusItem
     final ankiStatusItem = ankiStatus.when(
@@ -61,11 +63,37 @@ class MainScreen extends ConsumerWidget {
               label: 'AnkiConnect: ${status.errorMessage ?? '未连接'}',
               level: StatusLevel.danger,
             ),
-      error: (error, _) => StatusItem(
+      error: (error, _) => const StatusItem(
         label: 'AnkiConnect: 错误',
         level: StatusLevel.danger,
       ),
     );
+
+    // 词典查询状态
+    final dictStatusItem = switch (dictState.status) {
+      DictQueryStatus.idle => const StatusItem(label: '词典查询: 就绪'),
+      DictQueryStatus.loading => const StatusItem(
+          label: '词典查询: 查询中…',
+          level: StatusLevel.warning,
+        ),
+      DictQueryStatus.aiStreaming => const StatusItem(
+          label: '词典查询: AI 生成中…',
+          level: StatusLevel.warning,
+        ),
+      DictQueryStatus.done => StatusItem(
+          label: dictState.result?.isAi == true
+              ? '词典查询: AI 完成'
+              : '词典查询: 完成 (${dictState.result?.senses.length ?? 0}条释义)',
+        ),
+      DictQueryStatus.notFound => const StatusItem(
+          label: '词典查询: 未收录',
+          level: StatusLevel.warning,
+        ),
+      DictQueryStatus.failed => const StatusItem(
+          label: '词典查询: 失败',
+          level: StatusLevel.danger,
+        ),
+    };
 
     return Container(
       color: tokens.bgApp,
@@ -100,6 +128,7 @@ class MainScreen extends ConsumerWidget {
           ),
           StatusBar(
             ankiStatus: ankiStatusItem,
+            dictStatus: dictStatusItem,
             onAnkiStatusTap: () {
               ref.read(ankiConnectionStatusProvider.notifier).refresh();
             },

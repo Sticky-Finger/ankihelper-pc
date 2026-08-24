@@ -2,88 +2,110 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/dictionary_result_model.dart';
-import '../models/translation_config_model.dart';
 import '../services/dictionary_service.dart';
-import 'translation_provider.dart';
+import 'clipboard_provider.dart';
+import 'dict_settings_provider.dart';
 
 /// 词典查询状态
+enum DictQueryStatus { idle, loading, aiStreaming, done, notFound, failed }
+
+/// 词典查询状态数据
 class DictionaryState {
-  final DictionaryResult result;
-  final bool isLoading;
-  final bool hasError;
+  final DictQueryStatus status;
+
+  /// 成功的查询结果（status == done 时非空）
+  final DictionaryResult? result;
+
+  /// 失败原因（status == failed 时非空）
+  final String errorMessage;
+
+  /// 本次查询词（竞态守卫：仅当与当前选中词一致时结果才生效）
+  final String queriedWord;
+
+  /// AI 流式 Markdown（流式期间逐步累积，最终保留全文）
+  final String aiMarkdown;
 
   const DictionaryState({
-    this.result = DictionaryResult.empty,
-    this.isLoading = false,
-    this.hasError = false,
+    this.status = DictQueryStatus.idle,
+    this.result,
+    this.errorMessage = '',
+    this.queriedWord = '',
+    this.aiMarkdown = '',
   });
 
-  DictionaryState copyWith({
-    DictionaryResult? result,
-    bool? isLoading,
-    bool? hasError,
-  }) =>
-      DictionaryState(
-        result: result ?? this.result,
-        isLoading: isLoading ?? this.isLoading,
-        hasError: hasError ?? (hasError ?? this.hasError),
-      );
+  bool get isLoading => status == DictQueryStatus.loading;
 }
 
 /// 词典查询状态管理
+///
+/// 编排逻辑在 [DictionaryService]（策略表 + 回退链 + 缓存），
+/// 本 Notifier 负责状态生命周期与竞态守卫。
 class DictionaryNotifier extends Notifier<DictionaryState> {
   @override
   DictionaryState build() {
     return const DictionaryState();
   }
 
-  /// 获取最新的有道智云配置
-  DictionaryService? _buildService() {
-    final config = ref.read(translationProvider.notifier).config;
-    if (config.isConfigured && config.provider == TranslationProvider.youdao) {
-      return DictionaryService(config: config);
-    }
-    return null;
-  }
-
   /// 异步查询单词
   Future<void> query(String word) async {
-    final service = _buildService();
+    final trimmed = word.trim();
+    if (trimmed.isEmpty) return;
 
-    if (service == null) {
+    if (kDebugMode) {
+      debugPrint('[DictionaryQuery] 开始查询: "$trimmed"');
+    }
+
+    state = DictionaryState(
+      status: DictQueryStatus.loading,
+      queriedWord: trimmed,
+    );
+
+    final settings = ref.read(dictSettingsProvider);
+    final context = ref.read(clipboardProvider).originalText;
+    final service = DictionaryService();
+
+    final result = await service.query(
+      word: trimmed,
+      context: context,
+      settings: settings,
+      onStreamChunk: (markdown) {
+        // 快速切换选中词时丢弃过期流式帧
+        if (state.queriedWord != trimmed) return;
+        state = DictionaryState(
+          status: DictQueryStatus.aiStreaming,
+          queriedWord: trimmed,
+          aiMarkdown: markdown,
+        );
+      },
+    );
+
+    // 竞态守卫：查询期间用户已切换选中词 → 丢弃本次结果
+    if (state.queriedWord != trimmed) {
       if (kDebugMode) {
-        debugPrint('[DictionaryQuery] 服务未初始化（API 未配置或非有道智云）');
+        debugPrint('[DictionaryQuery] 丢弃过期结果: "$trimmed"');
       }
-      state = DictionaryState(
-        result: const DictionaryResult(errorMessage: '请在设置中配置有道智云 API'),
-        hasError: true,
-      );
       return;
     }
 
     if (kDebugMode) {
-      debugPrint('[DictionaryQuery] 开始查询: "$word"');
-    }
-
-    state = state.copyWith(isLoading: true, hasError: false);
-
-    final result = await service.query(word);
-
-    if (kDebugMode) {
-      debugPrint('[DictionaryQuery] 查询结果: success=${result.isSuccess}, error="${result.errorMessage}"');
-      if (result.rawResponse.isNotEmpty) {
-        debugPrint('[DictionaryQuery] 原始响应: ${result.rawResponse}');
-      }
+      debugPrint('[DictionaryQuery] 查询结果: success=${result.isSuccess}, '
+          'error="${result.errorMessage}"');
     }
 
     state = DictionaryState(
-      result: result,
-      isLoading: false,
-      hasError: !result.isSuccess,
+      status: result.isSuccess
+          ? DictQueryStatus.done
+          : (result.notFound
+              ? DictQueryStatus.notFound
+              : DictQueryStatus.failed),
+      result: result.isSuccess ? result : null,
+      errorMessage: result.isSuccess ? '' : result.errorMessage,
+      queriedWord: trimmed,
+      aiMarkdown: result.aiMarkdown,
     );
   }
 
-  /// 清空结果
+  /// 清空状态（清空选中时调用）
   void clear() {
     state = const DictionaryState();
   }
