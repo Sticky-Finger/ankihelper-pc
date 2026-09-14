@@ -7,6 +7,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Mimosa 安全扫描插件的本地扫描历史与会话状态
+.mimosa/
+
 # Environment variables
 .env
 
