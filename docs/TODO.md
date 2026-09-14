@@ -6,6 +6,19 @@
 
 ## 开发中 🚧
 
+### E2E 自动化测试（桌面端 integration_test + 产物冒烟）
+
+> 需求：新功能开发后，在 GitHub CI（PR/push 触发）与本地自动跑 E2E 回归，替代大部分人工冒烟测试；发版构建时验证 release 产物可正常启动。
+> 方案：Flutter 官方 `integration_test`（真实桌面窗口）为主 + release 产物冒烟脚本；外部依赖用假服务（本地 fake AnkiConnect HTTP 服务 + 词典 Provider override）。
+> 实现计划：`docs/superpowers/plans/2026-09-14-e2e-testing.md`（直接计划流，经用户确认）
+
+- [ ] **可测性小重构**：`dictionary_provider` 内联的 `DictionaryService()` 提取为 Provider，测试可 override
+- [ ] **integration_test 基建**：假 AnkiConnect 本地 HTTP 服务、fake 词典服务、统一 bootstrap
+- [ ] **E2E 用例**：启动冒烟 / AnkiConnect 未连接 / 输入查词渲染 / 义项制卡（含释义并入词性）/ 制卡失败 / 设置持久化
+- [ ] **CI 接入**：新增 ci.yml（PR + push master 跑 analyze + test + E2E）；build.yml 打包前插入产物冒烟
+- [ ] **产物冒烟脚本**：`tool/smoke_packaged.ps1`（启动 release exe → 断言主窗口存活）
+- [ ] **文档**：`docs/E2E_TESTING.md`
+
 ### 卡片释义并入词性（义项条目制卡增强）
 
 > 需求：点击查出的义项条目添加卡片时，「释义」字段缺少词性（v./n. 等）。
