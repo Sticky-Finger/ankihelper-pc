@@ -36,6 +36,11 @@ class DictionaryState {
   bool get isLoading => status == DictQueryStatus.loading;
 }
 
+/// 词典服务 Provider（测试可 override 注入假实现）
+final dictionaryServiceProvider = Provider<DictionaryService>((ref) {
+  return DictionaryService();
+});
+
 /// 词典查询状态管理
 ///
 /// 编排逻辑在 [DictionaryService]（策略表 + 回退链 + 缓存），
@@ -62,7 +67,7 @@ class DictionaryNotifier extends Notifier<DictionaryState> {
 
     final settings = ref.read(dictSettingsProvider);
     final context = ref.read(clipboardProvider).originalText;
-    final service = DictionaryService();
+    final service = ref.read(dictionaryServiceProvider);
 
     final result = await service.query(
       word: trimmed,

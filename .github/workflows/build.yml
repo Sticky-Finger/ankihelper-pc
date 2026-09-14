@@ -127,6 +127,12 @@ jobs:
         if: matrix.build-flavor == 'windows'
         run: flutter build windows --release
 
+      # 打包前对 release 产物做冒烟：启动 exe → 断言主窗口出现且存活
+      - name: 产物冒烟测试 (Windows)
+        if: matrix.build-flavor == 'windows'
+        shell: pwsh
+        run: .\tool\smoke_packaged.ps1
+
       - name: 打包 Windows 压缩包
         if: matrix.build-flavor == 'windows'
         shell: pwsh

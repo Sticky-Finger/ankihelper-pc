@@ -1,0 +1,53 @@
+name: CI
+
+# PR 与 master push 的质量门禁：静态分析 + 单元测试 + 桌面端 E2E
+# （build.yml 的发版构建里另有产物冒烟测试）
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  windows:
+    name: 分析 + 单元测试 + E2E（Windows）
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          architecture: x64
+          cache: true
+
+      - name: 验证 Flutter 环境
+        run: flutter doctor
+
+      - name: 缓存 Pub 依赖
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-x64-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-x64-
+
+      - name: 安装项目依赖
+        run: flutter pub get
+
+      - name: 代码静态分析
+        run: flutter analyze
+
+      - name: 运行单元测试
+        run: flutter test
+
+      # 在 runner 的交互式桌面会话中拉起真实应用窗口执行 E2E
+      # 外部依赖（AnkiConnect / 词典）全部由测试内假服务替代，无需网络
+      - name: 运行 E2E 集成测试
+        run: flutter test integration_test -d windows
