@@ -43,8 +43,8 @@ test/models/card_entry_model_test.dart      # [新建] 模型单测
 - `lib/models/card_entry_model.dart`
 
 **实现内容:**
-- [ ] 新增 `cardMeaning` getter（按上述三条规则）
-- [ ] `toMap()` 的 `'meaning'` 改用 `cardMeaning`
+- [x] 新增 `cardMeaning` getter（按上述三条规则）
+- [x] `toMap()` 的 `'meaning'` 改用 `cardMeaning`
 
 **验证:**
 ```bash
@@ -59,11 +59,11 @@ flutter analyze
 - `test/models/card_entry_model_test.dart`
 
 **实现内容:**
-- [ ] 有词性：`pos: 'v.'` + `meaning: 'donate…'` → `toMap()['meaning'] == 'v. donate…'`
-- [ ] 无词性（手动空条目）：原样返回，不受影响
-- [ ] 防重复守卫：`meaning: 'n. 图书馆'` + `pos: 'n.'` → 不出现 `n. n.`
-- [ ] `aiDictMarkdown` Markdown→HTML 转换与空值行为（顺带覆盖既有逻辑）
-- [ ] `toMap()` 其余键值不受影响
+- [x] 有词性：`pos: 'v.'` + `meaning: 'donate…'` → `toMap()['meaning'] == 'v. donate…'`
+- [x] 无词性（手动空条目）：原样返回，不受影响
+- [x] 防重复守卫：`meaning: 'n. 图书馆'` + `pos: 'n.'` → 不出现 `n. n.`
+- [x] `aiDictMarkdown` Markdown→HTML 转换与空值行为（顺带覆盖既有逻辑）
+- [x] `toMap()` 其余键值不受影响
 
 **验证:**
 ```bash
@@ -75,10 +75,10 @@ flutter test test/models/card_entry_model_test.dart
 ### Task 3: 全量验证 + 手动验证 + 文档回写
 
 **实现内容:**
-- [ ] `flutter analyze` + `flutter test` 全绿
+- [x] `flutter analyze` + `flutter test` 全绿（44 项，含本计划新增 6 项模型单测）
 - [ ] 手动验证：查词 → 点义项「预览」→ 释义字段含词性前缀；「添加」→ Anki 中卡片释义含词性
 - [ ] 手动回归：手动空条目制卡、「AI 释义」数据源路径无异常
-- [ ] 回写 `docs/TODO.md` / `docs/PRD.md` 需求条目进度
+- [x] 回写 `docs/TODO.md` / `docs/PRD.md` 需求条目进度
 
 **验证:**
 ```bash
@@ -91,4 +91,4 @@ flutter analyze && flutter test
 
 | 项目 | 原计划 | 实际实现 | 原因 |
 |------|--------|----------|------|
-| （待实现时填写） | | | |
+| 范围外修复：dict_cache 过期时钟 | 仅改 CardEntryModel 及其测试 | 一并修复 `DictCache.put` 过期时间改用注入时钟 | 跑全量测试时暴露既有 bug：put 用真实墙钟、测试用 mock 时钟，两者仅在同一日期时恰好一致（2026-08-24 当天通过），日期推移后 `dict_cache_test` 必然失败；修复后与 get 判定共用注入时钟 |
