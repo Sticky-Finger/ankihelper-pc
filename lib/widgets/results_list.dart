@@ -177,19 +177,19 @@ class ResultsList extends ConsumerWidget {
     };
   }
 
-  /// 是否正在查询（且当前有选中词）
+  /// 是否正在查询（且当前有查询词）
   bool _isQuerying(DictionaryState dictState, WordSelectionState selection) {
-    if (selection.selectedText.isEmpty) return false;
+    if (selection.queryWord.isEmpty) return false;
     return dictState.status == DictQueryStatus.loading ||
         (dictState.status == DictQueryStatus.aiStreaming &&
-            dictState.queriedWord == selection.selectedText);
+            dictState.queriedWord == selection.queryWord);
   }
 
-  /// 当前选中词对应的 AI Markdown（无则为空）
+  /// 当前查询词对应的 AI Markdown（无则为空）
   String _aiMarkdownForSelection(
-      DictionaryState dictState, WordSelectionState selection) {
-    if (selection.selectedText.isEmpty) return '';
-    if (dictState.queriedWord != selection.selectedText) return '';
+    DictionaryState dictState, WordSelectionState selection) {
+    if (selection.queryWord.isEmpty) return '';
+    if (dictState.queriedWord != selection.queryWord) return '';
     if (dictState.status != DictQueryStatus.done &&
         dictState.status != DictQueryStatus.aiStreaming) {
       return '';
@@ -199,7 +199,7 @@ class ResultsList extends ConsumerWidget {
 
   /// 底部提示文案
   String _bottomHint(DictionaryState dictState, WordSelectionState selection) {
-    if (selection.selectedText.isEmpty) {
+    if (selection.queryWord.isEmpty) {
       return '提示：双击条目可快速添加 （若无查询结果，仅显示空条目）';
     }
     switch (dictState.status) {
@@ -259,14 +259,14 @@ class ResultsList extends ConsumerWidget {
     return widgets;
   }
 
-  /// 手动触发词典查询（重新查询当前选中词）
+  /// 手动触发词典查询（重新查询当前查询词）
   Future<void> _manualSearch(WidgetRef ref) async {
-    final selectedText = ref.read(wordSelectionProvider).selectedText;
-    if (selectedText.isEmpty) {
-      ref.read(toastProvider.notifier).show('请先选择一个单词');
+    final queryWord = ref.read(wordSelectionProvider).queryWord;
+    if (queryWord.isEmpty) {
+      ref.read(toastProvider.notifier).show('请先选择或输入单词');
       return;
     }
-    await ref.read(dictionaryProvider.notifier).query(selectedText);
+    await ref.read(dictionaryProvider.notifier).query(queryWord);
   }
 
   /// 添加笔记到 Anki

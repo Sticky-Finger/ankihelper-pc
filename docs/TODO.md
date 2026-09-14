@@ -242,3 +242,10 @@
 - [x] **内置模板改名**
     - [x] 默认模板「词汇卡片」→「划词助手Antimoon模板」
     - [x] 模板字段「例句翻译」→「笔记」（数据源标签「例句翻译」保持不变）
+- [x] **当前选中词组可编辑（查询词与卡片用编辑后的词）** ✅
+    > 实现计划：`docs/superpowers/plans/2026-09-14-editable-query-word.md`
+    - [x] **查询词状态**：`WordSelectionState` 新增 `queryWord`，选中变化时自动初始化为选中原文；新增 `updateQueryWord`（300ms 防抖查询）/ `commitQueryWord`（立即查询）API
+    - [x] **可编辑输入框**：`word_blocks_section.dart` 只读 Text 替换为 TextField（onChange / 失焦 / 回车触发提交），选中变化时回写控制器
+    - [x] **查询与卡片改用查询词**：`_triggerDictionaryQuery`、`_recomputeEntry` 竞态守卫、`_buildEntry`/`_buildSenseEntry` 卡片 word 与发音 URL、结果列表守卫与手动搜索全部改用 `queryWord`
+    - [x] **例句高亮不变**：`_buildExample` 的 `<b>` 高亮只依赖 token 索引，与查询词解耦
+    - [x] **单元测试**：`test/providers/word_selection_provider_test.dart` 6 个用例全部通过

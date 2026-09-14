@@ -22,10 +22,13 @@ class WordBlocksSection extends ConsumerStatefulWidget {
 
 class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
   final _focusNode = FocusNode();
+  final _queryWordController = TextEditingController();
+  final _queryWordFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    _queryWordFocusNode.addListener(_onQueryWordFocusChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.listenManual(clipboardProvider, (prev, next) {
         if (next.originalText != prev?.originalText) {
@@ -45,8 +48,18 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
 
   @override
   void dispose() {
+    _queryWordFocusNode.removeListener(_onQueryWordFocusChanged);
+    _queryWordFocusNode.dispose();
+    _queryWordController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  /// 输入栏失焦：立即用当前输入值提交查询（用户改完词直接点其他地方即生效）
+  void _onQueryWordFocusChanged() {
+    if (!_queryWordFocusNode.hasFocus) {
+      ref.read(wordSelectionProvider.notifier).commitQueryWord();
+    }
   }
 
   void _onTokenTap(int index) {
@@ -65,7 +78,14 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
     final tokens = ref.watch(fluentTokensProvider);
     final selection = ref.watch(wordSelectionProvider);
 
-    final hasSelection = selection.selectedIndices.isNotEmpty;
+    // 选中交互/新剪贴板时回写输入框；打字过程中不回写，避免光标跳动
+    ref.listen(wordSelectionProvider, (prev, next) {
+      final selectionChanged = prev?.selectedText != next.selectedText;
+      final tokensChanged = !identical(prev?.tokens, next.tokens);
+      if (selectionChanged || tokensChanged) {
+        _queryWordController.text = next.queryWord;
+      }
+    });
 
     return Focus(
       focusNode: _focusNode,
@@ -139,14 +159,36 @@ class _WordBlocksSectionState extends ConsumerState<WordBlocksSection> {
                   ),
                 ),
                 const SizedBox(width: FluentTokens.spaceS),
-                Text(
-                  hasSelection ? selection.selectedText : '—',
-                  style: TextStyle(
-                    fontFamily: FluentTokens.fontFamilyBase,
-                    fontSize: FluentTokens.fontSize300,
-                    fontWeight: FluentTokens.fontWeightMedium,
-                    color: hasSelection ? tokens.fgBrand : tokens.fg4,
-                    fontStyle: hasSelection ? FontStyle.normal : FontStyle.italic,
+                Expanded(
+                  child: TextField(
+                    controller: _queryWordController,
+                    focusNode: _queryWordFocusNode,
+                    style: TextStyle(
+                      fontFamily: FluentTokens.fontFamilyBase,
+                      fontSize: FluentTokens.fontSize300,
+                      fontWeight: FluentTokens.fontWeightMedium,
+                      color: tokens.fgBrand,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: '选中后自动填入，可直接编辑（如改为原型）',
+                      hintStyle: TextStyle(
+                        fontFamily: FluentTokens.fontFamilyBase,
+                        fontSize: FluentTokens.fontSize200,
+                        color: tokens.fg4,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      isDense: true,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onChanged: (text) => ref
+                        .read(wordSelectionProvider.notifier)
+                        .updateQueryWord(text),
+                    onSubmitted: (_) => ref
+                        .read(wordSelectionProvider.notifier)
+                        .commitQueryWord(),
                   ),
                 ),
               ],
@@ -180,7 +222,8 @@ class _PronunciationControls extends ConsumerWidget {
             padding: EdgeInsets.zero,
             icon: Icon(Icons.volume_up, size: 18, color: tokens.fg2),
             onPressed: () async {
-              final word = selection.selectedText;
+              // 查询词为空时 play 内部用 "test" 测试发音
+              final word = selection.queryWord;
               final source = ref.read(pronunciationProvider).selectedSource;
               try {
                 await PronunciationPlayer.play(word, source);

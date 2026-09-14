@@ -16,6 +16,11 @@ class WordSelectionState {
   final List<WordTokenModel> tokens;
   final Set<int> selectedIndices;
   final int? lastClickedIndex;
+
+  /// 查询词：选中变化时自动初始化为选中原文，可由用户编辑（如改为原型）。
+  /// 词典查询、卡片 word 字段与发音 URL 均以此为准。
+  final String queryWord;
+
   final CardEntryModel? currentEntry;
 
   /// 词典义项条目（查询成功时与手动空条目并列展示）
@@ -25,14 +30,22 @@ class WordSelectionState {
     this.tokens = const [],
     this.selectedIndices = const {},
     this.lastClickedIndex,
+    this.queryWord = '',
     this.currentEntry,
     this.senseEntries = const [],
   });
 
   /// 当前选中的文本（跳过标点）
-  String get selectedText {
-    if (selectedIndices.isEmpty) return '';
-    final sorted = SplayTreeSet<int>.from(selectedIndices);
+  String get selectedText =>
+      WordSelectionState.textFromIndices(tokens, selectedIndices);
+
+  /// 按选中索引拼接词组文本（跳过标点）
+  static String textFromIndices(
+    List<WordTokenModel> tokens,
+    Set<int> indices,
+  ) {
+    if (indices.isEmpty) return '';
+    final sorted = SplayTreeSet<int>.from(indices);
     final words = <String>[];
     for (final i in sorted) {
       if (i < tokens.length && !tokens[i].isPunctuation) {
@@ -49,12 +62,14 @@ class WordSelectionState {
     Set<int>? selectedIndices,
     int? lastClickedIndex,
     bool clearLastClicked = false,
+    String? queryWord,
   }) =>
       WordSelectionState(
         tokens: tokens ?? this.tokens,
         selectedIndices: selectedIndices ?? this.selectedIndices,
         lastClickedIndex:
             clearLastClicked ? null : (lastClickedIndex ?? this.lastClickedIndex),
+        queryWord: queryWord ?? this.queryWord,
         currentEntry: currentEntry,
         senseEntries: senseEntries,
       );
@@ -63,6 +78,12 @@ class WordSelectionState {
 /// 单词选中状态 Notifier
 class WordSelectionNotifier extends Notifier<WordSelectionState> {
   Timer? _debounceTimer;
+
+  /// 编辑查询词的防抖定时器（与选中防抖互斥）
+  Timer? _editDebounceTimer;
+
+  /// 是否存在未提交的编辑（commitQueryWord 只在有编辑时触发查询）
+  bool _hasPendingEdit = false;
 
   @override
   WordSelectionState build() {
@@ -82,7 +103,10 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     ref.listen(dictionaryProvider, (prev, next) {
       _recomputeEntry();
     });
-    ref.onDispose(() => _debounceTimer?.cancel());
+    ref.onDispose(() {
+      _debounceTimer?.cancel();
+      _editDebounceTimer?.cancel();
+    });
     return const WordSelectionState();
   }
 
@@ -94,12 +118,7 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
 
   /// 处理单击选中
   void selectIndex(int index) {
-    state = WordSelectionState(
-      tokens: state.tokens,
-      selectedIndices: {index},
-      lastClickedIndex: index,
-    );
-    _debouncedRecompute();
+    _applySelection({index}, index);
   }
 
   /// 处理 Shift+单击（连续多选）
@@ -117,12 +136,7 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
         indices.add(i);
       }
     }
-    state = WordSelectionState(
-      tokens: state.tokens,
-      selectedIndices: indices,
-      lastClickedIndex: last,
-    );
-    _debouncedRecompute();
+    _applySelection(indices, last);
   }
 
   /// 处理 Cmd/Ctrl+单击（切换选中）
@@ -133,22 +147,59 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
     } else {
       indices.add(index);
     }
-    state = WordSelectionState(
-      tokens: state.tokens,
-      selectedIndices: indices,
-      lastClickedIndex: index,
-    );
-    _debouncedRecompute();
+    _applySelection(indices, index);
   }
 
   /// 清除选中
   void clearSelection() {
-    state = WordSelectionState(tokens: state.tokens);
+    _applySelection(const <int>{}, null);
+  }
+
+  /// 应用新选中集：queryWord 重置为选中原文，覆盖此前的编辑
+  void _applySelection(Set<int> indices, int? lastClickedIndex) {
+    state = WordSelectionState(
+      tokens: state.tokens,
+      selectedIndices: indices,
+      lastClickedIndex: lastClickedIndex,
+      queryWord: WordSelectionState.textFromIndices(state.tokens, indices),
+    );
     _debouncedRecompute();
   }
 
-  /// selectedText 变化后 300ms 防抖重算 currentEntry 并触发词典查询
+  /// 用户编辑查询词：立即更新状态（旧条目清除），300ms 防抖后重查（合并连续按键）
+  void updateQueryWord(String text) {
+    final trimmed = text.trim();
+    if (trimmed == state.queryWord) return;
+    _debounceTimer?.cancel();
+    _editDebounceTimer?.cancel();
+    _hasPendingEdit = true;
+    state = WordSelectionState(
+      tokens: state.tokens,
+      selectedIndices: state.selectedIndices,
+      lastClickedIndex: state.lastClickedIndex,
+      queryWord: trimmed,
+    );
+    _editDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _hasPendingEdit = false;
+      _recomputeEntry();
+      _triggerDictionaryQuery();
+    });
+  }
+
+  /// 立即提交查询词（输入栏失焦 / 回车时调用）
+  void commitQueryWord() {
+    if (!_hasPendingEdit) return;
+    _hasPendingEdit = false;
+    _editDebounceTimer?.cancel();
+    _debounceTimer?.cancel();
+    _recomputeEntry();
+    _triggerDictionaryQuery();
+  }
+
+  /// 选中变化后 300ms 防抖重算 currentEntry 并触发词典查询
   void _debouncedRecompute() {
+    _editDebounceTimer?.cancel();
+    _hasPendingEdit = false;
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       _recomputeEntry();
@@ -159,22 +210,22 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
   /// 立即重算 currentEntry（剪贴板/翻译/词典结果变化时调用）
   void _recomputeEntry() {
     _debounceTimer?.cancel();
-    final selectedText = state.selectedText;
+    final queryWord = state.queryWord;
     final clipboard = ref.read(clipboardProvider).originalText;
     final translation = ref.read(translationProvider).translatedText;
     final dictState = ref.read(dictionaryProvider);
 
-    // 竞态守卫：词典结果只对当前选中词生效
+    // 竞态守卫：词典结果只对当前查询词生效
     var senseEntries = const <CardEntryModel>[];
     var aiMarkdown = '';
-    if (selectedText.isNotEmpty && dictState.queriedWord == selectedText) {
+    if (queryWord.isNotEmpty && dictState.queriedWord == queryWord) {
       if (dictState.status == DictQueryStatus.done) {
         final result = dictState.result;
         if (result != null && !result.isAi) {
           senseEntries = result.senses
               .where((sense) => sense.def.isNotEmpty)
               .map((sense) => _buildSenseEntry(
-                    selectedText,
+                    queryWord,
                     clipboard,
                     translation,
                     result,
@@ -188,29 +239,30 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
       }
     }
 
-    final entry = _buildEntry(selectedText, clipboard, translation, aiMarkdown);
+    final entry = _buildEntry(queryWord, clipboard, translation, aiMarkdown);
     // 直接构造新 state，保留 currentEntry
     state = WordSelectionState(
       tokens: state.tokens,
       selectedIndices: state.selectedIndices,
       lastClickedIndex: state.lastClickedIndex,
+      queryWord: state.queryWord,
       currentEntry: entry,
       senseEntries: senseEntries,
     );
   }
 
-  /// 触发词典查询（选中非空文本时；词组由服务内部路由到 AI 词典）
+  /// 触发词典查询（查询词非空时；词组由服务内部路由到 AI 词典）
   void _triggerDictionaryQuery() {
-    final selectedText = state.selectedText;
-    if (selectedText.isEmpty) {
+    final queryWord = state.queryWord;
+    if (queryWord.isEmpty) {
       ref.read(dictionaryProvider.notifier).clear();
       return;
     }
-    ref.read(dictionaryProvider.notifier).query(selectedText);
+    ref.read(dictionaryProvider.notifier).query(queryWord);
   }
 
-  /// 构建 example 字段：按选中位置精确高亮
-  String _buildExample(String selectedText, String clipboard) {
+  /// 构建 example 字段：按选中位置精确高亮（与查询词无关，编辑不改高亮）
+  String _buildExample(String clipboard) {
     if (clipboard.isEmpty) return '';
     if (state.selectedIndices.isEmpty) return clipboard;
 
@@ -252,32 +304,32 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
   }
 
   /// 构建发音字段（Anki [sound:] 格式）
-  String _buildPronunciationUrl(String selectedText) {
-    if (selectedText.isEmpty) return '';
+  String _buildPronunciationUrl(String queryWord) {
+    if (queryWord.isEmpty) return '';
     final source = ref.read(pronunciationProvider).selectedSource;
-    return '[sound:${PronunciationService.getUrl(selectedText, source)}]';
+    return '[sound:${PronunciationService.getUrl(queryWord, source)}]';
   }
 
   /// 构建 currentEntry（手动空条目，AI 释义附加于此供字段映射）
   CardEntryModel _buildEntry(
-    String selectedText,
+    String queryWord,
     String clipboard,
     String translation,
     String aiMarkdown,
   ) {
     return CardEntryModel(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
-      word: selectedText,
-      example: _buildExample(selectedText, clipboard),
+      word: queryWord,
+      example: _buildExample(clipboard),
       exampleTranslation: translation,
-      pronunciationUrl: _buildPronunciationUrl(selectedText),
+      pronunciationUrl: _buildPronunciationUrl(queryWord),
       aiDictMarkdown: aiMarkdown,
     );
   }
 
-  /// 构建词典义项条目（word 用选中词形，例句复用剪贴板原文 + <b> 高亮）
+  /// 构建词典义项条目（word 用查询词：选中原文或用户编辑后的原型）
   CardEntryModel _buildSenseEntry(
-    String selectedText,
+    String queryWord,
     String clipboard,
     String translation,
     DictionaryResult result,
@@ -285,13 +337,13 @@ class WordSelectionNotifier extends Notifier<WordSelectionState> {
   ) {
     return CardEntryModel(
       id: 'sense_${result.word}_${sense.pos}_${sense.def.hashCode}',
-      word: selectedText,
+      word: queryWord,
       phonetic: result.mergedPhonetic,
       pos: sense.pos,
       meaning: sense.def,
-      example: _buildExample(selectedText, clipboard),
+      example: _buildExample(clipboard),
       exampleTranslation: translation,
-      pronunciationUrl: _buildPronunciationUrl(selectedText),
+      pronunciationUrl: _buildPronunciationUrl(queryWord),
     );
   }
 }
