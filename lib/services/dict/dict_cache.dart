@@ -23,12 +23,6 @@ class _CacheEntry {
         'result': result.toJson(),
       };
 
-  factory _CacheEntry.fromDictionaryResult(DictionaryResult result) =>
-      _CacheEntry(
-        result: result,
-        expiry: DateTime.now().add(kDictCacheTtl),
-      );
-
   factory _CacheEntry.fromJson(Map<String, dynamic> json) => _CacheEntry(
         result: DictionaryResult.fromJson(
             json['result'] as Map<String, dynamic>? ?? {}),
@@ -96,7 +90,9 @@ class DictCache {
       {bool persist = true}) async {
     await _ensureLoaded();
     final key = buildKey(source, word, contextSig);
-    final entry = _CacheEntry.fromDictionaryResult(result);
+    // 过期时间用注入时钟计算，与 get 的判定时钟一致（测试可 mock）
+    final entry =
+        _CacheEntry(result: result, expiry: _now().add(kDictCacheTtl));
     _memory[key] = entry;
     if (!persist) return;
     try {
