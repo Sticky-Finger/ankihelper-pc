@@ -205,6 +205,17 @@ Anki划词助手是一款将剪贴板中的英文句子智能切分为单词块�
 
 ### 开发中 🚧
 
+#### 内置模板「{{发音}}」替换为 TTS 按钮
+
+> 参考实现：姊妹项目 `ankihelper.250618_selection_filter/docs/feature-plan/2026-0803-TTS_Button_Replacement.md`
+> 实现计划：`docs/superpowers/plans/2026-09-29-tts-button-replacement.md`
+
+- [x] **模板 §1 替换**：`{{发音}}` 替换为 TTS 按钮（英音/美音），由 JS 调用 `new Audio()` 拉有道 TTS，不再依赖 Anki `[sound:]` 媒体库查找
+- [x] **模板 §3 CSS 追加**：`.tts-bar` / `.tts-btn` 基础样式 + `.nightMode` 暗色模式覆盖
+- [x] **静态校验**：`{{发音}}` 出现次数 = 0；`@@@` 仍为 3；字段名段 7 项未变
+- [ ] **手动验证**（需设备）：AnkiDroid 加默认方案 → 卡片正面点英音/美音有声音
+- [ ] **手动回归**：反面（FrontSide 复用 §1）正常；暗色模式按钮颜色切换
+
 #### 卡片释义并入词性（义项条目制卡增强）
 
 > 实现计划：`docs/superpowers/plans/2026-09-14-card-meaning-with-pos.md`
