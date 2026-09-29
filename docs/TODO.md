@@ -6,6 +6,20 @@
 
 ## 开发中 🚧
 
+### 内置模板「{{发音}}」替换为 TTS 按钮
+
+> 需求：内置卡片模板 `vocabulary_card_model.html` 用 `[sound:URL]` 渲染 `{{发音}}` 字段，
+> 而该字段实际为有道远程 URL。macOS / iOS Anki 沙盒环境下按本地文件名查不到，静默失败。
+> 改为模板内置 JS 调用 `new Audio()` 拉有道 TTS，UK/US 双按钮，含暗色模式样式。
+> 参考实现：姊妹项目 `ankihelper.250618_selection_filter/docs/feature-plan/2026-0803-TTS_Button_Replacement.md`
+> 实现计划：`docs/superpowers/plans/2026-09-29-tts-button-replacement.md`
+
+- [x] **模板 §1 替换**：`{{发音}}` 替换为 TTS 按钮（英音/美音）+ `playUK`/`playUS` JS 函数
+- [x] **模板 §3 CSS 追加**：`.tts-bar` / `.tts-btn` 基础样式 + `.nightMode` 暗色模式覆盖
+- [x] **静态校验全绿**：`{{发音}}` 出现次数 = 0；`@@@` 仍为 3；字段名段 7 项未变
+- [ ] **手动验证**（需设备）：加默认方案 → AnkiDroid 卡片正面点英音/美音按钮有声音
+- [ ] **手动回归**：卡片反面仍正常（FrontSide 复用 §1）；暗色模式按钮颜色切换
+
 ### 卡片释义并入词性（义项条目制卡增强）
 
 > 需求：点击查出的义项条目添加卡片时，「释义」字段缺少词性（v./n. 等）。
